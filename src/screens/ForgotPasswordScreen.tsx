@@ -15,6 +15,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
 import { useAuthStore } from '../store/auth.store';
+import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
 
 export const ForgotPasswordScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
@@ -43,104 +44,96 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAwareContainer 
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
+        ]}
       >
-        <ScrollView 
-          contentContainerStyle={[
-            styles.scrollViewContent,
-            { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={true}
-        >
-          {/* Main Card */}
-          <View style={styles.card}>
-            
-            {/* Header */}
-            <View style={styles.header}>
-              <View style={styles.iconContainer}>
-                <MaterialIcons name="lock-reset" size={36} color={colors.primary} />
-              </View>
-              <Text style={styles.title}>Şifremi Unuttum</Text>
-              <Text style={styles.subtitle}>
-                Hesabınızla ilişkili e-posta adresini girin, şifrenizi sıfırlamak için bir bağlantı gönderelim.
-              </Text>
+        {/* Main Card */}
+        <View style={styles.card}>
+          
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <MaterialIcons name="lock-reset" size={36} color={colors.primary} />
             </View>
-
-            {/* Message Box */}
-            {message && (
-              <View style={[
-                styles.messageBox,
-                message.type === 'error' ? styles.errorBox : styles.successBox
-              ]}>
-                <MaterialIcons 
-                  name={message.type === 'error' ? 'error-outline' : 'check-circle-outline'} 
-                  size={20} 
-                  color={message.type === 'error' ? colors.error : '#2E7D32'} 
-                />
-                <Text style={[
-                  styles.messageText,
-                  message.type === 'error' ? styles.errorText : styles.successText
-                ]}>{message.text}</Text>
-              </View>
-            )}
-
-            {/* Form */}
-            <View style={styles.form}>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>E-Posta Adresi</Text>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="mail" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="ornek@sirket.com"
-                    placeholderTextColor={colors.outline}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              <TouchableOpacity 
-                style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
-                activeOpacity={0.8}
-                onPress={handleResetPassword}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color={colors.onPrimary} />
-                ) : (
-                  <>
-                    <Text style={styles.submitButtonText}>Sıfırlama Bağlantısı Gönder</Text>
-                    <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
-                  </>
-                )}
-              </TouchableOpacity>
-              
-            </View>
-
-            {/* Back to Login Link */}
-            <TouchableOpacity 
-              style={styles.backLinkContainer} 
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <MaterialIcons name="arrow-back" size={18} color={colors.primary} />
-              <Text style={styles.backLinkText}>Giriş Ekranına Dön</Text>
-            </TouchableOpacity>
-
+            <Text style={styles.title}>Şifremi Unuttum</Text>
+            <Text style={styles.subtitle}>
+              Hesabınızla ilişkili e-posta adresini girin, şifrenizi sıfırlamak için bir bağlantı gönderelim.
+            </Text>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          {/* Message Box */}
+          {message && (
+            <View style={[
+              styles.messageBox,
+              message.type === 'error' ? styles.errorBox : styles.successBox
+            ]}>
+              <MaterialIcons 
+                name={message.type === 'error' ? 'error-outline' : 'check-circle-outline'} 
+                size={20} 
+                color={message.type === 'error' ? colors.error : '#2E7D32'} 
+              />
+              <Text style={[
+                styles.messageText,
+                message.type === 'error' ? styles.errorText : styles.successText
+              ]}>{message.text}</Text>
+            </View>
+          )}
+
+          {/* Form */}
+          <View style={styles.form}>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>E-Posta Adresi</Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="mail" size={20} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="ornek@sirket.com"
+                  placeholderTextColor={colors.outline}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+              activeOpacity={0.8}
+              onPress={handleResetPassword}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors.onPrimary} />
+              ) : (
+                <>
+                  <Text style={styles.submitButtonText}>Sıfırlama Bağlantısı Gönder</Text>
+                  <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
+                </>
+              )}
+            </TouchableOpacity>
+            
+          </View>
+
+          {/* Back to Login Link */}
+          <TouchableOpacity 
+            style={styles.backLinkContainer} 
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <MaterialIcons name="arrow-back" size={18} color={colors.primary} />
+            <Text style={styles.backLinkText}>Giriş Ekranına Dön</Text>
+          </TouchableOpacity>
+
+        </View>
+      </KeyboardAwareContainer>
     </View>
   );
 };

@@ -15,9 +15,9 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import colors from '../theme/colors';
 import { useAuthStore } from '../store/auth.store';
+import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
 
 export const LoginScreen = ({ navigation }: any) => {
   const { width } = useWindowDimensions();
@@ -81,131 +81,123 @@ export const LoginScreen = ({ navigation }: any) => {
       )}
 
       {/* Right Pane: Login Form */}
-      <KeyboardAvoidingView 
+      <KeyboardAwareContainer 
         style={[styles.rightPane, { width: isLargeScreen ? '50%' : '100%' }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
+        ]}
       >
-        <ScrollView 
-          contentContainerStyle={[
-            styles.scrollViewContent,
-            { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={true}
-        >
-          <View style={styles.formContainer}>
-            
-            {/* Mobile Header */}
-            {!isLargeScreen && (
-              <View style={styles.mobileHeader}>
-                <MaterialIcons name="inventory" size={48} color={colors.primary} />
-                <Text style={styles.mobileLogoText}>KargoTakip</Text>
-              </View>
-            )}
-
-            {/* Welcome Text */}
-            <View style={[styles.welcomeSection, !isLargeScreen && styles.welcomeSectionMobile]}>
-              <Text style={styles.welcomeTitle}>Tekrar Hoş Geldiniz</Text>
-              <Text style={styles.welcomeSubtitle}>Devam etmek için hesap bilgilerinizi girin.</Text>
+        <View style={styles.formContainer}>
+          
+          {/* Mobile Header */}
+          {!isLargeScreen && (
+            <View style={styles.mobileHeader}>
+              <MaterialIcons name="inventory" size={48} color={colors.primary} />
+              <Text style={styles.mobileLogoText}>KargoTakip</Text>
             </View>
+          )}
 
-            {/* Error Message Box */}
-            {!!errorMessage && (
-              <View style={styles.errorBox}>
-                <MaterialIcons name="error-outline" size={20} color={colors.error} />
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </View>
-            )}
-
-            {/* Form */}
-            <View style={styles.form}>
-              
-              {/* Email Input Group */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>E-Posta Adresi</Text>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="mail" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="ornek@sirket.com"
-                    placeholderTextColor={colors.outlineVariant}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              {/* Password Input Group */}
-              <View style={styles.inputGroup}>
-                <View style={styles.passwordHeader}>
-                  <Text style={styles.inputLabel}>Şifre</Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-                    <Text style={styles.forgotPassword}>Şifremi Unuttum</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="lock" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={[styles.input, styles.inputWithRightIcon]}
-                    placeholder="••••••••"
-                    placeholderTextColor={colors.outlineVariant}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!isPasswordVisible}
-                  />
-                  <TouchableOpacity 
-                    style={styles.inputIconRight}
-                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  >
-                    <MaterialIcons 
-                      name={isPasswordVisible ? 'visibility' : 'visibility-off'} 
-                      size={20} 
-                      color={colors.outline} 
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Submit Button */}
-              <TouchableOpacity 
-                style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
-                activeOpacity={0.8}
-                onPress={handleLogin}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color={colors.onPrimary} />
-                ) : (
-                  <>
-                    <Text style={styles.submitButtonText}>Giriş Yap</Text>
-                    <MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />
-                  </>
-                )}
-              </TouchableOpacity>
-              
-            </View>
-
-            {/* Registration Link */}
-            <View style={styles.registerSection}>
-              <Text style={styles.registerText}>
-                Hesabınız yok mu?{' '}
-              </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.registerLink}>Kayıt Ol</Text>
-              </TouchableOpacity>
-            </View>
-
+          {/* Welcome Text */}
+          <View style={[styles.welcomeSection, !isLargeScreen && styles.welcomeSectionMobile]}>
+            <Text style={styles.welcomeTitle}>Tekrar Hoş Geldiniz</Text>
+            <Text style={styles.welcomeSubtitle}>Devam etmek için hesap bilgilerinizi girin.</Text>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          {/* Error Message Box */}
+          {!!errorMessage && (
+            <View style={styles.errorBox}>
+              <MaterialIcons name="error-outline" size={20} color={colors.error} />
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          )}
+
+          {/* Form */}
+          <View style={styles.form}>
+            
+            {/* Email Input Group */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>E-Posta Adresi</Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="mail" size={20} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="ornek@sirket.com"
+                  placeholderTextColor={colors.outlineVariant}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+
+            {/* Password Input Group */}
+            <View style={styles.inputGroup}>
+              <View style={styles.passwordHeader}>
+                <Text style={styles.inputLabel}>Şifre</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                  <Text style={styles.forgotPassword}>Şifremi Unuttum</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="lock" size={20} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={[styles.input, styles.inputWithRightIcon]}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.outlineVariant}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!isPasswordVisible}
+                />
+                <TouchableOpacity 
+                  style={styles.inputIconRight}
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                >
+                  <MaterialIcons 
+                    name={isPasswordVisible ? 'visibility' : 'visibility-off'} 
+                    size={20} 
+                    color={colors.outline} 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity 
+              style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+              activeOpacity={0.8}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors.onPrimary} />
+              ) : (
+                <>
+                  <Text style={styles.submitButtonText}>Giriş Yap</Text>
+                  <MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />
+                </>
+              )}
+            </TouchableOpacity>
+            
+          </View>
+
+          {/* Registration Link */}
+          <View style={styles.registerSection}>
+            <Text style={styles.registerText}>
+              Hesabınız yok mu?{' '}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.registerLink}>Kayıt Ol</Text>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      </KeyboardAwareContainer>
     </View>
   );
 };

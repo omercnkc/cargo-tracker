@@ -16,6 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
 import { useAuthStore } from '../store/auth.store';
+import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
 
 export const RegisterScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
@@ -69,169 +70,161 @@ export const RegisterScreen = ({ navigation }: any) => {
         <View style={styles.ambientCircleBottomRight} />
       </View>
 
-      <KeyboardAvoidingView 
+      <KeyboardAwareContainer 
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
+        ]}
       >
-        <ScrollView 
-          contentContainerStyle={[
-            styles.scrollViewContent,
-            { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={true}
-        >
-          {/* Registration Container */}
-          <View style={styles.card}>
-            
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.title}>KargoTakip</Text>
-              <Text style={styles.subtitle}>Kargo takibine başlamak için hesap oluşturun.</Text>
-            </View>
-
-            {/* Error Message Box */}
-            {!!errorMessage && (
-              <View style={styles.errorBox}>
-                <MaterialIcons name="error-outline" size={20} color={colors.error} />
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </View>
-            )}
-
-            {/* Form */}
-            <View style={styles.form}>
-              
-              {/* Full Name */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Ad Soyad</Text>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="person" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Adınız Soyadınız"
-                    placeholderTextColor={colors.outline}
-                    value={fullName}
-                    onChangeText={setFullName}
-                  />
-                </View>
-              </View>
-
-              {/* Email */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>E-Posta Adresi</Text>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="mail" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="ornek@sirket.com"
-                    placeholderTextColor={colors.outline}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              {/* Password */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Şifre</Text>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="lock" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={[styles.input, styles.inputWithRightIcon]}
-                    placeholder="Güçlü bir şifre girin"
-                    placeholderTextColor={colors.outline}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!isPasswordVisible}
-                  />
-                  <TouchableOpacity 
-                    style={styles.inputIconRight}
-                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  >
-                    <MaterialIcons 
-                      name={isPasswordVisible ? 'visibility' : 'visibility-off'} 
-                      size={20} 
-                      color={colors.outline} 
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Confirm Password */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Şifre Tekrarı</Text>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="lock-reset" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={[styles.input, styles.inputWithRightIcon]}
-                    placeholder="Şifrenizi tekrar girin"
-                    placeholderTextColor={colors.outline}
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    secureTextEntry={!isConfirmPasswordVisible}
-                  />
-                  <TouchableOpacity 
-                    style={styles.inputIconRight}
-                    onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
-                  >
-                    <MaterialIcons 
-                      name={isConfirmPasswordVisible ? 'visibility' : 'visibility-off'} 
-                      size={20} 
-                      color={colors.outline} 
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Actions */}
-              <View style={styles.actionsContainer}>
-                <TouchableOpacity 
-                  style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
-                  activeOpacity={0.8}
-                  onPress={handleRegister}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color={colors.onPrimary} />
-                  ) : (
-                    <>
-                      <Text style={styles.submitButtonText}>Hesap Oluştur</Text>
-                      <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
-                    </>
-                  )}
-                </TouchableOpacity>
-                
-                <View style={styles.loginLinkContainer}>
-                  <Text style={styles.loginLinkText}>Zaten hesabınız var mı? </Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                    <Text style={styles.loginLinkHighlight}>Giriş Yap</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Terms */}
-              <View style={styles.termsContainer}>
-                <Text style={styles.termsText}>
-                  Hesap oluşturarak <Text style={styles.termsLink}>Kullanım Koşulları</Text> ve <Text style={styles.termsLink}>Gizlilik Politikası</Text>'nı kabul etmiş olursunuz.
-                </Text>
-              </View>
-
-            </View>
+        {/* Registration Container */}
+        <View style={styles.card}>
+          
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>KargoTakip</Text>
+            <Text style={styles.subtitle}>Kargo takibine başlamak için hesap oluşturun.</Text>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          {/* Error Message Box */}
+          {!!errorMessage && (
+            <View style={styles.errorBox}>
+              <MaterialIcons name="error-outline" size={20} color={colors.error} />
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          )}
+
+          {/* Form */}
+          <View style={styles.form}>
+            
+            {/* Full Name */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Ad Soyad</Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="person" size={20} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Adınız Soyadınız"
+                  placeholderTextColor={colors.outline}
+                  value={fullName}
+                  onChangeText={setFullName}
+                />
+              </View>
+            </View>
+
+            {/* Email */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>E-Posta Adresi</Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="mail" size={20} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="ornek@sirket.com"
+                  placeholderTextColor={colors.outline}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+
+            {/* Password */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Şifre</Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="lock" size={20} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={[styles.input, styles.inputWithRightIcon]}
+                  placeholder="Güçlü bir şifre girin"
+                  placeholderTextColor={colors.outline}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!isPasswordVisible}
+                />
+                <TouchableOpacity 
+                  style={styles.inputIconRight}
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                >
+                  <MaterialIcons 
+                    name={isPasswordVisible ? 'visibility' : 'visibility-off'} 
+                    size={20} 
+                    color={colors.outline} 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Confirm Password */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Şifre Tekrarı</Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="lock-reset" size={20} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={[styles.input, styles.inputWithRightIcon]}
+                  placeholder="Şifrenizi tekrar girin"
+                  placeholderTextColor={colors.outline}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!isConfirmPasswordVisible}
+                />
+                <TouchableOpacity 
+                  style={styles.inputIconRight}
+                  onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+                >
+                  <MaterialIcons 
+                    name={isConfirmPasswordVisible ? 'visibility' : 'visibility-off'} 
+                    size={20} 
+                    color={colors.outline} 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View style={styles.actionsContainer}>
+              <TouchableOpacity 
+                style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+                activeOpacity={0.8}
+                onPress={handleRegister}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={colors.onPrimary} />
+                ) : (
+                  <>
+                    <Text style={styles.submitButtonText}>Hesap Oluştur</Text>
+                    <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
+                  </>
+                )}
+              </TouchableOpacity>
+              
+              <View style={styles.loginLinkContainer}>
+                <Text style={styles.loginLinkText}>Zaten hesabınız var mı? </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                  <Text style={styles.loginLinkHighlight}>Giriş Yap</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Terms */}
+            <View style={styles.termsContainer}>
+              <Text style={styles.termsText}>
+                Hesap oluşturarak <Text style={styles.termsLink}>Kullanım Koşulları</Text> ve <Text style={styles.termsLink}>Gizlilik Politikası</Text>'nı kabul etmiş olursunuz.
+              </Text>
+            </View>
+
+          </View>
+        </View>
+      </KeyboardAwareContainer>
     </View>
   );
 };
