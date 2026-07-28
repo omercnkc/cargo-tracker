@@ -8,13 +8,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  useWindowDimensions
+  useWindowDimensions,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
+import { useAuthStore } from '../store/auth.store';
 
-export const RegisterScreen = () => {
+export const RegisterScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   
@@ -25,6 +28,37 @@ export const RegisterScreen = () => {
   
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const signUp = useAuthStore((state) => state.signUp);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  const handleRegister = async () => {
+    if (!fullName || !email || !password || !confirmPassword) {
+      setErrorMessage('Lütfen tüm alanları doldurun.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage('Şifreler eşleşmiyor.');
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMessage('Şifre en az 6 karakter olmalıdır.');
+      return;
+    }
+
+    setErrorMessage('');
+    const res = await signUp(email.trim(), password, fullName.trim());
+    if (res.error) {
+      setErrorMessage(res.error);
+    } else {
+      Alert.alert(
+        'Kayıt Başarılı',
+        'Hesabınız oluşturuldu! Şimdi giriş yapabilirsiniz.',
+        [{ text: 'Giriş Yap', onPress: () => navigation.navigate('Login') }]
+      );
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -53,22 +87,30 @@ export const RegisterScreen = () => {
             {/* Header */}
             <View style={styles.header}>
               <Text style={styles.title}>KargoTakip</Text>
-              <Text style={styles.subtitle}>Create an account to start tracking.</Text>
+              <Text style={styles.subtitle}>Kargo takibine başlamak için hesap oluşturun.</Text>
             </View>
+
+            {/* Error Message Box */}
+            {!!errorMessage && (
+              <View style={styles.errorBox}>
+                <MaterialIcons name="error-outline" size={20} color={colors.error} />
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
 
             {/* Form */}
             <View style={styles.form}>
               
               {/* Full Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Full Name</Text>
+                <Text style={styles.inputLabel}>Ad Soyad</Text>
                 <View style={styles.inputWrapper}>
                   <View style={styles.inputIconLeft}>
                     <MaterialIcons name="person" size={20} color={colors.outline} />
                   </View>
                   <TextInput
                     style={styles.input}
-                    placeholder="Enter your full name"
+                    placeholder="Adınız Soyadınız"
                     placeholderTextColor={colors.outline}
                     value={fullName}
                     onChangeText={setFullName}
@@ -78,14 +120,14 @@ export const RegisterScreen = () => {
 
               {/* Email */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email Address</Text>
+                <Text style={styles.inputLabel}>E-Posta Adresi</Text>
                 <View style={styles.inputWrapper}>
                   <View style={styles.inputIconLeft}>
                     <MaterialIcons name="mail" size={20} color={colors.outline} />
                   </View>
                   <TextInput
                     style={styles.input}
-                    placeholder="name@company.com"
+                    placeholder="ornek@sirket.com"
                     placeholderTextColor={colors.outline}
                     value={email}
                     onChangeText={setEmail}
@@ -97,14 +139,14 @@ export const RegisterScreen = () => {
 
               {/* Password */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Password</Text>
+                <Text style={styles.inputLabel}>Şifre</Text>
                 <View style={styles.inputWrapper}>
                   <View style={styles.inputIconLeft}>
                     <MaterialIcons name="lock" size={20} color={colors.outline} />
                   </View>
                   <TextInput
                     style={[styles.input, styles.inputWithRightIcon]}
-                    placeholder="Create a strong password"
+                    placeholder="Güçlü bir şifre girin"
                     placeholderTextColor={colors.outline}
                     value={password}
                     onChangeText={setPassword}
@@ -125,14 +167,14 @@ export const RegisterScreen = () => {
 
               {/* Confirm Password */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <Text style={styles.inputLabel}>Şifre Tekrarı</Text>
                 <View style={styles.inputWrapper}>
                   <View style={styles.inputIconLeft}>
                     <MaterialIcons name="lock-reset" size={20} color={colors.outline} />
                   </View>
                   <TextInput
                     style={[styles.input, styles.inputWithRightIcon]}
-                    placeholder="Repeat your password"
+                    placeholder="Şifrenizi tekrar girin"
                     placeholderTextColor={colors.outline}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
@@ -153,15 +195,26 @@ export const RegisterScreen = () => {
 
               {/* Actions */}
               <View style={styles.actionsContainer}>
-                <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
-                  <Text style={styles.submitButtonText}>Create Account</Text>
-                  <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
+                <TouchableOpacity 
+                  style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+                  activeOpacity={0.8}
+                  onPress={handleRegister}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color={colors.onPrimary} />
+                  ) : (
+                    <>
+                      <Text style={styles.submitButtonText}>Hesap Oluştur</Text>
+                      <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
+                    </>
+                  )}
                 </TouchableOpacity>
                 
                 <View style={styles.loginLinkContainer}>
-                  <Text style={styles.loginLinkText}>Already have an account? </Text>
-                  <TouchableOpacity>
-                    <Text style={styles.loginLinkHighlight}>Log in</Text>
+                  <Text style={styles.loginLinkText}>Zaten hesabınız var mı? </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                    <Text style={styles.loginLinkHighlight}>Giriş Yap</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -169,7 +222,7 @@ export const RegisterScreen = () => {
               {/* Terms */}
               <View style={styles.termsContainer}>
                 <Text style={styles.termsText}>
-                  By creating an account, you agree to our <Text style={styles.termsLink}>Terms of Service</Text> and <Text style={styles.termsLink}>Privacy Policy</Text>.
+                  Hesap oluşturarak <Text style={styles.termsLink}>Kullanım Koşulları</Text> ve <Text style={styles.termsLink}>Gizlilik Politikası</Text>'nı kabul etmiş olursunuz.
                 </Text>
               </View>
 
@@ -180,6 +233,7 @@ export const RegisterScreen = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -265,6 +319,22 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 24,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFEBEE',
+    padding: 12,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+  },
+  errorText: {
+    fontFamily: 'Inter',
+    fontSize: 14,
+    color: colors.error,
+    flex: 1,
   },
   inputGroup: {
     gap: 6,

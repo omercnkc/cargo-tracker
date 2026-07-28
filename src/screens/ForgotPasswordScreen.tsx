@@ -7,15 +7,39 @@ import {
   StyleSheet, 
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
+import { useAuthStore } from '../store/auth.store';
 
-export const ForgotPasswordScreen = () => {
+export const ForgotPasswordScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
+  const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+
+  const resetPassword = useAuthStore((state) => state.resetPassword);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setMessage({ type: 'error', text: 'Lütfen e-posta adresinizi girin.' });
+      return;
+    }
+    setMessage(null);
+    const res = await resetPassword(email.trim());
+    if (res.error) {
+      setMessage({ type: 'error', text: res.error });
+    } else {
+      setMessage({
+        type: 'success',
+        text: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.',
+      });
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -39,24 +63,42 @@ export const ForgotPasswordScreen = () => {
               <View style={styles.iconContainer}>
                 <MaterialIcons name="lock-reset" size={36} color={colors.primary} />
               </View>
-              <Text style={styles.title}>Forgot Password</Text>
+              <Text style={styles.title}>Şifremi Unuttum</Text>
               <Text style={styles.subtitle}>
-                Enter the email address associated with your KargoTakip account and we'll send you a link to reset your password.
+                Hesabınızla ilişkili e-posta adresini girin, şifrenizi sıfırlamak için bir bağlantı gönderelim.
               </Text>
             </View>
+
+            {/* Message Box */}
+            {message && (
+              <View style={[
+                styles.messageBox,
+                message.type === 'error' ? styles.errorBox : styles.successBox
+              ]}>
+                <MaterialIcons 
+                  name={message.type === 'error' ? 'error-outline' : 'check-circle-outline'} 
+                  size={20} 
+                  color={message.type === 'error' ? colors.error : '#2E7D32'} 
+                />
+                <Text style={[
+                  styles.messageText,
+                  message.type === 'error' ? styles.errorText : styles.successText
+                ]}>{message.text}</Text>
+              </View>
+            )}
 
             {/* Form */}
             <View style={styles.form}>
               
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email Address</Text>
+                <Text style={styles.inputLabel}>E-Posta Adresi</Text>
                 <View style={styles.inputWrapper}>
                   <View style={styles.inputIconLeft}>
                     <MaterialIcons name="mail" size={20} color={colors.outline} />
                   </View>
                   <TextInput
                     style={styles.input}
-                    placeholder="you@example.com"
+                    placeholder="ornek@sirket.com"
                     placeholderTextColor={colors.outline}
                     value={email}
                     onChangeText={setEmail}
@@ -66,17 +108,32 @@ export const ForgotPasswordScreen = () => {
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
-                <Text style={styles.submitButtonText}>Send Reset Link</Text>
-                <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
+              <TouchableOpacity 
+                style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+                activeOpacity={0.8}
+                onPress={handleResetPassword}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={colors.onPrimary} />
+                ) : (
+                  <>
+                    <Text style={styles.submitButtonText}>Sıfırlama Bağlantısı Gönder</Text>
+                    <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
+                  </>
+                )}
               </TouchableOpacity>
               
             </View>
 
             {/* Back to Login Link */}
-            <TouchableOpacity style={styles.backLinkContainer} activeOpacity={0.7}>
+            <TouchableOpacity 
+              style={styles.backLinkContainer} 
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Login')}
+            >
               <MaterialIcons name="arrow-back" size={18} color={colors.primary} />
-              <Text style={styles.backLinkText}>Back to Login</Text>
+              <Text style={styles.backLinkText}>Giriş Ekranına Dön</Text>
             </TouchableOpacity>
 
           </View>
@@ -85,6 +142,7 @@ export const ForgotPasswordScreen = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -145,6 +203,33 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 20,
+  },
+  messageBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  errorBox: {
+    backgroundColor: '#FFEBEE',
+    borderColor: '#FFCDD2',
+  },
+  successBox: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#C8E6C9',
+  },
+  messageText: {
+    fontFamily: 'Inter',
+    fontSize: 14,
+    flex: 1,
+  },
+  errorText: {
+    color: colors.error,
+  },
+  successText: {
+    color: '#2E7D32',
   },
   inputGroup: {
     gap: 8,

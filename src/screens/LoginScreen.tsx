@@ -9,23 +9,44 @@ import {
   useWindowDimensions,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import colors from '../theme/colors';
+import { useAuthStore } from '../store/auth.store';
 
-export const LoginScreen = () => {
+export const LoginScreen = ({ navigation }: any) => {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const signIn = useAuthStore((state) => state.signIn);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
   // Basic breakpoint for tablet/desktop
   const isLargeScreen = width >= 1024;
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMessage('Lütfen e-posta ve şifrenizi girin.');
+      return;
+    }
+    setErrorMessage('');
+    const res = await signIn(email.trim(), password);
+    if (res.error) {
+      setErrorMessage(res.error);
+    } else {
+      navigation.replace('MainTabs');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -88,6 +109,14 @@ export const LoginScreen = () => {
               <Text style={styles.welcomeSubtitle}>Devam etmek için hesap bilgilerinizi girin.</Text>
             </View>
 
+            {/* Error Message Box */}
+            {!!errorMessage && (
+              <View style={styles.errorBox}>
+                <MaterialIcons name="error-outline" size={20} color={colors.error} />
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
+
             {/* Form */}
             <View style={styles.form}>
               
@@ -114,7 +143,7 @@ export const LoginScreen = () => {
               <View style={styles.inputGroup}>
                 <View style={styles.passwordHeader}>
                   <Text style={styles.inputLabel}>Şifre</Text>
-                  <TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
                     <Text style={styles.forgotPassword}>Şifremi Unuttum</Text>
                   </TouchableOpacity>
                 </View>
@@ -144,9 +173,20 @@ export const LoginScreen = () => {
               </View>
 
               {/* Submit Button */}
-              <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
-                <Text style={styles.submitButtonText}>Giriş Yap</Text>
-                <MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />
+              <TouchableOpacity 
+                style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+                activeOpacity={0.8}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={colors.onPrimary} />
+                ) : (
+                  <>
+                    <Text style={styles.submitButtonText}>Giriş Yap</Text>
+                    <MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />
+                  </>
+                )}
               </TouchableOpacity>
               
             </View>
@@ -156,7 +196,7 @@ export const LoginScreen = () => {
               <Text style={styles.registerText}>
                 Hesabınız yok mu?{' '}
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.registerLink}>Kayıt Ol</Text>
               </TouchableOpacity>
             </View>
@@ -167,6 +207,7 @@ export const LoginScreen = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -299,6 +340,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.6,
     color: colors.primary,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFEBEE',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+  },
+  errorText: {
+    fontFamily: 'Inter',
+    fontSize: 14,
+    color: colors.error,
+    flex: 1,
   },
   inputWrapper: {
     position: 'relative',

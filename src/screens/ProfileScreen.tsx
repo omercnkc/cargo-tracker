@@ -13,11 +13,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
 import { useNavigation } from '@react-navigation/native';
 import useResponsive from '../hooks/useResponsive';
+import { useAuthStore } from '../store/auth.store';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
+
+  const user = useAuthStore((state) => state.user);
+  const profile = useAuthStore((state) => state.profile);
+  const signOut = useAuthStore((state) => state.signOut);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigation.replace('Login');
+  };
+
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
+  const displayEmail = user?.email || 'ornek@email.com';
+  const displayAvatar = profile?.avatar_url || 'https://i.pravatar.cc/300?img=11';
 
   return (
     <View style={[styles.container, isLargeScreen && { paddingLeft: 240 }]}>
@@ -66,20 +80,20 @@ export const ProfileScreen = () => {
           
           <View style={styles.avatarContainer}>
             <Image 
-              source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC4TgGsf2A1IXg2IZXeJmqtj3q8crd4TwyBg2tFdKhOae3m5eW5h8v0CLblytV0-9bhpOafluSSsVpsqiVHXK0ZB2-x4KMfEpxhVzNnCnpRzmh3GSwiQ0SL5HE7cUJqqPLtWhAXiCxU8s4Nirx4WWCfrYPMU3K8364vF3O_Hjq1XFKAg2BSGWCyKOd520F9WCzbclY9IV3TPbuzzfNQFrn8sJlZTb6bkfiYWCZZhJfcx4btyLTNLwm-zul_Vy6LgFAlVF0t4aYxwy0' }}
+              source={{ uri: displayAvatar }}
               style={styles.avatarImage}
             />
           </View>
           
           <View style={[styles.profileInfo, isLargeScreen && styles.profileInfoDesktop]}>
-            <Text style={styles.profileName}>Ahmet Y.</Text>
+            <Text style={styles.profileName}>{displayName}</Text>
             <View style={styles.profileEmailRow}>
               <MaterialIcons name="mail" size={18} color={colors.onSurfaceVariant} />
-              <Text style={styles.profileEmail}>ahmet.y@example.com</Text>
+              <Text style={styles.profileEmail}>{displayEmail}</Text>
             </View>
             <TouchableOpacity style={styles.editButton} activeOpacity={0.8}>
               <MaterialIcons name="edit" size={16} color={colors.onPrimary} />
-              <Text style={styles.editButtonText}>Edit Profile</Text>
+              <Text style={styles.editButtonText}>Profili Düzenle</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -89,41 +103,41 @@ export const ProfileScreen = () => {
           
           <View style={styles.statBox}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>TOTAL</Text>
+              <Text style={styles.statBoxLabel}>TOPLAM</Text>
               <MaterialIcons name="inventory" size={20} color={colors.primary} />
             </View>
             <Text style={styles.statBoxValue}>42</Text>
             <View style={styles.statBoxTrendRow}>
               <MaterialIcons name="trending-up" size={12} color={colors.tertiaryContainer} />
-              <Text style={[styles.statBoxSubtext, { color: colors.tertiaryContainer }]}>+3 this month</Text>
+              <Text style={[styles.statBoxSubtext, { color: colors.tertiaryContainer }]}>+3 bu ay</Text>
             </View>
           </View>
 
           <View style={styles.statBox}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>IN TRANSIT</Text>
+              <Text style={styles.statBoxLabel}>YOLDA</Text>
               <MaterialIcons name="local-shipping" size={20} color={colors.secondaryContainer} />
             </View>
             <Text style={styles.statBoxValue}>2</Text>
-            <Text style={styles.statBoxSubtext}>Arriving soon</Text>
+            <Text style={styles.statBoxSubtext}>Yakında teslim</Text>
           </View>
 
           <View style={styles.statBox}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>DELIVERED</Text>
+              <Text style={styles.statBoxLabel}>TESLİM EDİLDİ</Text>
               <MaterialIcons name="check-circle" size={20} color={colors.tertiaryContainer} />
             </View>
             <Text style={styles.statBoxValue}>38</Text>
-            <Text style={styles.statBoxSubtext}>Successfully received</Text>
+            <Text style={styles.statBoxSubtext}>Başarıyla alındı</Text>
           </View>
 
           <View style={styles.statBox}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>ISSUES</Text>
+              <Text style={styles.statBoxLabel}>SORUNLU</Text>
               <MaterialIcons name="error" size={20} color={colors.error} />
             </View>
             <Text style={styles.statBoxValue}>0</Text>
-            <Text style={styles.statBoxSubtext}>All good</Text>
+            <Text style={styles.statBoxSubtext}>Sorun yok</Text>
           </View>
 
         </View>
@@ -137,8 +151,8 @@ export const ProfileScreen = () => {
                 <MaterialIcons name="location-on" size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingsItemTitle}>My Addresses</Text>
-                <Text style={styles.settingsItemSubtitle}>Manage delivery locations</Text>
+                <Text style={styles.settingsItemTitle}>Adreslerim</Text>
+                <Text style={styles.settingsItemSubtitle}>Teslimat adreslerini yönet</Text>
               </View>
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
@@ -152,8 +166,8 @@ export const ProfileScreen = () => {
                 <MaterialIcons name="settings" size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingsItemTitle}>Account Settings</Text>
-                <Text style={styles.settingsItemSubtitle}>Password, notifications, language</Text>
+                <Text style={styles.settingsItemTitle}>Hesap Ayarları</Text>
+                <Text style={styles.settingsItemSubtitle}>Şifre, bildirimler, dil</Text>
               </View>
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
@@ -167,8 +181,8 @@ export const ProfileScreen = () => {
                 <MaterialIcons name="help" size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingsItemTitle}>Help Center</Text>
-                <Text style={styles.settingsItemSubtitle}>FAQ and customer support</Text>
+                <Text style={styles.settingsItemTitle}>Yardım Merkezi</Text>
+                <Text style={styles.settingsItemSubtitle}>SSS ve müşteri desteği</Text>
               </View>
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
@@ -178,9 +192,9 @@ export const ProfileScreen = () => {
 
         {/* Logout Action */}
         <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
             <MaterialIcons name="logout" size={20} color={colors.error} />
-            <Text style={styles.logoutText}>Log Out</Text>
+            <Text style={styles.logoutText}>Çıkış Yap</Text>
           </TouchableOpacity>
         </View>
 
