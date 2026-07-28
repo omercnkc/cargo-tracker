@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.omer.cargotracker",
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#001b9e",
         "foregroundImage": "./assets/icon.png"

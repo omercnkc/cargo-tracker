@@ -83,7 +83,8 @@ export const LoginScreen = ({ navigation }: any) => {
       {/* Right Pane: Login Form */}
       <KeyboardAvoidingView 
         style={[styles.rightPane, { width: isLargeScreen ? '50%' : '100%' }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView 
           contentContainerStyle={[
@@ -92,6 +93,7 @@ export const LoginScreen = ({ navigation }: any) => {
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           <View style={styles.formContainer}>
             

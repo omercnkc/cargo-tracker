@@ -54,6 +54,7 @@ export const SearchScreen = () => {
           { paddingBottom: isLargeScreen ? 32 : insets.bottom + 96 }
         ]}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
       >
         {/* Search Section */}
         <View style={styles.searchSection}>

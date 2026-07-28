@@ -46,7 +46,8 @@ export const AddPackageScreen = () => {
     <View style={styles.container}>
       <KeyboardAvoidingView 
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         {/* Header - Adaptive for Mobile/Desktop */}
         <View style={[styles.header, { paddingTop: insets.top }]}>
@@ -75,6 +76,7 @@ export const AddPackageScreen = () => {
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           {/* Main Card */}
           <View style={styles.card}>

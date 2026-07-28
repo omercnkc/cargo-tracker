@@ -45,7 +45,8 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <KeyboardAvoidingView 
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView 
           contentContainerStyle={[
@@ -54,6 +55,7 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           {/* Main Card */}
           <View style={styles.card}>

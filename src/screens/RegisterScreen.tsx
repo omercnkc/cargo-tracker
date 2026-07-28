@@ -71,7 +71,8 @@ export const RegisterScreen = ({ navigation }: any) => {
 
       <KeyboardAvoidingView 
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView 
           contentContainerStyle={[
@@ -80,6 +81,7 @@ export const RegisterScreen = ({ navigation }: any) => {
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           {/* Registration Container */}
           <View style={styles.card}>
