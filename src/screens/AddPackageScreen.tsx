@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useRoute } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -10,14 +11,18 @@ import {
   ScrollView,
   useWindowDimensions,
   Image,
-  Modal
+  Modal,
+  FlatList
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useCourierCompanies, useAddShipment } from '../features/shipment/hooks/useShipments';
+import { useAuthStore } from '../store/auth.store';
+import { Alert, ActivityIndicator } from 'react-native';
 import colors from '../theme/colors';
 
-const CARRIERS = [
+const FALLBACK_CARRIERS = [
   { id: '1', name: 'Aras Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUixqteUkvVuCtTekD11ZPAYGfotm_0-u2d6PkWmTDbDsIy359BoMk_iaPb0dAuFIh76cxt7kOuh12kLFi0RsP6O9bKbRbKf_ZGzsymDu25kr9yQscZ-QysYc5X3rMpzBVQGPbcsfcN4r7oKpyzRS6y7FY-bJ-05KXIdZS75nVXD2JdUAsu2nDlOwLKxwlKeTWh9f7MnVYRp8REThNF7W1zBhAVkuC3laz3iYowXMXNZ9tJU1EipWmjpYhrQDSk6hB-c5WRxZapMU' },
   { id: '2', name: 'Yurtiçi Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDuMcqEYYXnINPebCw47LFOwDAEMkaPK0wkeZYhHC-Y1LRo27vSXiwsZj-2POLuiDyVEddgFZANr12CozIOIyEof2JvxXsB1DjK2vioCTunxDqoJr4nzFx8w_-szhNS3pk3KzoXMbqeK2TFgx6r6y7Ff4PO8TWhLneY3AWgC_3KS8I__emL-zS8NOEYR3iqGhnPt8GcmFOMjETNhMD9anaVguTp1-0aROE6WKzmTrPlyoovRqgAh9kPS_J0s0kf5V7N-LOzaJW8xRs' },
   { id: '3', name: 'DHL', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ-lbClVqkQAs-jbH9GKAu2C--Tt6IDgUGuGzYqpJgQCD2DiqGC-lp9ogphgApc1YNvrG5YVArJ3RucNPTLwCeIP2utImaocVA-VSGY2YFO-RommS_Fo6Chpnqzgi4Prgq9g-troPi1QTZV-ZZ7x0uN50EU748KUYmP6qYoTxQsZzCas8cZv2iGFDmYSHb-07iV2CHqu-JnU3aA3vuDxeQzMzB9ysqpz4268fSkd1plkGDY6G81BOxLOwl7zHoZzNnEzm-PEUxNE' },
@@ -28,19 +33,62 @@ const CARRIERS = [
 
 export const AddPackageScreen = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
+  const user = useAuthStore(state => state.user);
+
+  const { data: dbCouriers } = useCourierCompanies();
+  const addShipmentMutation = useAddShipment();
+
+  const carriers = (dbCouriers && dbCouriers.length > 0)
+    ? dbCouriers.map(c => ({ id: c.id, name: c.name, logo: c.logo_url || '' }))
+    : FALLBACK_CARRIERS;
 
   const [trackingNumber, setTrackingNumber] = useState('');
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
+
+  useEffect(() => {
+    if (route.params?.scannedTrackingNumber) {
+      setTrackingNumber(route.params.scannedTrackingNumber);
+    }
+  }, [route.params?.scannedTrackingNumber]);
   
   const [sheetVisible, setSheetVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCarriers = CARRIERS.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  const activeCarrier = CARRIERS.find(c => c.id === selectedCarrier);
+  const filteredCarriers = carriers.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const activeCarrier = carriers.find(c => c.id === selectedCarrier);
+
+  const handleSubmit = async () => {
+    if (!trackingNumber.trim()) {
+      Alert.alert('Hata', 'Lütfen bir takip numarası girin.');
+      return;
+    }
+
+    if (!user) {
+      Alert.alert('Hata', 'Oturum bulunamadı.');
+      return;
+    }
+
+    try {
+      await addShipmentMutation.mutateAsync({
+        user_id: user.id,
+        tracking_number: trackingNumber.trim(),
+        company_id: selectedCarrier && selectedCarrier.length > 5 ? selectedCarrier : null,
+        title: nickname.trim() || null,
+        current_status: 'transit',
+      });
+
+      Alert.alert('Başarılı', 'Kargo başarıyla eklendi!', [
+        { text: 'Tamam', onPress: () => navigation.goBack() }
+      ]);
+    } catch (err: any) {
+      Alert.alert('Hata', err.message || 'Kargo eklenirken bir hata oluştu.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -161,9 +209,20 @@ export const AddPackageScreen = () => {
 
               {/* Submit Button */}
               <View style={styles.submitContainer}>
-                <TouchableOpacity style={styles.submitButton} activeOpacity={0.8}>
-                  <MaterialIcons name="add-box" size={20} color={colors.onPrimary} />
-                  <Text style={styles.submitButtonText}>Save Package</Text>
+                <TouchableOpacity 
+                  style={styles.submitButton} 
+                  activeOpacity={0.8}
+                  onPress={handleSubmit}
+                  disabled={addShipmentMutation.isPending}
+                >
+                  {addShipmentMutation.isPending ? (
+                    <ActivityIndicator size="small" color={colors.onPrimary} />
+                  ) : (
+                    <>
+                      <MaterialIcons name="add-box" size={20} color={colors.onPrimary} />
+                      <Text style={styles.submitButtonText}>Save Package</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
               </View>
 
@@ -222,16 +281,18 @@ export const AddPackageScreen = () => {
               />
             </View>
 
-            <ScrollView 
-              style={styles.sheetScroll}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
+            <View style={styles.sheetScroll}>
               {filteredCarriers.length > 0 ? (
-                <View style={styles.carrierGrid}>
-                  {filteredCarriers.map((item) => (
+                <FlatList
+                  data={filteredCarriers}
+                  keyExtractor={(item) => item.id}
+                  numColumns={2}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: 24, gap: 16 }}
+                  columnWrapperStyle={{ gap: 16, justifyContent: 'space-between' }}
+                  renderItem={({ item }) => (
                     <TouchableOpacity 
-                      key={item.id}
                       style={styles.carrierGridCard}
                       onPress={() => {
                         setSelectedCarrier(item.id);
@@ -244,8 +305,8 @@ export const AddPackageScreen = () => {
                       </View>
                       <Text style={styles.carrierGridName}>{item.name}</Text>
                     </TouchableOpacity>
-                  ))}
-                </View>
+                  )}
+                />
               ) : (
                 <View style={styles.noResultsContainer}>
                   <MaterialIcons name="search-off" size={32} color={colors.outlineVariant} />
@@ -253,7 +314,7 @@ export const AddPackageScreen = () => {
                   <Text style={styles.noResultsSubtext}>Try searching for a different name.</Text>
                 </View>
               )}
-            </ScrollView>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>

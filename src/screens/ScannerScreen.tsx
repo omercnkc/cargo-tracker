@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -6,19 +6,23 @@ import {
   TouchableOpacity,
   ImageBackground,
   Animated,
-  useWindowDimensions
+  Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import colors from '../theme/colors';
+import { useTheme } from '../theme/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 
 const BG_IMAGE_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAW4D6V42SnIcoqTa5C_56p4e9Myk4KihNXxdwGMtq5hOnKBHg2vs8npkwWIt3q7LeLcsMTcTpDNHEkKnfZH6XsS6KIEkqctSbXLxFkcO2s8SzLPpeqSplx9oJP_ko1QS7YlMB9dmPiV_RTP0Lj0oYSYWNmlHG7DTzumEukaYgGoDBhia-Y9nmxC7G_8mA7oRBpQu1wUowgBaEpFgBYtZMjWiMHCPAotSCXSJflxRIHK9Sq-stmFp47_1A9O1dr6W29ciuntdgZwuY';
 
 export const ScannerScreen = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const { theme: colors } = useTheme();
+  const { t } = useTranslation();
+
+  const [flashlight, setFlashlight] = useState(false);
 
   // Animation for the scanning line
   const scanLineAnim = useRef(new Animated.Value(0)).current;
@@ -28,7 +32,7 @@ export const ScannerScreen = () => {
       scanLineAnim.setValue(0);
       Animated.loop(
         Animated.timing(scanLineAnim, {
-          toValue: 240, // Height of the scanner frame (approx)
+          toValue: 240,
           duration: 2000,
           useNativeDriver: true,
         })
@@ -37,9 +41,20 @@ export const ScannerScreen = () => {
     startAnimation();
   }, [scanLineAnim]);
 
+  const handleSimulateScan = () => {
+    const scannedCode = `TR-${Math.floor(100000000 + Math.random() * 900000000)}`;
+    Alert.alert('QR Kodu Tarandı', `Takip No: ${scannedCode}`, [
+      {
+        text: 'Tamam',
+        onPress: () => {
+          navigation.navigate('AddPackage', { scannedTrackingNumber: scannedCode });
+        }
+      }
+    ]);
+  };
+
   return (
     <View style={styles.container}>
-      
       {/* Mock Camera Background */}
       <ImageBackground 
         source={{ uri: BG_IMAGE_URL }} 
@@ -56,48 +71,48 @@ export const ScannerScreen = () => {
           <MaterialIcons name="close" size={24} color="#ffffff" />
         </TouchableOpacity>
         
-        <Text style={styles.appBarTitle}>Scan Package</Text>
+        <Text style={styles.appBarTitle}>{t('qrScan')}</Text>
         
-        <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="flashlight-on" size={24} color="#ffffff" />
+        <TouchableOpacity 
+          style={styles.iconButton}
+          onPress={() => setFlashlight(!flashlight)}
+        >
+          <MaterialIcons name={flashlight ? "flashlight-on" : "flashlight-off"} size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
       {/* Scanner Overlay Content */}
       <View style={styles.overlayContent}>
-        
-        {/* Instruction Bubble */}
         <View style={styles.instructionBubble}>
           <Text style={styles.instructionText}>Center the QR code within the frame</Text>
         </View>
 
         {/* Scanner Frame */}
-        <View style={styles.scannerFrameContainer}>
-          {/* A large border creates the semi-transparent overlay around the clear center */}
+        <TouchableOpacity style={styles.scannerFrameContainer} activeOpacity={0.9} onPress={handleSimulateScan}>
           <View style={styles.scannerOverlayDarken} />
 
           <View style={styles.scannerFrame}>
             {/* Corner Indicators */}
-            <View style={[styles.corner, styles.cornerTL]} />
-            <View style={[styles.corner, styles.cornerTR]} />
-            <View style={[styles.corner, styles.cornerBL]} />
-            <View style={[styles.corner, styles.cornerBR]} />
+            <View style={[styles.corner, styles.cornerTL, { borderColor: colors.primary }]} />
+            <View style={[styles.corner, styles.cornerTR, { borderColor: colors.primary }]} />
+            <View style={[styles.corner, styles.cornerBL, { borderColor: colors.primary }]} />
+            <View style={[styles.corner, styles.cornerBR, { borderColor: colors.primary }]} />
 
             {/* Scanning Line Animation */}
             <Animated.View style={[
               styles.scanLine, 
-              { transform: [{ translateY: scanLineAnim }] }
+              { backgroundColor: colors.primary, transform: [{ translateY: scanLineAnim }] }
             ]} />
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Controls Below Scanner */}
         <View style={styles.controlsContainer}>
-          <TouchableOpacity style={styles.controlButton}>
+          <TouchableOpacity style={styles.controlButton} onPress={handleSimulateScan}>
             <View style={styles.controlIconBox}>
-              <MaterialIcons name="image" size={24} color="#ffffff" />
+              <MaterialIcons name="qr-code-scanner" size={24} color="#ffffff" />
             </View>
-            <Text style={styles.controlText}>Gallery</Text>
+            <Text style={styles.controlText}>Tara (Simüle Et)</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -110,11 +125,10 @@ export const ScannerScreen = () => {
           activeOpacity={0.8}
         >
           <MaterialIcons name="keyboard" size={24} color={colors.primary} />
-          <Text style={styles.manualEntryText}>Enter tracking number manually</Text>
+          <Text style={styles.manualEntryText}>Manuel Takip No Girin</Text>
           <MaterialIcons name="arrow-forward" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
-
     </View>
   );
 };
@@ -129,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    height: 100, // Includes status bar padding roughly
+    height: 100,
     zIndex: 20,
     backgroundColor: 'transparent',
   },
@@ -155,7 +169,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    paddingBottom: 100, // Offset for bottom button
+    paddingBottom: 100,
   },
   instructionBubble: {
     marginBottom: 32,
@@ -182,7 +196,7 @@ const styles = StyleSheet.create({
     height: 9999,
     borderWidth: 4000,
     borderColor: 'rgba(11, 28, 48, 0.6)',
-    borderRadius: 4016, // So inner is rounded
+    borderRadius: 4016,
   },
   scannerFrame: {
     width: '100%',
@@ -194,7 +208,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 32,
     height: 32,
-    borderColor: colors.primary,
   },
   cornerTL: {
     top: 0, left: 0,
@@ -219,8 +232,6 @@ const styles = StyleSheet.create({
   scanLine: {
     width: '100%',
     height: 2,
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 15,

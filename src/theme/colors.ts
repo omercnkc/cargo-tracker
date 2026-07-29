@@ -4,7 +4,7 @@ export const palette = {
   white: '#ffffff',
   black: '#000000',
 
-  // Material Design 3 Extracted Colors
+  // Material Design 3 Extracted Colors (Light Theme Base)
   onBackground: '#0b1c30',
   onTertiaryContainer: '#27c38a',
   onError: '#ffffff',
@@ -53,7 +53,7 @@ export const palette = {
   onTertiaryFixed: '#002113',
   outlineVariant: '#c5c5d3',
 
-  // Legacy status backgrounds/texts for backward compatibility
+  // Legacy status backgrounds/texts
   statusInTransitBg: '#ffedd5',
   statusDeliveredBg: '#dcfce7',
   statusAlertBg: '#fee2e2',
@@ -90,19 +90,86 @@ export const lightColors = {
   },
 };
 
-// Dark theme colors placeholder (Fallback for now, uses same palette structure)
+// Premium Midnight Dark Theme Palette
 export const darkColors = {
-  ...lightColors,
-  background: '#121212',
-  surface: '#1e1e1e',
-  surfaceContainer: '#2c2c2c',
-  surfaceContainerLowest: '#121212',
-  text: '#ffffff',
-  textVariant: '#a1a1aa',
-  outline: '#3f3f46',
-  onBackground: '#ffffff',
-  onSurface: '#ffffff',
-  onSurfaceVariant: '#a1a1aa',
+  ...palette,
+  transparent: 'transparent',
+  white: '#ffffff',
+  black: '#000000',
+
+  background: '#0b0f19',
+  surface: '#111827',
+  surfaceContainer: '#1f2937',
+  surfaceContainerLow: '#161e2e',
+  surfaceContainerLowest: '#111827',
+  surfaceContainerHigh: '#2d3748',
+  surfaceContainerHighest: '#374151',
+  surfaceVariant: '#1f2937',
+  surfaceBright: '#1f2937',
+  surfaceDim: '#0b0f19',
+
+  primary: '#60a5fa',
+  onPrimary: '#0f172a',
+  primaryContainer: '#2563eb',
+  onPrimaryContainer: '#dbeafe',
+  primaryFixed: '#3b82f6',
+  primaryFixedDim: '#93c5fd',
+  onPrimaryFixed: '#dbeafe',
+  onPrimaryFixedVariant: '#93c5fd',
+
+  secondary: '#fbbf24',
+  onSecondary: '#451a03',
+  secondaryContainer: '#b45309',
+  onSecondaryContainer: '#fef3c7',
+  secondaryFixed: '#451a03',
+  secondaryFixedDim: '#78350f',
+  onSecondaryFixed: '#fef3c7',
+  onSecondaryFixedVariant: '#fde68a',
+
+  tertiary: '#34d399',
+  onTertiary: '#064e3b',
+  tertiaryContainer: '#047857',
+  onTertiaryContainer: '#a7f3d0',
+  tertiaryFixed: '#064e3b',
+  tertiaryFixedDim: '#047857',
+  onTertiaryFixed: '#a7f3d0',
+  onTertiaryFixedVariant: '#6ee7b7',
+
+  error: '#f87171',
+  onError: '#450a0a',
+  errorContainer: '#991b1b',
+  onErrorContainer: '#fca5a5',
+
+  onBackground: '#f8fafc',
+  onSurface: '#f1f5f9',
+  onSurfaceVariant: '#94a3b8',
+  outline: '#475569',
+  outlineVariant: '#334155',
+  inverseSurface: '#1e293b',
+  inverseOnSurface: '#f8fafc',
+  inversePrimary: '#1d4ed8',
+
+  text: '#f1f5f9',
+  textVariant: '#94a3b8',
+
+  status: {
+    inTransit: {
+      background: '#451a03',
+      text: '#fde68a',
+    },
+    delivered: {
+      background: '#064e3b',
+      text: '#6ee7b7',
+    },
+    alert: {
+      background: '#7f1d1d',
+      text: '#fca5a5',
+    },
+    pending: {
+      background: '#1e3a8a',
+      text: '#93c5fd',
+    },
+  },
 };
 
 export default lightColors;

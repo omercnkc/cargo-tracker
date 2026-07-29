@@ -3,28 +3,31 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import HomeScreen from '../screens/HomeScreen';
 import PackagesScreen from '../screens/PackagesScreen';
 import StatisticsScreen from '../screens/StatisticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import colors from '../theme/colors';
 import { MainTabParamList } from './types';
 import useResponsive from '../hooks/useResponsive';
+import { useTheme } from '../theme/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 // Custom Left Sidebar for Large Screens (Tablet / Desktop)
 const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
   const insets = useSafeAreaInsets();
+  const { theme: colors } = useTheme();
 
   return (
-    <View style={[styles.sidebarContainer, { paddingTop: insets.top + 16 }]}>
+    <View style={[styles.sidebarContainer, { paddingTop: insets.top + 16, backgroundColor: colors.surfaceContainerLowest, borderRightColor: colors.outlineVariant + '4D' }]}>
       {/* Brand Header */}
       <View style={styles.sidebarBrand}>
-        <View style={styles.brandIconBg}>
+        <View style={[styles.brandIconBg, { backgroundColor: colors.primary }]}>
           <MaterialIcons name="inventory" size={24} color={colors.onPrimary} />
         </View>
-        <Text style={styles.brandText}>KargoTakip</Text>
+        <Text style={[styles.brandText, { color: colors.primary }]}>KargoTakip</Text>
       </View>
 
       {/* Nav Links */}
@@ -63,7 +66,7 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
               key={route.key}
               style={[
                 styles.sidebarNavItem,
-                isFocused && styles.sidebarNavItemActive,
+                isFocused && { backgroundColor: colors.primaryContainer + '33' },
               ]}
               onPress={onPress}
               activeOpacity={0.7}
@@ -76,7 +79,8 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
               <Text
                 style={[
                   styles.sidebarNavText,
-                  isFocused && styles.sidebarNavTextActive,
+                  { color: isFocused ? colors.primary : colors.onSurfaceVariant },
+                  isFocused && { fontWeight: '700' }
                 ]}
               >
                 {label}
@@ -92,6 +96,9 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
 export const BottomTabs = () => {
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
+  const { theme: colors } = useTheme();
+  const { t } = useTranslation();
+
   const bottomInset = insets.bottom > 0 ? insets.bottom : 12;
 
   return (
@@ -175,9 +182,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 240,
-    backgroundColor: colors.surfaceContainerLowest,
     borderRightWidth: 1,
-    borderRightColor: colors.outlineVariant + '4D',
     paddingHorizontal: 16,
     zIndex: 100,
   },
@@ -192,7 +197,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -200,7 +204,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '700',
-    color: colors.primary,
   },
   sidebarNav: {
     gap: 8,
@@ -213,18 +216,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-  sidebarNavItemActive: {
-    backgroundColor: colors.primaryContainer + '33', // 20% opacity
-  },
   sidebarNavText: {
     fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '600',
-    color: colors.onSurfaceVariant,
-  },
-  sidebarNavTextActive: {
-    color: colors.primary,
-    fontWeight: '700',
   },
 });
 

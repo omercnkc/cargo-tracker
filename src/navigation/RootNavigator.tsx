@@ -13,25 +13,46 @@ import SettingsScreen from '../screens/SettingsScreen';
 import CarrierSelectionScreen from '../screens/CarrierSelectionScreen';
 import ScannerScreen from '../screens/ScannerScreen';
 import { RootStackParamList } from './types';
+import { useAuthStore } from '../store/auth.store';
+
+import DrawerMenuModal from '../components/common/DrawerMenuModal';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const isLoading = useAuthStore(state => state.isLoading);
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="MainTabs">
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="MainTabs" component={BottomTabs} />
-      <Stack.Screen name="PackageDetail" component={PackageDetailScreen} />
-      <Stack.Screen name="AddPackage" component={AddPackageScreen} />
-      <Stack.Screen name="Search" component={SearchScreen} />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
-      <Stack.Screen name="CarrierSelection" component={CarrierSelectionScreen} />
-      <Stack.Screen name="Scanner" component={ScannerScreen} />
-    </Stack.Navigator>
+    <>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isAuthenticated ? (
+          // App Stack
+          <Stack.Group>
+            <Stack.Screen name="MainTabs" component={BottomTabs} />
+            <Stack.Screen name="PackageDetail" component={PackageDetailScreen} />
+            <Stack.Screen name="AddPackage" component={AddPackageScreen} />
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="CarrierSelection" component={CarrierSelectionScreen} />
+            <Stack.Screen name="Scanner" component={ScannerScreen} />
+          </Stack.Group>
+        ) : (
+          // Auth Stack
+          <Stack.Group>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          </Stack.Group>
+        )}
+      </Stack.Navigator>
+      {isAuthenticated && <DrawerMenuModal />}
+    </>
   );
 };
 

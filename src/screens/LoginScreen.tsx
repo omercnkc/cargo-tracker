@@ -43,8 +43,6 @@ export const LoginScreen = ({ navigation }: any) => {
     const res = await signIn(email.trim(), password);
     if (res.error) {
       setErrorMessage(res.error);
-    } else {
-      navigation.replace('MainTabs');
     }
   };
 

@@ -1,8 +1,13 @@
 import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import RootNavigator from '../navigation/RootNavigator';
 import { useAuthStore } from '../store/auth.store';
+
+import ErrorBoundary from '../components/common/ErrorBoundary';
+
+const queryClient = new QueryClient();
 
 const App = () => {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -12,11 +17,15 @@ const App = () => {
   }, [initializeAuth]);
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

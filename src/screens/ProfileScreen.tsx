@@ -5,65 +5,53 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity,
-  Image,
-  useWindowDimensions
+  Image
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
 import { useNavigation } from '@react-navigation/native';
+
 import useResponsive from '../hooks/useResponsive';
 import { useAuthStore } from '../store/auth.store';
+import { useDrawerStore } from '../store/drawer.store';
+import { useTheme } from '../theme/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
+import { useShipments } from '../features/shipment/hooks/useShipments';
+import HeaderRightActions from '../components/common/HeaderRightActions';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
+  const openDrawer = useDrawerStore((state) => state.openDrawer);
+
+  const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
-  const signOut = useAuthStore((state) => state.signOut);
-
-  const handleLogout = async () => {
-    await signOut();
-    navigation.replace('Login');
-  };
+  const { data: dbShipments } = useShipments(user?.id);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
   const displayEmail = user?.email || 'ornek@email.com';
   const displayAvatar = profile?.avatar_url || 'https://i.pravatar.cc/300?img=11';
 
+  // Dynamic stats calculation
+  const totalCount = dbShipments ? dbShipments.length : 42;
+  const inTransitCount = dbShipments ? dbShipments.filter(s => s.current_status === 'transit').length : 2;
+  const deliveredCount = dbShipments ? dbShipments.filter(s => s.current_status === 'delivered').length : 38;
+  const errorCount = 0;
+
   return (
-    <View style={[styles.container, isLargeScreen && { paddingLeft: 240 }]}>
-      {/* TopAppBar (Desktop) / Mobile Header */}
-      <View style={[styles.appBar, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
+      {/* TopAppBar */}
+      <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface }]}>
         <View style={styles.appBarContent}>
-          {isLargeScreen ? (
-            <>
-              <View style={styles.headerLeft}>
-                <Text style={styles.appBarTitle}>KargoTakip</Text>
-              </View>
-              <View style={styles.headerNav}>
-                <Text style={styles.navLink}>Home</Text>
-                <Text style={styles.navLink}>Packages</Text>
-                <Text style={styles.navLink}>Stats</Text>
-                <Text style={styles.navLinkActive}>Profile</Text>
-              </View>
-              <TouchableOpacity style={styles.iconButton}>
-                <MaterialIcons name="notifications" size={24} color={colors.primary} />
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <TouchableOpacity style={styles.iconButton}>
-                <MaterialIcons name="menu" size={24} color={colors.primary} />
-              </TouchableOpacity>
-              <Text style={styles.appBarTitle}>KargoTakip</Text>
-              <TouchableOpacity style={styles.iconButton}>
-                <MaterialIcons name="add" size={24} color={colors.primary} />
-              </TouchableOpacity>
-            </>
-          )}
+          <TouchableOpacity style={styles.iconButton} onPress={openDrawer}>
+            <MaterialIcons name="menu" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
+          <HeaderRightActions />
         </View>
       </View>
 
@@ -75,10 +63,8 @@ export const ProfileScreen = () => {
         ]}
       >
         {/* Profile Header Card */}
-        <View style={[styles.profileHeader, isLargeScreen && styles.profileHeaderDesktop]}>
-          <View style={styles.decorativeBlur} />
-          
-          <View style={styles.avatarContainer}>
+        <View style={[styles.profileHeader, { backgroundColor: colors.surfaceContainerLowest }, isLargeScreen && styles.profileHeaderDesktop]}>
+          <View style={[styles.avatarContainer, { borderColor: colors.surfaceContainerLowest }]}>
             <Image 
               source={{ uri: displayAvatar }}
               style={styles.avatarImage}
@@ -86,14 +72,18 @@ export const ProfileScreen = () => {
           </View>
           
           <View style={[styles.profileInfo, isLargeScreen && styles.profileInfoDesktop]}>
-            <Text style={styles.profileName}>{displayName}</Text>
+            <Text style={[styles.profileName, { color: colors.onSurface }]}>{displayName}</Text>
             <View style={styles.profileEmailRow}>
               <MaterialIcons name="mail" size={18} color={colors.onSurfaceVariant} />
-              <Text style={styles.profileEmail}>{displayEmail}</Text>
+              <Text style={[styles.profileEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
             </View>
-            <TouchableOpacity style={styles.editButton} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={[styles.editButton, { backgroundColor: colors.primary }]} 
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('Settings')}
+            >
               <MaterialIcons name="edit" size={16} color={colors.onPrimary} />
-              <Text style={styles.editButtonText}>Profili Düzenle</Text>
+              <Text style={[styles.editButtonText, { color: colors.onPrimary }]}>Profili Düzenle</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -101,105 +91,48 @@ export const ProfileScreen = () => {
         {/* Stats Overview Bento */}
         <View style={styles.statsGrid}>
           
-          <View style={styles.statBox}>
+          <View style={[styles.statBox, { backgroundColor: colors.surfaceContainerLowest }]}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>TOPLAM</Text>
+              <Text style={[styles.statBoxLabel, { color: colors.onSurfaceVariant }]}>TOPLAM</Text>
               <MaterialIcons name="inventory" size={20} color={colors.primary} />
             </View>
-            <Text style={styles.statBoxValue}>42</Text>
+            <Text style={[styles.statBoxValue, { color: colors.onSurface }]}>{totalCount}</Text>
             <View style={styles.statBoxTrendRow}>
               <MaterialIcons name="trending-up" size={12} color={colors.tertiaryContainer} />
-              <Text style={[styles.statBoxSubtext, { color: colors.tertiaryContainer }]}>+3 bu ay</Text>
+              <Text style={[styles.statBoxSubtext, { color: colors.tertiaryContainer }]}>Güncel</Text>
             </View>
           </View>
 
-          <View style={styles.statBox}>
+          <View style={[styles.statBox, { backgroundColor: colors.surfaceContainerLowest }]}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>YOLDA</Text>
+              <Text style={[styles.statBoxLabel, { color: colors.onSurfaceVariant }]}>YOLDA</Text>
               <MaterialIcons name="local-shipping" size={20} color={colors.secondaryContainer} />
             </View>
-            <Text style={styles.statBoxValue}>2</Text>
-            <Text style={styles.statBoxSubtext}>Yakında teslim</Text>
+            <Text style={[styles.statBoxValue, { color: colors.onSurface }]}>{inTransitCount}</Text>
+            <Text style={[styles.statBoxSubtext, { color: colors.onSurfaceVariant }]}>Yakında teslim</Text>
           </View>
 
-          <View style={styles.statBox}>
+          <View style={[styles.statBox, { backgroundColor: colors.surfaceContainerLowest }]}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>TESLİM EDİLDİ</Text>
+              <Text style={[styles.statBoxLabel, { color: colors.onSurfaceVariant }]}>TESLİM EDİLDİ</Text>
               <MaterialIcons name="check-circle" size={20} color={colors.tertiaryContainer} />
             </View>
-            <Text style={styles.statBoxValue}>38</Text>
-            <Text style={styles.statBoxSubtext}>Başarıyla alındı</Text>
+            <Text style={[styles.statBoxValue, { color: colors.onSurface }]}>{deliveredCount}</Text>
+            <Text style={[styles.statBoxSubtext, { color: colors.onSurfaceVariant }]}>Başarıyla alındı</Text>
           </View>
 
-          <View style={styles.statBox}>
+          <View style={[styles.statBox, { backgroundColor: colors.surfaceContainerLowest }]}>
             <View style={styles.statBoxHeader}>
-              <Text style={styles.statBoxLabel}>SORUNLU</Text>
+              <Text style={[styles.statBoxLabel, { color: colors.onSurfaceVariant }]}>SORUNLU</Text>
               <MaterialIcons name="error" size={20} color={colors.error} />
             </View>
-            <Text style={styles.statBoxValue}>0</Text>
-            <Text style={styles.statBoxSubtext}>Sorun yok</Text>
+            <Text style={[styles.statBoxValue, { color: colors.onSurface }]}>{errorCount}</Text>
+            <Text style={[styles.statBoxSubtext, { color: colors.onSurfaceVariant }]}>Sorun yok</Text>
           </View>
 
-        </View>
-
-        {/* Settings List */}
-        <View style={styles.settingsList}>
-          
-          <TouchableOpacity style={styles.settingsItem} activeOpacity={0.7}>
-            <View style={styles.settingsItemLeft}>
-              <View style={styles.settingsIconBg}>
-                <MaterialIcons name="location-on" size={20} color={colors.primary} />
-              </View>
-              <View>
-                <Text style={styles.settingsItemTitle}>Adreslerim</Text>
-                <Text style={styles.settingsItemSubtitle}>Teslimat adreslerini yönet</Text>
-              </View>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
-          </TouchableOpacity>
-
-          <View style={styles.settingsDivider} />
-
-          <TouchableOpacity style={styles.settingsItem} activeOpacity={0.7}>
-            <View style={styles.settingsItemLeft}>
-              <View style={styles.settingsIconBg}>
-                <MaterialIcons name="settings" size={20} color={colors.primary} />
-              </View>
-              <View>
-                <Text style={styles.settingsItemTitle}>Hesap Ayarları</Text>
-                <Text style={styles.settingsItemSubtitle}>Şifre, bildirimler, dil</Text>
-              </View>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
-          </TouchableOpacity>
-
-          <View style={styles.settingsDivider} />
-
-          <TouchableOpacity style={styles.settingsItem} activeOpacity={0.7}>
-            <View style={styles.settingsItemLeft}>
-              <View style={styles.settingsIconBg}>
-                <MaterialIcons name="help" size={20} color={colors.primary} />
-              </View>
-              <View>
-                <Text style={styles.settingsItemTitle}>Yardım Merkezi</Text>
-                <Text style={styles.settingsItemSubtitle}>SSS ve müşteri desteği</Text>
-              </View>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
-          </TouchableOpacity>
-
-        </View>
-
-        {/* Logout Action */}
-        <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
-            <MaterialIcons name="logout" size={20} color={colors.error} />
-            <Text style={styles.logoutText}>Çıkış Yap</Text>
-          </TouchableOpacity>
         </View>
 
       </ScrollView>
-
     </View>
   );
 };
@@ -207,10 +140,10 @@ export const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   appBar: {
-    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(197, 197, 211, 0.3)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -228,63 +161,32 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
   appBarTitle: {
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '700',
-    color: colors.primary,
-  },
-  headerNav: {
-    flexDirection: 'row',
-    gap: 24,
-  },
-  navLink: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  navLinkActive: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: colors.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
   },
   iconButton: {
     padding: 8,
     borderRadius: 999,
   },
   mainContent: {
-    paddingHorizontal: 16, // margin-mobile
-    paddingTop: 32, // py-8
-    maxWidth: 896, // max-w-4xl
+    paddingHorizontal: 16,
+    paddingTop: 32,
+    maxWidth: 896,
     alignSelf: 'center',
     width: '100%',
     gap: 32,
   },
   profileHeader: {
-    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(197, 197, 211, 0.3)', // outline-variant/30
+    borderColor: 'rgba(197, 197, 211, 0.3)',
     padding: 24,
     flexDirection: 'column',
     alignItems: 'center',
     gap: 24,
-    position: 'relative',
-    overflow: 'hidden',
-    shadowColor: colors.primaryContainer,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -294,35 +196,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  decorativeBlur: {
-    position: 'absolute',
-    top: -48,
-    right: 0,
-    width: 256,
-    height: 256,
-    borderRadius: 128,
-    backgroundColor: colors.primaryFixed,
-    opacity: 0.2,
-    shadowColor: colors.primaryFixed,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 100,
-    elevation: 0,
-    zIndex: 0,
-  },
   avatarContainer: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: colors.surfaceContainerHigh,
     borderWidth: 4,
-    borderColor: colors.surfaceContainerLowest,
+    borderColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-    zIndex: 10,
     overflow: 'hidden',
   },
   avatarImage: {
@@ -332,7 +216,6 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
     alignItems: 'center',
-    zIndex: 10,
   },
   profileInfoDesktop: {
     alignItems: 'flex-start',
@@ -341,7 +224,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 24,
     fontWeight: '700',
-    color: colors.onSurface,
   },
   profileEmailRow: {
     flexDirection: 'row',
@@ -352,30 +234,22 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurfaceVariant,
   },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   editButtonText: {
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.6,
-    color: colors.onPrimary,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -384,13 +258,12 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    minWidth: '45%', // allow 2 columns on mobile
-    backgroundColor: colors.surfaceContainerLowest,
+    minWidth: '45%',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(197, 197, 211, 0.3)',
     padding: 16,
-    shadowColor: colors.primaryContainer,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -407,13 +280,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
   },
   statBoxValue: {
     fontFamily: 'Inter',
     fontSize: 24,
     fontWeight: '700',
-    color: colors.onSurface,
   },
   statBoxTrendRow: {
     flexDirection: 'row',
@@ -423,124 +294,6 @@ const styles = StyleSheet.create({
   statBoxSubtext: {
     fontFamily: 'Inter',
     fontSize: 12,
-    color: colors.onSurfaceVariant,
-  },
-  settingsList: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(197, 197, 211, 0.3)',
-    shadowColor: colors.primaryContainer,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  settingsItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 24, // container-padding
-  },
-  settingsItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  settingsIconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceVariant,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  settingsItemTitle: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.onSurface,
-  },
-  settingsItemSubtitle: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: colors.onSurfaceVariant,
-  },
-  settingsDivider: {
-    height: 1,
-    backgroundColor: 'rgba(197, 197, 211, 0.2)', // outline-variant/20
-  },
-  logoutContainer: {
-    alignItems: 'center',
-    paddingTop: 16,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  logoutText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.error,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.outlineVariant + '4D',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 8,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 10,
-    zIndex: 50,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-  },
-  navItemActive: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-    backgroundColor: colors.primaryContainer,
-    borderRadius: 999,
-  },
-  navText: {
-    fontFamily: 'Inter',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-  navTextActive: {
-    fontFamily: 'Inter',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onPrimaryContainer,
-    marginTop: 4,
   },
 });
 
