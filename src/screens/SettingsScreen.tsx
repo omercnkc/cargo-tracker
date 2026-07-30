@@ -16,7 +16,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuthStore } from '../store/auth.store';
-import HeaderRightActions from '../components/common/HeaderRightActions';
 import { useBiometrics } from '../hooks/useBiometrics';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
 
@@ -68,7 +67,7 @@ export const SettingsScreen = () => {
             <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
           </TouchableOpacity>
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
-          <HeaderRightActions />
+          <View style={{ width: 24 }} />
         </View>
       </View>
 
