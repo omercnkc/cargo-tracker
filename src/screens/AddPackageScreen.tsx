@@ -289,8 +289,7 @@ export const AddPackageScreen = () => {
         onClose={() => setEmailModalVisible(false)}
         onShipmentsImported={(items) => {
           if (items.length > 0) {
-            setTrackingNumber(items[0].trackingNumber);
-            setNickname(items[0].itemTitle);
+            navigation.goBack();
           }
         }}
       />

@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityInd
 import { MaterialIcons } from '@expo/vector-icons';
 import { EmailSyncService, EmailScanResult } from '../../services/import/emailSyncService';
 import { useTheme } from '../../theme/useTheme';
+import { useAuthStore } from '../../store/auth.store';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface EmailConnectModalProps {
   visible: boolean;
@@ -12,6 +14,8 @@ interface EmailConnectModalProps {
 
 export function EmailConnectModal({ visible, onClose, onShipmentsImported }: EmailConnectModalProps) {
   const { theme: colors } = useTheme();
+  const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
 
   const [emailInput, setEmailInput] = useState('');
   const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
@@ -47,20 +51,35 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
     if (!connectedEmail) return;
 
     setSyncing(true);
-    const results = await EmailSyncService.syncConnectedEmail();
+    const results = await EmailSyncService.syncConnectedEmail(user?.id);
     setSyncing(false);
 
     if (results.length > 0) {
+      // Önbelleği yenile ki kargo listesi anında güncellensin
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+
+      const shipmentSummary = results.map((r, i) => `${i + 1}. ${r.sender}: ${r.trackingNumber}`).join('\n');
+
       Alert.alert(
         '🎉 Yeni Kargolar Bulundu!',
-        `E-postanızda ${results.length} adet yeni kargo bildirimi ("Paketiniz kargoya verildi") tespit edildi ve kargo listenize eklendi.`
+        `E-postanızda ${results.length} adet yeni kargo bildirimi tespit edildi ve kargo listenize eklendi:\n\n${shipmentSummary}`,
+        [
+          {
+            text: 'Harika!',
+            onPress: () => {
+              if (onShipmentsImported) {
+                onShipmentsImported(results);
+              }
+              onClose();
+            },
+          },
+        ]
       );
-      if (onShipmentsImported) {
-        onShipmentsImported(results);
-      }
-      onClose();
     } else {
-      Alert.alert('Bilgi', 'E-postanızda yeni kargo bildirimi bulunamadı.');
+      Alert.alert(
+        'Bilgi',
+        'E-postanızda taranmamış yeni kargo bildirimi bulunamadı. Önceki kargo e-postalarınız zaten listenize eklenmiş durumda.'
+      );
     }
   };
 
@@ -68,7 +87,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
     await EmailSyncService.disconnectEmail();
     setConnectedEmail(null);
     setEmailInput('');
-    Alert.alert('Bağlantı Kesildi', 'E-posta hesabı bağlantısı kaldırıldı.');
+    Alert.alert('Bağlantı Kesildi', 'E-posta hesabı bağlantısı ve taranmış kayıtlar temizlendi.');
   };
 
   return (
@@ -87,7 +106,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           </View>
 
           <Text style={[styles.description, { color: colors.onSurfaceVariant }]}>
-            Trendyol, Hepsiburada, Amazon gibi mağazalardan gelen *"Paketiniz kargoya verildi"* e-postaları otomatik taranır.
+            Trendyol, Hepsiburada, Amazon gibi mağazalardan gelen *"Paketiniz kargoya verildi"* e-postaları otomatik taranır ve listenize eklenir.
           </Text>
 
           {connectedEmail ? (

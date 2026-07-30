@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NotificationService } from '../notifications/notificationService';
+import { shipmentRepository } from '../../features/shipment/repositories/shipment.repository';
 
 const CONNECTED_EMAIL_KEY = '@cargo_tracker_connected_email';
-const SYNCED_MAIL_IDS_KEY = '@cargo_tracker_synced_mail_ids';
+const SYNCED_TRACKING_NUMBERS_KEY = '@cargo_tracker_synced_tracking_numbers';
 
 export interface EmailScanResult {
   mailId: string;
@@ -56,10 +57,38 @@ export class EmailSyncService {
   }
 
   /**
-   * E-posta bağlantısını koparır
+   * E-posta bağlantısını koparır ve taranmış kayıtları sıfırlar
    */
   static async disconnectEmail(): Promise<void> {
     await AsyncStorage.removeItem(CONNECTED_EMAIL_KEY);
+    await AsyncStorage.removeItem(SYNCED_TRACKING_NUMBERS_KEY);
+  }
+
+  /**
+   * Daha önce e-postadan taranıp eklenmiş takip numaralarını getirir
+   */
+  static async getSyncedTrackingNumbers(): Promise<string[]> {
+    try {
+      const raw = await AsyncStorage.getItem(SYNCED_TRACKING_NUMBERS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Taranmış yeni takip numarasını yerel önbelleğe kaydeder (Mükerrer eklemeyi önler)
+   */
+  static async saveSyncedTrackingNumber(trackingNumber: string): Promise<void> {
+    try {
+      const current = await this.getSyncedTrackingNumbers();
+      if (!current.includes(trackingNumber)) {
+        const updated = [...current, trackingNumber];
+        await AsyncStorage.setItem(SYNCED_TRACKING_NUMBERS_KEY, JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error('Taranmış takip no kaydedilemedi:', err);
+    }
   }
 
   /**
@@ -113,36 +142,53 @@ export class EmailSyncService {
   }
 
   /**
-   * Bağlı e-posta hesabındaki yeni kargo e-postalarını simüle ederek tarar ve ekler
+   * Bağlı e-posta hesabındaki yeni kargo e-postalarını taranmamışlar içerisinden bulur ve ekler
    */
-  static async syncConnectedEmail(): Promise<EmailScanResult[]> {
+  static async syncConnectedEmail(userId?: string): Promise<EmailScanResult[]> {
     const connectedEmail = await this.getConnectedEmail();
     if (!connectedEmail) return [];
 
-    // Örnek simüle edilmiş e-posta verileri (Trendyol, Hepsiburada, Amazon)
+    const alreadySyncedNumbers = await this.getSyncedTrackingNumbers();
+
+    // Örnek simüle edilmiş e-posta gelen kutusu verileri (Trendyol ve Hepsiburada)
     const mockInboxMessages = [
       {
-        id: `mail_${Date.now()}_1`,
+        id: 'mail_trendyol_101',
         sender: 'kargo@trendyol.com',
         subject: 'Paketiniz kargoya verildi! (Sipariş #948201)',
         body: 'Merhaba Ahmet Yılmaz, Trendyol siparişiniz Aras Kargo şirketine teslim edilmiştir. Takip numarası: TR-948201948',
       },
       {
-        id: `mail_${Date.now()}_2`,
+        id: 'mail_hepsiburada_102',
         sender: 'siparis@hepsiburada.com',
         subject: 'Kargonuz yola çıktı - HepsiJet',
         body: 'Sayın Müşterimiz, Hepsiburada siparişiniz HepsiJet ile yola çıktı. Takip No: KP99281029381',
       },
     ];
 
-    const detectedShipments: EmailScanResult[] = [];
+    const newDetectedShipments: EmailScanResult[] = [];
 
     for (const mail of mockInboxMessages) {
       const parsed = this.parseEmailHeaderAndBody(mail.id, mail.sender, mail.subject, mail.body);
-      if (parsed) {
-        detectedShipments.push(parsed);
+      
+      // Eğer geçerli bir kargo e-postası ise VE daha önceden taranıp eklenmediyse
+      if (parsed && !alreadySyncedNumbers.includes(parsed.trackingNumber)) {
+        newDetectedShipments.push(parsed);
 
-        // Kullanıcıya anlık otomatik kargo eklendi bildirimi gönder
+        // Mükerrerliği önlemek için takip numarasını taranmışlara kaydet
+        await this.saveSyncedTrackingNumber(parsed.trackingNumber);
+
+        // Kullanıcı ID varsa veritabanına otomatik kaydet
+        if (userId) {
+          await shipmentRepository.createShipment({
+            user_id: userId,
+            tracking_number: parsed.trackingNumber,
+            title: parsed.itemTitle,
+            current_status: 'transit',
+          });
+        }
+
+        // Kullanıcıya anlık otomatik bildirim gönder
         await NotificationService.sendLocalNotification({
           title: `📧 Otomatik Kargo Eklendi (${parsed.sender})`,
           body: `E-postanızda tespit edilen ${parsed.trackingNumber} nolu kargo listenize eklendi!`,
@@ -151,6 +197,6 @@ export class EmailSyncService {
       }
     }
 
-    return detectedShipments;
+    return newDetectedShipments;
   }
 }
