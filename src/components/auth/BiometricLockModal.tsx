@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
@@ -11,6 +11,16 @@ interface BiometricLockModalProps {
 
 export function BiometricLockModal({ visible, onAuthenticate, biometricType = 'Face ID / Parmak İzi' }: BiometricLockModalProps) {
   const { theme: colors } = useTheme();
+
+  // Kilit ekranı göründüğünde otomatik biyometrik istemciyi başlat
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => {
+        onAuthenticate();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [visible, onAuthenticate]);
 
   return (
     <Modal visible={visible} transparent animationType="fade">

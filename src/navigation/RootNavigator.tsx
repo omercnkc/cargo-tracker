@@ -14,14 +14,17 @@ import CarrierSelectionScreen from '../screens/CarrierSelectionScreen';
 import ScannerScreen from '../screens/ScannerScreen';
 import { RootStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
+import { useBiometrics } from '../hooks/useBiometrics';
 
 import DrawerMenuModal from '../components/common/DrawerMenuModal';
+import { BiometricLockModal } from '../components/auth/BiometricLockModal';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const isLoading = useAuthStore(state => state.isLoading);
+  const { isLocked, unlockApp, biometricTypes } = useBiometrics();
 
   if (isLoading) {
     return <SplashScreen />;
@@ -51,7 +54,18 @@ export const RootNavigator = () => {
           </Stack.Group>
         )}
       </Stack.Navigator>
-      {isAuthenticated && <DrawerMenuModal />}
+
+      {/* App Drawers & Biometric Lock Modals */}
+      {isAuthenticated && (
+        <>
+          <DrawerMenuModal />
+          <BiometricLockModal
+            visible={isLocked}
+            onAuthenticate={unlockApp}
+            biometricType={biometricTypes[0] || 'Face ID / Parmak İzi'}
+          />
+        </>
+      )}
     </>
   );
 };
