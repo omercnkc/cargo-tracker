@@ -12,15 +12,20 @@ import {
   useWindowDimensions,
   Image,
   Modal,
-  FlatList
+  FlatList,
+  Alert, 
+  ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
+
 import { useCourierCompanies, useAddShipment } from '../features/shipment/hooks/useShipments';
 import { useAuthStore } from '../store/auth.store';
-import { Alert, ActivityIndicator } from 'react-native';
 import colors from '../theme/colors';
+import { EmailConnectModal } from '../components/import/EmailConnectModal';
+import { OCRService } from '../services/ocr/ocrService';
 
 const FALLBACK_CARRIERS = [
   { id: '1', name: 'Aras Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUixqteUkvVuCtTekD11ZPAYGfotm_0-u2d6PkWmTDbDsIy359BoMk_iaPb0dAuFIh76cxt7kOuh12kLFi0RsP6O9bKbRbKf_ZGzsymDu25kr9yQscZ-QysYc5X3rMpzBVQGPbcsfcN4r7oKpyzRS6y7FY-bJ-05KXIdZS75nVXD2JdUAsu2nDlOwLKxwlKeTWh9f7MnVYRp8REThNF7W1zBhAVkuC3laz3iYowXMXNZ9tJU1EipWmjpYhrQDSk6hB-c5WRxZapMU' },
@@ -49,18 +54,45 @@ export const AddPackageScreen = () => {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
+  const [clipboardDetected, setClipboardDetected] = useState<string | null>(null);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
 
   useEffect(() => {
     if (route.params?.scannedTrackingNumber) {
       setTrackingNumber(route.params.scannedTrackingNumber);
     }
   }, [route.params?.scannedTrackingNumber]);
-  
+
+  // Panodaki takip numarasını otomatik algıla
+  useEffect(() => {
+    const checkClipboard = async () => {
+      try {
+        const text = await Clipboard.getStringAsync();
+        if (text) {
+          const res = OCRService.extractTrackingNumber(text);
+          if (res.detectedNumber && res.detectedNumber !== trackingNumber) {
+            setClipboardDetected(res.detectedNumber);
+          }
+        }
+      } catch {
+        // Clipboard read fallback
+      }
+    };
+    checkClipboard();
+  }, []);
+
   const [sheetVisible, setSheetVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredCarriers = carriers.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const activeCarrier = carriers.find(c => c.id === selectedCarrier);
+
+  const handleApplyClipboard = () => {
+    if (clipboardDetected) {
+      setTrackingNumber(clipboardDetected);
+      setClipboardDetected(null);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!trackingNumber.trim()) {
@@ -129,13 +161,33 @@ export const AddPackageScreen = () => {
           {/* Main Card */}
           <View style={styles.card}>
             
-            {/* Decorative element (approximated for RN) */}
+            {/* Decorative element */}
             <View style={styles.decorativeBlur} />
 
             <View style={styles.cardHeader}>
               <Text style={styles.title}>Track a New Shipment</Text>
               <Text style={styles.subtitle}>Enter the details below to start tracking your cargo.</Text>
             </View>
+
+            {/* Panodan Algılanan Kargo Bildirim Rozeti */}
+            {clipboardDetected && (
+              <TouchableOpacity style={styles.clipboardBadge} onPress={handleApplyClipboard} activeOpacity={0.8}>
+                <MaterialIcons name="content-paste-go" size={20} color="#2563eb" />
+                <Text style={styles.clipboardText}>
+                  📋 Panoda tespit edildi: <Text style={styles.clipboardCode}>{clipboardDetected}</Text> (Aktarmak için dokunun)
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* E-Posta Bağlama Hızlı Butonu */}
+            <TouchableOpacity style={styles.emailSyncCard} onPress={() => setEmailModalVisible(true)} activeOpacity={0.85}>
+              <MaterialIcons name="mark-email-unread" size={22} color="#00236f" />
+              <View style={styles.emailSyncTextWrapper}>
+                <Text style={styles.emailSyncTitle}>E-Postadan Otomatik İçe Aktar</Text>
+                <Text style={styles.emailSyncSubtitle}>Trendyol, Hepsiburada ve Amazon maillerini otomatik tara</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={20} color="#00236f" />
+            </TouchableOpacity>
 
             <View style={styles.form}>
               
@@ -230,6 +282,18 @@ export const AddPackageScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Email Connect Modal */}
+      <EmailConnectModal
+        visible={emailModalVisible}
+        onClose={() => setEmailModalVisible(false)}
+        onShipmentsImported={(items) => {
+          if (items.length > 0) {
+            setTrackingNumber(items[0].trackingNumber);
+            setNickname(items[0].itemTitle);
+          }
+        }}
+      />
 
       {/* Bottom Sheet Modal for Carrier Selection */}
       <Modal
@@ -383,16 +447,16 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingHorizontal: 16, // margin-mobile
+    paddingHorizontal: 16,
     paddingTop: 24,
     alignItems: 'center',
   },
   card: {
     width: '100%',
-    maxWidth: 768, // max-w-3xl
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // glass-card approximation
+    maxWidth: 768,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 12,
-    padding: 24, // container-padding
+    padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
     shadowColor: '#000',
@@ -411,7 +475,6 @@ const styles = StyleSheet.create({
     borderRadius: 128,
     backgroundColor: colors.primaryFixed,
     opacity: 0.4,
-    // Add simple blur effect approximation for native
     shadowColor: colors.primaryFixed,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
@@ -420,13 +483,13 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   cardHeader: {
-    marginBottom: 32,
+    marginBottom: 20,
     gap: 8,
     zIndex: 10,
   },
   title: {
     fontFamily: 'Inter',
-    fontSize: 24, // headline-lg-mobile
+    fontSize: 24,
     fontWeight: '700',
     letterSpacing: -0.24,
     color: colors.primary,
@@ -435,6 +498,53 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 16,
     color: colors.onSurfaceVariant,
+  },
+  clipboardBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+    zIndex: 10,
+  },
+  clipboardText: {
+    fontSize: 13,
+    color: '#1e40af',
+    flex: 1,
+  },
+  clipboardCode: {
+    fontWeight: '700',
+    fontFamily: 'Courier Prime',
+  },
+  emailSyncCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#f0f9ff',
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 24,
+    zIndex: 10,
+  },
+  emailSyncTextWrapper: {
+    flex: 1,
+  },
+  emailSyncTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0369a1',
+  },
+  emailSyncSubtitle: {
+    fontSize: 12,
+    color: '#0284c7',
+    marginTop: 2,
   },
   form: {
     gap: 24,
@@ -503,35 +613,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 8,
     borderRadius: 999,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceContainerLowest,
-  },
-  chipSelected: {
-    backgroundColor: colors.primaryContainer,
-    borderColor: colors.primaryContainer,
-  },
-  chipText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.onSurfaceVariant,
-  },
-  chipTextSelected: {
-    color: colors.onPrimaryContainer,
   },
   submitContainer: {
     paddingTop: 16,
@@ -665,14 +746,6 @@ const styles = StyleSheet.create({
   },
   sheetScroll: {
     flex: 1,
-  },
-  carrierGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    gap: 16,
-    justifyContent: 'space-between',
   },
   carrierGridCard: {
     width: '47%',

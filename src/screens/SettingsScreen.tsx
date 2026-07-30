@@ -17,6 +17,8 @@ import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuthStore } from '../store/auth.store';
 import HeaderRightActions from '../components/common/HeaderRightActions';
+import { useBiometrics } from '../hooks/useBiometrics';
+import { EmailConnectModal } from '../components/import/EmailConnectModal';
 
 export const SettingsScreen = () => {
   const navigation = useNavigation<any>();
@@ -27,8 +29,17 @@ export const SettingsScreen = () => {
   const { theme: colors, isDarkMode, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
   const signOut = useAuthStore(state => state.signOut);
+  const { isSupported, isEnabled, biometricTypes, toggleBiometric } = useBiometrics();
 
   const [pushEnabled, setPushEnabled] = useState(true);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
+
+  const handleBiometricToggle = async (value: boolean) => {
+    const success = await toggleBiometric(value);
+    if (value && !success) {
+      Alert.alert('Doğrulama Başarısız', 'Biyometrik giriş aktifleştirilemedi.');
+    }
+  };
 
   const handleSignOut = () => {
     Alert.alert(
@@ -74,6 +85,60 @@ export const SettingsScreen = () => {
           <Text style={[styles.pageTitle, { color: colors.primary }]}>{t('settings')}</Text>
 
           <View style={styles.gridContainer}>
+
+            {/* Security Section (Biometrics) */}
+            <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
+              <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
+                <MaterialIcons name="security" size={20} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Güvenlik & Biyometrik</Text>
+              </View>
+
+              <View style={styles.sectionBody}>
+                <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+                  <View style={styles.settingTextContent}>
+                    <Text style={[styles.settingLabel, { color: colors.onSurface }]}>
+                      {biometricTypes[0] || 'Face ID / Touch ID'} İle Giriş
+                    </Text>
+                    <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>
+                      {isSupported
+                        ? 'Uygulama açılışında biyometrik kimlik doğrulaması iste'
+                        : 'Bu cihazda biyometrik kimlik desteği bulunmuyor'}
+                    </Text>
+                  </View>
+                  <Switch
+                    trackColor={{ false: colors.surfaceVariant, true: colors.primary }}
+                    thumbColor={'#ffffff'}
+                    onValueChange={handleBiometricToggle}
+                    value={isEnabled}
+                    disabled={!isSupported}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Auto Mail Import Section */}
+            <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
+              <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
+                <MaterialIcons name="mark-email-read" size={20} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Otomatik Kargo Taraması</Text>
+              </View>
+
+              <View style={styles.sectionBody}>
+                <TouchableOpacity
+                  style={[styles.settingRow, { borderBottomWidth: 0 }]}
+                  activeOpacity={0.7}
+                  onPress={() => setEmailModalVisible(true)}
+                >
+                  <View style={styles.settingTextContent}>
+                    <Text style={[styles.settingLabel, { color: colors.onSurface }]}>E-Posta Hesabını Bağla</Text>
+                    <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>
+                      Trendyol, Hepsiburada ve Amazon'dan gelen "Paketiniz kargoya verildi" maillerini otomatik tara
+                    </Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
+                </TouchableOpacity>
+              </View>
+            </View>
             
             {/* Preferences Section */}
             <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
@@ -174,7 +239,7 @@ export const SettingsScreen = () => {
               <View style={styles.sectionBody}>
                 <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
                   <Text style={[styles.settingLabel, { color: colors.onSurface }]}>Versiyon</Text>
-                  <Text style={[styles.versionText, { color: colors.onSurfaceVariant }]}>v2.4.1 (Build 8492)</Text>
+                  <Text style={[styles.versionText, { color: colors.onSurfaceVariant }]}>v2.6.0 (Build 8495)</Text>
                 </View>
               </View>
             </View>
@@ -182,6 +247,12 @@ export const SettingsScreen = () => {
           </View>
         </ScrollView>
       </View>
+
+      {/* Email Connect Modal */}
+      <EmailConnectModal
+        visible={emailModalVisible}
+        onClose={() => setEmailModalVisible(false)}
+      />
     </View>
   );
 };
