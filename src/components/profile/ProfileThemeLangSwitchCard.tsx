@@ -18,7 +18,7 @@ export const ProfileThemeLangSwitchCard = () => {
           <Text style={[styles.labelTitle, { color: colors.onSurface }]}>Tema</Text>
         </View>
 
-        <View style={[styles.switchTrack, { backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9', borderColor: colors.outlineVariant }]}>
+        <View style={[styles.switchTrack, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : '#f1f5f9', borderColor: colors.outlineVariant }]}>
           <TouchableOpacity
             style={[
               styles.switchPill,
@@ -28,19 +28,19 @@ export const ProfileThemeLangSwitchCard = () => {
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 13 }}>☀️</Text>
-            <Text style={[styles.pillText, { color: !isDarkMode ? '#00236f' : '#94a3b8' }]}>Açık</Text>
+            <Text style={[styles.pillText, { color: !isDarkMode ? colors.primary : colors.onSurfaceVariant }]}>Açık</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.switchPill,
-              isDarkMode && styles.switchPillActiveDark,
+              isDarkMode && [styles.switchPillActiveDark, { backgroundColor: colors.primary }],
             ]}
             onPress={() => !isDarkMode && toggleTheme()}
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 13 }}>🌙</Text>
-            <Text style={[styles.pillText, { color: isDarkMode ? '#ffffff' : '#94a3b8' }]}>Koyu</Text>
+            <Text style={[styles.pillText, { color: isDarkMode ? colors.onPrimary : colors.onSurfaceVariant }]}>Koyu</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -52,17 +52,17 @@ export const ProfileThemeLangSwitchCard = () => {
           <Text style={[styles.labelTitle, { color: colors.onSurface }]}>Dil</Text>
         </View>
 
-        <View style={[styles.switchTrack, { backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9', borderColor: colors.outlineVariant }]}>
+        <View style={[styles.switchTrack, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : '#f1f5f9', borderColor: colors.outlineVariant }]}>
           <TouchableOpacity
             style={[
               styles.switchPill,
-              language === 'tr' && styles.switchPillActiveBlue,
+              language === 'tr' && [styles.switchPillActiveBlue, { backgroundColor: colors.primary }],
             ]}
             onPress={() => setLanguage('tr')}
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 12 }}>🇹🇷</Text>
-            <Text style={[styles.pillText, { color: language === 'tr' ? '#ffffff' : isDarkMode ? '#94a3b8' : '#64748b' }]}>
+            <Text style={[styles.pillText, { color: language === 'tr' ? colors.onPrimary : colors.onSurfaceVariant }]}>
               Türkçe (TR)
             </Text>
           </TouchableOpacity>
@@ -70,12 +70,12 @@ export const ProfileThemeLangSwitchCard = () => {
           <TouchableOpacity
             style={[
               styles.switchPill,
-              language === 'en' && styles.switchPillActiveBlue,
+              language === 'en' && [styles.switchPillActiveBlue, { backgroundColor: colors.primary }],
             ]}
             onPress={() => setLanguage('en')}
             activeOpacity={0.8}
           >
-            <Text style={[styles.pillText, { color: language === 'en' ? '#ffffff' : isDarkMode ? '#94a3b8' : '#64748b' }]}>
+            <Text style={[styles.pillText, { color: language === 'en' ? colors.onPrimary : colors.onSurfaceVariant }]}>
               English (EN)
             </Text>
           </TouchableOpacity>
@@ -140,16 +140,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   switchPillActiveDark: {
-    backgroundColor: '#334155',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
   switchPillActiveBlue: {
-    backgroundColor: '#00236f',
-    shadowColor: '#00236f',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,

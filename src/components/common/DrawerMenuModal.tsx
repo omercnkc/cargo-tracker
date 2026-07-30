@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   View, 
   Text, 
@@ -18,13 +18,11 @@ import { useDrawerStore } from '../../store/drawer.store';
 import { useAuthStore } from '../../store/auth.store';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
-import { AddressManagementModal } from '../profile/AddressManagementModal';
-import { ChangePasswordModal } from './ChangePasswordModal';
-import { SupportHelpModal, SupportModalType } from './SupportHelpModal';
+import { useModalStore } from '../../store/modal.store';
 
 export const DrawerMenuModal = () => {
   const { isOpen, closeDrawer } = useDrawerStore();
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDarkMode } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -33,12 +31,7 @@ export const DrawerMenuModal = () => {
   const profile = useAuthStore((state) => state.profile);
   const signOut = useAuthStore((state) => state.signOut);
 
-  const [addressesModalVisible, setAddressesModalVisible] = useState(false);
-  const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
-  const [supportModalState, setSupportModalState] = useState<{ visible: boolean; type: SupportModalType }>({
-    visible: false,
-    type: 'help',
-  });
+  const { openAddressModal, openChangePasswordModal, openSupportModal } = useModalStore();
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
   const displayEmail = user?.email || 'omercnkc123@gmail.com';
@@ -49,9 +42,19 @@ export const DrawerMenuModal = () => {
     navigation.navigate(screenName);
   };
 
-  const openSupportModal = (type: SupportModalType) => {
+  const handleOpenAddressModal = () => {
     closeDrawer();
-    setSupportModalState({ visible: true, type });
+    openAddressModal();
+  };
+
+  const handleOpenChangePasswordModal = () => {
+    closeDrawer();
+    openChangePasswordModal();
+  };
+
+  const handleOpenSupportModal = (type: any) => {
+    closeDrawer();
+    openSupportModal(type);
   };
 
   const handleLogout = () => {
@@ -75,203 +78,180 @@ export const DrawerMenuModal = () => {
   if (!isOpen) return null;
 
   return (
-    <>
-      <Modal
-        visible={isOpen}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={closeDrawer}
-      >
-        <View style={styles.overlay}>
-          {/* Backdrop Tap to Close */}
-          <TouchableWithoutFeedback onPress={closeDrawer}>
-            <View style={styles.backdrop} />
-          </TouchableWithoutFeedback>
+    <Modal
+      visible={isOpen}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={closeDrawer}
+    >
+      <View style={styles.overlay}>
+        {/* Backdrop Tap to Close */}
+        <TouchableWithoutFeedback onPress={closeDrawer}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
 
-          {/* Drawer Body */}
-          <View style={[
-            styles.drawerContainer, 
-            { backgroundColor: colors.surfaceContainerLowest, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 }
-          ]}>
-            
-            {/* Top Brand & Close Header */}
-            <View style={styles.topBrandRow}>
-              <View style={styles.brandGroup}>
-                <MaterialIcons name="inventory-2" size={24} color="#00236f" />
-                <Text style={styles.brandTitle}>KargoTakip</Text>
-              </View>
-
-              <TouchableOpacity style={styles.closeBtn} onPress={closeDrawer}>
-                <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
-              </TouchableOpacity>
+        {/* Drawer Body */}
+        <View style={[
+          styles.drawerContainer, 
+          { backgroundColor: colors.surfaceContainerLowest, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 }
+        ]}>
+          
+          {/* Top Brand & Close Header */}
+          <View style={styles.topBrandRow}>
+            <View style={styles.brandGroup}>
+              <MaterialIcons name="inventory-2" size={24} color={colors.primary} />
+              <Text style={[styles.brandTitle, { color: colors.primary }]}>KargoTakip</Text>
             </View>
 
-            {/* Profile Avatar & Info Centered */}
-            <View style={styles.userProfileSection}>
-              <View style={styles.avatarWrapper}>
-                <Image source={{ uri: displayAvatar }} style={styles.avatar} />
-              </View>
-              <Text style={[styles.userName, { color: colors.onSurface }]}>{displayName}</Text>
-              <Text style={[styles.userEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuScrollContent}>
-              
-              {/* HESAP SECTION */}
-              <Text style={styles.sectionHeaderTitle}>HESAP</Text>
-              
-              {/* 1. Kişisel Bilgiler */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => handleNavigate('Settings')}
-              >
-                <MaterialIcons name="person-outline" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kişisel Bilgiler</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 2. Adreslerim */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => {
-                  closeDrawer();
-                  setAddressesModalVisible(true);
-                }}
-              >
-                <MaterialIcons name="location-on" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Adreslerim</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 3. Şifre Değiştir */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => {
-                  closeDrawer();
-                  setChangePasswordModalVisible(true);
-                }}
-              >
-                <MaterialIcons name="lock-outline" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Şifre Değiştir</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 4. Bildirim Ayarları */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => handleNavigate('Notifications')}
-              >
-                <MaterialIcons name="notifications-none" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Bildirim Ayarları</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 5. Varsayılan Kargo Firmaları */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => handleNavigate('CarrierSelection')}
-              >
-                <MaterialIcons name="local-shipping" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Varsayılan Kargo Firmaları</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              <View style={styles.menuDivider} />
-
-              {/* DESTEK SECTION */}
-              <Text style={styles.sectionHeaderTitle}>DESTEK</Text>
-
-              {/* 6. Yardım Merkezi */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => openSupportModal('help')}
-              >
-                <MaterialIcons name="help-outline" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Yardım Merkezi</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 7. Uygulamayı Puanla */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => openSupportModal('rate')}
-              >
-                <MaterialIcons name="star-outline" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Uygulamayı Puanla</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 8. Geri Bildirim Gönder */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => openSupportModal('feedback')}
-              >
-                <MaterialIcons name="chat-bubble-outline" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Geri Bildirim Gönder</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 9. Gizlilik Politikası */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => openSupportModal('privacy')}
-              >
-                <MaterialIcons name="shield" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Gizlilik Politikası</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* 10. Kullanım Koşulları */}
-              <TouchableOpacity 
-                style={styles.menuItem} 
-                activeOpacity={0.7}
-                onPress={() => openSupportModal('terms')}
-              >
-                <MaterialIcons name="description" size={22} color={colors.onSurface} />
-                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kullanım Koşulları</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-              </TouchableOpacity>
-
-              {/* Logout Pill Button */}
-              <TouchableOpacity style={styles.logoutPillBtn} activeOpacity={0.8} onPress={handleLogout}>
-                <MaterialIcons name="logout" size={20} color="#dc2626" />
-                <Text style={styles.logoutPillText}>{t('signOut')}</Text>
-              </TouchableOpacity>
-
-            </ScrollView>
-
+            <TouchableOpacity style={styles.closeBtn} onPress={closeDrawer}>
+              <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
+            </TouchableOpacity>
           </View>
+
+          {/* Profile Avatar & Info Centered */}
+          <View style={styles.userProfileSection}>
+            <View style={[styles.avatarWrapper, { borderColor: colors.surfaceContainerLowest }]}>
+              <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+            </View>
+            <Text style={[styles.userName, { color: colors.onSurface }]}>{displayName}</Text>
+            <Text style={[styles.userEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuScrollContent}>
+            
+            {/* HESAP SECTION */}
+            <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>HESAP</Text>
+            
+            {/* 1. Kişisel Bilgiler */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleNavigate('Settings')}
+            >
+              <MaterialIcons name="person-outline" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kişisel Bilgiler</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 2. Adreslerim */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={handleOpenAddressModal}
+            >
+              <MaterialIcons name="location-on" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Adreslerim</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 3. Şifre Değiştir */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={handleOpenChangePasswordModal}
+            >
+              <MaterialIcons name="lock-outline" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Şifre Değiştir</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 4. Bildirim Ayarları */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleNavigate('Notifications')}
+            >
+              <MaterialIcons name="notifications-none" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Bildirim Ayarları</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 5. Varsayılan Kargo Firmaları */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleNavigate('CarrierSelection')}
+            >
+              <MaterialIcons name="local-shipping" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Varsayılan Kargo Firmaları</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            <View style={[styles.menuDivider, { backgroundColor: colors.outlineVariant }]} />
+
+            {/* DESTEK SECTION */}
+            <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>DESTEK</Text>
+
+            {/* 6. Yardım Merkezi */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleOpenSupportModal('help')}
+            >
+              <MaterialIcons name="help-outline" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Yardım Merkezi</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 7. Uygulamayı Puanla */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleOpenSupportModal('rate')}
+            >
+              <MaterialIcons name="star-outline" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Uygulamayı Puanla</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 8. Geri Bildirim Gönder */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleOpenSupportModal('feedback')}
+            >
+              <MaterialIcons name="chat-bubble-outline" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Geri Bildirim Gönder</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 9. Gizlilik Politikası */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleOpenSupportModal('privacy')}
+            >
+              <MaterialIcons name="shield" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Gizlilik Politikası</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 10. Kullanım Koşulları */}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              activeOpacity={0.7}
+              onPress={() => handleOpenSupportModal('terms')}
+            >
+              <MaterialIcons name="description" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kullanım Koşulları</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* Logout Pill Button */}
+            <TouchableOpacity 
+              style={[styles.logoutPillBtn, { backgroundColor: isDarkMode ? '#450a0a' : '#fee2e2' }]} 
+              activeOpacity={0.8} 
+              onPress={handleLogout}
+            >
+              <MaterialIcons name="logout" size={20} color={colors.error} />
+              <Text style={[styles.logoutPillText, { color: colors.error }]}>{t('signOut')}</Text>
+            </TouchableOpacity>
+
+          </ScrollView>
+
         </View>
-      </Modal>
-
-      {/* Address Management Modal */}
-      <AddressManagementModal
-        visible={addressesModalVisible}
-        onClose={() => setAddressesModalVisible(false)}
-      />
-
-      {/* Change Password Modal */}
-      <ChangePasswordModal
-        visible={changePasswordModalVisible}
-        onClose={() => setChangePasswordModalVisible(false)}
-      />
-
-      {/* Support & Legal Help Modal */}
-      <SupportHelpModal
-        visible={supportModalState.visible}
-        type={supportModalState.type}
-        onClose={() => setSupportModalState({ ...supportModalState, visible: false })}
-      />
-    </>
+      </View>
+    </Modal>
   );
 };
 
@@ -310,7 +290,6 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#00236f',
     fontFamily: 'Inter',
   },
   closeBtn: {
@@ -326,7 +305,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -355,7 +333,6 @@ const styles = StyleSheet.create({
   sectionHeaderTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#94a3b8',
     letterSpacing: 0.8,
     marginTop: 8,
     marginBottom: 4,
@@ -374,7 +351,7 @@ const styles = StyleSheet.create({
   },
   menuDivider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
+    opacity: 0.4,
     marginVertical: 8,
   },
   logoutPillBtn: {
@@ -382,13 +359,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#fee2e2',
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 16,
   },
   logoutPillText: {
-    color: '#dc2626',
     fontSize: 15,
     fontWeight: '700',
     fontFamily: 'Inter',

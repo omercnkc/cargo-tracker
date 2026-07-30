@@ -15,9 +15,13 @@ import ScannerScreen from '../screens/ScannerScreen';
 import { RootStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
 import { useBiometrics } from '../hooks/useBiometrics';
+import { useModalStore } from '../store/modal.store';
 
 import DrawerMenuModal from '../components/common/DrawerMenuModal';
 import { BiometricLockModal } from '../components/auth/BiometricLockModal';
+import { AddressManagementModal } from '../components/profile/AddressManagementModal';
+import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
+import { SupportHelpModal } from '../components/common/SupportHelpModal';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -25,6 +29,16 @@ export const RootNavigator = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const isLoading = useAuthStore(state => state.isLoading);
   const { isLocked, unlockApp, biometricTypes } = useBiometrics();
+
+  const {
+    addressModalOpen,
+    closeAddressModal,
+    changePasswordModalOpen,
+    closeChangePasswordModal,
+    supportModalOpen,
+    supportModalType,
+    closeSupportModal,
+  } = useModalStore();
 
   if (isLoading) {
     return <SplashScreen />;
@@ -55,10 +69,27 @@ export const RootNavigator = () => {
         )}
       </Stack.Navigator>
 
-      {/* App Drawers & Biometric Lock Modals */}
+      {/* App Drawers & Global Modals */}
       {isAuthenticated && (
         <>
           <DrawerMenuModal />
+
+          <AddressManagementModal
+            visible={addressModalOpen}
+            onClose={closeAddressModal}
+          />
+
+          <ChangePasswordModal
+            visible={changePasswordModalOpen}
+            onClose={closeChangePasswordModal}
+          />
+
+          <SupportHelpModal
+            visible={supportModalOpen}
+            type={supportModalType}
+            onClose={closeSupportModal}
+          />
+
           <BiometricLockModal
             visible={isLocked}
             onAuthenticate={unlockApp}

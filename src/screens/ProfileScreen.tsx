@@ -25,7 +25,7 @@ export const ProfileScreen = () => {
   const { isLargeScreen } = useResponsive();
   const openDrawer = useDrawerStore((state) => state.openDrawer);
 
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDarkMode } = useTheme();
   const { t } = useTranslation();
 
   const user = useAuthStore((state) => state.user);
@@ -46,21 +46,21 @@ export const ProfileScreen = () => {
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
       
       {/* TopAppBar */}
-      <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface }]}>
+      <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.surfaceContainer }]}>
         <View style={styles.appBarContent}>
           <TouchableOpacity style={styles.iconButton} onPress={openDrawer}>
-            <MaterialIcons name="menu" size={24} color="#00236f" />
+            <MaterialIcons name="menu" size={24} color={colors.primary} />
           </TouchableOpacity>
           
-          <Text style={styles.appBarTitle}>KargoTakip</Text>
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
           
           <TouchableOpacity 
             style={styles.iconButton}
             onPress={() => navigation.navigate('Notifications')}
           >
             <View style={{ position: 'relative' }}>
-              <MaterialIcons name="notifications-none" size={24} color="#00236f" />
-              <View style={styles.redDot} />
+              <MaterialIcons name="notifications-none" size={24} color={colors.primary} />
+              <View style={[styles.redDot, { backgroundColor: colors.error }]} />
             </View>
           </TouchableOpacity>
         </View>
@@ -73,9 +73,9 @@ export const ProfileScreen = () => {
           { paddingBottom: isLargeScreen ? 48 : insets.bottom + 96 }
         ]}
       >
-        {/* Profile Info Card (Centered Avatar, Name, Email, Edit Pill Button) */}
+        {/* Profile Info Card */}
         <View style={[styles.profileCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-          <View style={styles.avatarBorderContainer}>
+          <View style={[styles.avatarBorderContainer, { borderColor: colors.surfaceContainerLowest }]}>
             <Image 
               source={{ uri: displayAvatar }}
               style={styles.avatarImage}
@@ -86,22 +86,22 @@ export const ProfileScreen = () => {
           <Text style={[styles.profileEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
 
           <TouchableOpacity 
-            style={styles.editPillButton} 
+            style={[styles.editPillButton, { backgroundColor: colors.primary }]} 
             activeOpacity={0.8}
             onPress={() => navigation.navigate('Settings')}
           >
-            <MaterialIcons name="edit" size={16} color="#ffffff" />
-            <Text style={styles.editPillButtonText}>Profili Düzenle</Text>
+            <MaterialIcons name="edit" size={16} color={colors.onPrimary} />
+            <Text style={[styles.editPillButtonText, { color: colors.onPrimary }]}>Profili Düzenle</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Bento Stats Row (4 Columns in 1 Row) */}
+        {/* Bento Stats Row */}
         <View style={[styles.statsCardRow, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
           
           {/* Item 1: Toplam */}
           <View style={styles.statColItem}>
-            <View style={[styles.statIconCircle, { backgroundColor: '#eff6ff' }]}>
-              <MaterialIcons name="inventory-2" size={18} color="#2563eb" />
+            <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff' }]}>
+              <MaterialIcons name="inventory-2" size={18} color={isDarkMode ? '#93c5fd' : '#2563eb'} />
             </View>
             <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Toplam</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{totalCount}</Text>
@@ -109,8 +109,8 @@ export const ProfileScreen = () => {
 
           {/* Item 2: Yolda */}
           <View style={styles.statColItem}>
-            <View style={[styles.statIconCircle, { backgroundColor: '#eff6ff' }]}>
-              <MaterialIcons name="local-shipping" size={18} color="#2563eb" />
+            <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff' }]}>
+              <MaterialIcons name="local-shipping" size={18} color={isDarkMode ? '#93c5fd' : '#2563eb'} />
             </View>
             <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Yolda</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{inTransitCount}</Text>
@@ -118,8 +118,8 @@ export const ProfileScreen = () => {
 
           {/* Item 3: Teslim Edildi */}
           <View style={styles.statColItem}>
-            <View style={[styles.statIconCircle, { backgroundColor: '#f0fdf4' }]}>
-              <MaterialIcons name="check-circle" size={18} color="#16a34a" />
+            <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#064e3b' : '#f0fdf4' }]}>
+              <MaterialIcons name="check-circle" size={18} color={isDarkMode ? '#6ee7b7' : '#16a34a'} />
             </View>
             <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Teslim Edildi</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{deliveredCount}</Text>
@@ -127,8 +127,8 @@ export const ProfileScreen = () => {
 
           {/* Item 4: Sorunlu */}
           <View style={styles.statColItem}>
-            <View style={[styles.statIconCircle, { backgroundColor: '#fef2f2' }]}>
-              <MaterialIcons name="error" size={18} color="#dc2626" />
+            <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#7f1d1d' : '#fef2f2' }]}>
+              <MaterialIcons name="error" size={18} color={isDarkMode ? '#fca5a5' : '#dc2626'} />
             </View>
             <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Sorunlu</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{errorCount}</Text>
@@ -150,7 +150,6 @@ const styles = StyleSheet.create({
   },
   appBar: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(197, 197, 211, 0.3)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -172,7 +171,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '700',
-    color: '#00236f',
   },
   iconButton: {
     padding: 8,
@@ -185,7 +183,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#dc2626',
   },
   mainContent: {
     paddingHorizontal: 16,
@@ -212,7 +209,6 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     borderWidth: 3,
-    borderColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -241,11 +237,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#00236f',
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 24,
-    shadowColor: '#00236f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -255,7 +249,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '600',
-    color: '#ffffff',
   },
   statsCardRow: {
     borderRadius: 16,
