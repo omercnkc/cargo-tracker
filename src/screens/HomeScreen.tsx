@@ -148,7 +148,7 @@ export const HomeScreen = () => {
         </View>
       ) : (
         <FlatList
-          data={displayPackages}
+          data={displayPackages.slice(0, 3)}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
