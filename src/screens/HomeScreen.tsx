@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import useResponsive from '../hooks/useResponsive';
 import { PackageCard } from '../components/home/PackageCard';
 import { StatCard } from '../components/home/StatCard';
-import HeaderRightActions from '../components/common/HeaderRightActions';
+
 import { useAuthStore } from '../store/auth.store';
 import { useDrawerStore } from '../store/drawer.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
@@ -138,7 +138,7 @@ export const HomeScreen = () => {
             <MaterialIcons name="menu" size={24} color={colors.primary} />
           </TouchableOpacity>
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
-          <HeaderRightActions />
+          <View style={{ width: 24 }} />
         </View>
       </View>
 

@@ -17,7 +17,7 @@ import { useDrawerStore } from '../store/drawer.store';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useShipments } from '../features/shipment/hooks/useShipments';
-import HeaderRightActions from '../components/common/HeaderRightActions';
+import { ProfileThemeLangSwitchCard } from '../components/profile/ProfileThemeLangSwitchCard';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
@@ -51,7 +51,7 @@ export const ProfileScreen = () => {
             <MaterialIcons name="menu" size={24} color={colors.primary} />
           </TouchableOpacity>
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
-          <HeaderRightActions />
+          <View style={{ width: 24 }} />
         </View>
       </View>
 
@@ -87,6 +87,9 @@ export const ProfileScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Enlarged Theme & Language Switch Card */}
+        <ProfileThemeLangSwitchCard />
 
         {/* Stats Overview Bento */}
         <View style={styles.statsGrid}>
@@ -172,11 +175,11 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     paddingHorizontal: 16,
-    paddingTop: 32,
+    paddingTop: 24,
     maxWidth: 896,
     alignSelf: 'center',
     width: '100%',
-    gap: 32,
+    gap: 24,
   },
   profileHeader: {
     borderRadius: 12,
