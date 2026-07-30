@@ -113,7 +113,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
               </View>
             ) : (
               addresses.map((item) => (
-                <View key={item.id} style={[styles.addressCard, { borderColor: colors.outlineVariant }]}>
+                <View key={item.id} style={[styles.addressCard, { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainer }]}>
                   <View style={styles.cardHeader}>
                     <View style={styles.cardTitleBadgeRow}>
                       <Text style={[styles.cardTitle, { color: colors.primary }]}>{item.title}</Text>
@@ -213,7 +213,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     padding: 14,
-    backgroundColor: '#fafafa',
   },
   cardHeader: {
     flexDirection: 'row',

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
+import { useTheme } from '../theme/useTheme';
 import useResponsive from '../hooks/useResponsive';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { ExportUtils } from '../utils/exportUtils';
@@ -28,6 +28,7 @@ export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const { isOnline, pendingCount } = useNetworkStatus();
+  const { theme: colors, isDarkMode } = useTheme();
 
   const [qrModalVisible, setQrModalVisible] = useState(false);
 
@@ -54,16 +55,16 @@ export const StatisticsScreen = () => {
   };
 
   return (
-    <View style={[styles.container, isLargeScreen && { paddingLeft: 240 }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
       {/* TopAppBar */}
-      <View style={[styles.appBar, { paddingTop: insets.top }]}>
+      <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.outlineVariant }]}>
         <View style={styles.appBarContent}>
-          <Text style={[styles.appBarTitle, { flex: 1 }]}>Analiz & Raporlama</Text>
+          <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>Analiz & Raporlama</Text>
           
           {/* Network Status Badge */}
-          <View style={[styles.networkBadge, { backgroundColor: isOnline ? '#dcfce7' : '#fee2e2' }]}>
-            <MaterialIcons name={isOnline ? "wifi" : "wifi-off"} size={14} color={isOnline ? "#166534" : "#991b1b"} />
-            <Text style={[styles.networkBadgeText, { color: isOnline ? "#166534" : "#991b1b" }]}>
+          <View style={[styles.networkBadge, { backgroundColor: isOnline ? (isDarkMode ? '#064e3b' : '#dcfce7') : (isDarkMode ? '#7f1d1d' : '#fee2e2') }]}>
+            <MaterialIcons name={isOnline ? "wifi" : "wifi-off"} size={14} color={isOnline ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b')} />
+            <Text style={[styles.networkBadgeText, { color: isOnline ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b') }]}>
               {isOnline ? 'Çevrimiçi' : `Çevrimdışı (${pendingCount} Bekleyen)`}
             </Text>
           </View>
@@ -79,23 +80,23 @@ export const StatisticsScreen = () => {
       >
         <View style={styles.pageHeaderRow}>
           <View>
-            <Text style={styles.pageTitle}>Performans Özeti</Text>
-            <Text style={styles.pageSubtitle}>Kargo teslimat ve istatistik raporlarınız</Text>
+            <Text style={[styles.pageTitle, { color: colors.onSurface }]}>Performans Özeti</Text>
+            <Text style={[styles.pageSubtitle, { color: colors.onSurfaceVariant }]}>Kargo teslimat ve istatistik raporlarınız</Text>
           </View>
 
           {/* Export Action Buttons */}
           <View style={styles.exportButtonRow}>
-            <TouchableOpacity style={styles.exportBtn} onPress={handleExportCSV} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.exportBtn, { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainerLowest }]} onPress={handleExportCSV} activeOpacity={0.8}>
               <MaterialIcons name="table-chart" size={18} color={colors.primary} />
-              <Text style={styles.exportBtnText}>CSV İndir</Text>
+              <Text style={[styles.exportBtnText, { color: colors.primary }]}>CSV İndir</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.exportBtn, styles.exportBtnPrimary]} onPress={handleExportPDFReport} activeOpacity={0.8}>
-              <MaterialIcons name="picture-as-pdf" size={18} color="#ffffff" />
-              <Text style={styles.exportBtnTextPrimary}>PDF Rapor Al</Text>
+            <TouchableOpacity style={[styles.exportBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={handleExportPDFReport} activeOpacity={0.8}>
+              <MaterialIcons name="picture-as-pdf" size={18} color={colors.onPrimary} />
+              <Text style={[styles.exportBtnText, { color: colors.onPrimary }]}>PDF Rapor Al</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.exportBtn} onPress={() => setQrModalVisible(true)} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.exportBtn, { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainerLowest }]} onPress={() => setQrModalVisible(true)} activeOpacity={0.8}>
               <MaterialIcons name="qr-code" size={18} color={colors.primary} />
             </TouchableOpacity>
           </View>
@@ -107,52 +108,50 @@ export const StatisticsScreen = () => {
           <View style={[styles.kpiRow, isLargeScreen && styles.kpiRowDesktop]}>
             
             {/* Total Packages */}
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>TOPLAM KARGO</Text>
+                <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>TOPLAM KARGO</Text>
                 <View style={[styles.iconBox, { backgroundColor: colors.primaryContainer }]}>
                   <MaterialIcons name="inventory" size={16} color={colors.onPrimaryContainer} />
                 </View>
               </View>
               <View>
-                <Text style={styles.statValue}>1,248</Text>
+                <Text style={[styles.statValue, { color: colors.primary }]}>1,248</Text>
                 <View style={styles.trendRow}>
                   <MaterialIcons name="trending-up" size={12} color={colors.tertiary} />
-                  <Text style={styles.trendTextUp}>+12% geçen aya göre</Text>
+                  <Text style={[styles.trendTextUp, { color: colors.tertiary }]}>+12% geçen aya göre</Text>
                 </View>
               </View>
             </View>
 
             {/* Average Delivery Time */}
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>ORT. TESLİMAT SÜRESİ</Text>
+                <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>ORT. TESLİMAT SÜRESİ</Text>
                 <View style={[styles.iconBox, { backgroundColor: colors.surfaceVariant }]}>
                   <MaterialIcons name="timer" size={16} color={colors.primary} />
                 </View>
               </View>
               <View>
-                <Text style={styles.statValue}>2.4 <Text style={styles.statValueUnit}>Gün</Text></Text>
+                <Text style={[styles.statValue, { color: colors.primary }]}>2.4 <Text style={[styles.statValueUnit, { color: colors.onSurfaceVariant }]}>Gün</Text></Text>
                 <View style={styles.trendRow}>
                   <MaterialIcons name="trending-down" size={12} color={colors.tertiary} />
-                  <Text style={styles.trendTextUp}>-0.3 gün iyileşme</Text>
+                  <Text style={[styles.trendTextUp, { color: colors.tertiary }]}>-0.3 gün iyileşme</Text>
                 </View>
               </View>
             </View>
 
             {/* Success Rate */}
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>TESLİMAT BAŞARISI</Text>
-                <View style={[styles.iconBox, { backgroundColor: colors.tertiaryFixed }]}>
-                  <MaterialIcons name="check-circle" size={16} color={colors.onTertiaryFixedVariant} />
+                <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>TESLİMAT BAŞARISI</Text>
+                <View style={[styles.iconBox, { backgroundColor: colors.tertiaryContainer }]}>
+                  <MaterialIcons name="check-circle" size={16} color={colors.onTertiaryContainer} />
                 </View>
               </View>
               <View>
-                <Text style={styles.statValue}>98.2%</Text>
-                <View style={styles.trendRow}>
-                  <Text style={styles.trendTextNeutral}>Yüksek performans</Text>
-                </View>
+                <Text style={[styles.statValue, { color: colors.primary }]}>98.2%</Text>
+                <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>Yüksek performans</Text>
               </View>
             </View>
           </View>
@@ -161,38 +160,36 @@ export const StatisticsScreen = () => {
           <View style={[styles.chartsRow, isLargeScreen && styles.chartsRowDesktop]}>
             
             {/* Bar Chart */}
-            <View style={[styles.statCard, isLargeScreen && styles.barChartCardDesktop]}>
+            <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.barChartCardDesktop]}>
               <View style={styles.chartHeader}>
-                <Text style={styles.chartTitle}>Aylık Gönderi Dağılımı</Text>
-                <View style={styles.dropdownPicker}>
-                  <Text style={styles.dropdownText}>Son 6 Ay</Text>
+                <Text style={[styles.chartTitle, { color: colors.onSurface }]}>Aylık Gönderi Dağılımı</Text>
+                <View style={[styles.dropdownPicker, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+                  <Text style={[styles.dropdownText, { color: colors.onSurface }]}>Son 6 Ay</Text>
                   <MaterialIcons name="arrow-drop-down" size={20} color={colors.onSurface} />
                 </View>
               </View>
 
-              <View style={styles.barChartContainer}>
-                {/* Horizontal Grid Lines */}
+              <View style={[styles.barChartContainer, { borderBottomColor: colors.outlineVariant }]}>
                 <View style={styles.gridLines}>
-                  <View style={styles.gridLine} />
-                  <View style={styles.gridLine} />
-                  <View style={styles.gridLine} />
-                  <View style={styles.gridLine} />
+                  <View style={[styles.gridLine, { backgroundColor: colors.outlineVariant }]} />
+                  <View style={[styles.gridLine, { backgroundColor: colors.outlineVariant }]} />
+                  <View style={[styles.gridLine, { backgroundColor: colors.outlineVariant }]} />
+                  <View style={[styles.gridLine, { backgroundColor: colors.outlineVariant }]} />
                 </View>
 
-                {/* Bars */}
                 <View style={styles.barsArea}>
                   {BAR_CHART_DATA.map((item, index) => (
                     <View key={index} style={styles.barColumn}>
                       <View style={styles.barTrack}>
                         <View style={[
                           styles.barFill, 
-                          { height: item.height as any },
-                          item.active && { backgroundColor: colors.primary }
+                          { height: item.height as any, backgroundColor: item.active ? colors.primary : colors.primaryContainer },
                         ]} />
                       </View>
                       <Text style={[
                         styles.barLabel,
-                        item.active && styles.barLabelActive
+                        { color: item.active ? colors.primary : colors.onSurfaceVariant },
+                        item.active && { fontWeight: '700' }
                       ]}>
                         {item.month}
                       </Text>
@@ -203,49 +200,32 @@ export const StatisticsScreen = () => {
             </View>
 
             {/* Pie Chart (Simulated Donut) */}
-            <View style={[styles.statCard, isLargeScreen && styles.pieChartCardDesktop]}>
-              <Text style={styles.chartTitle}>Kargo Firması Oranları</Text>
+            <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.pieChartCardDesktop]}>
+              <Text style={[styles.chartTitle, { color: colors.onSurface }]}>Kargo Firması Oranları</Text>
               
               <View style={styles.donutChartContainer}>
-                <View style={styles.donutOuter}>
-                  <View style={styles.donutInner}>
-                    <Text style={styles.donutCenterText}>4</Text>
+                <View style={[styles.donutOuter, { backgroundColor: colors.primaryContainer, borderColor: colors.primary, borderTopColor: colors.primaryFixed, borderRightColor: colors.surfaceTint }]}>
+                  <View style={[styles.donutInner, { backgroundColor: colors.surfaceContainerLowest }]}>
+                    <Text style={[styles.donutCenterText, { color: colors.onSurface }]}>4</Text>
                   </View>
                 </View>
               </View>
 
               <View style={styles.legendContainer}>
-                <View style={styles.legendRow}>
-                  <View style={styles.legendLeft}>
-                    <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-                    <Text style={styles.legendLabel}>Aras Kargo</Text>
+                {[
+                  { color: colors.primary, label: 'Aras Kargo', pct: '45%' },
+                  { color: colors.primaryContainer, label: 'Yurtiçi Kargo', pct: '30%' },
+                  { color: colors.surfaceTint, label: 'PTT Kargo', pct: '15%' },
+                  { color: colors.primaryFixed, label: 'Diğerleri', pct: '10%' },
+                ].map((item, i) => (
+                  <View key={i} style={styles.legendRow}>
+                    <View style={styles.legendLeft}>
+                      <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                      <Text style={[styles.legendLabel, { color: colors.onSurface }]}>{item.label}</Text>
+                    </View>
+                    <Text style={[styles.legendValue, { color: colors.onSurface }]}>{item.pct}</Text>
                   </View>
-                  <Text style={styles.legendValue}>45%</Text>
-                </View>
-                
-                <View style={styles.legendRow}>
-                  <View style={styles.legendLeft}>
-                    <View style={[styles.legendDot, { backgroundColor: colors.primaryContainer }]} />
-                    <Text style={styles.legendLabel}>Yurtiçi Kargo</Text>
-                  </View>
-                  <Text style={styles.legendValue}>30%</Text>
-                </View>
-                
-                <View style={styles.legendRow}>
-                  <View style={styles.legendLeft}>
-                    <View style={[styles.legendDot, { backgroundColor: colors.surfaceTint }]} />
-                    <Text style={styles.legendLabel}>PTT Kargo</Text>
-                  </View>
-                  <Text style={styles.legendValue}>15%</Text>
-                </View>
-                
-                <View style={styles.legendRow}>
-                  <View style={styles.legendLeft}>
-                    <View style={[styles.legendDot, { backgroundColor: colors.primaryFixed }]} />
-                    <Text style={styles.legendLabel}>Diğerleri</Text>
-                  </View>
-                  <Text style={styles.legendValue}>10%</Text>
-                </View>
+                ))}
               </View>
 
             </View>
@@ -272,12 +252,9 @@ export const StatisticsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   appBar: {
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
     zIndex: 40,
   },
   appBarContent: {
@@ -294,7 +271,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '700',
-    color: colors.primary,
   },
   networkBadge: {
     flexDirection: 'row',
@@ -327,12 +303,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 24,
     fontWeight: '700',
-    color: colors.onSurface,
   },
   pageSubtitle: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurfaceVariant,
     marginTop: 2,
   },
   exportButtonRow: {
@@ -348,22 +322,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    backgroundColor: '#ffffff',
-  },
-  exportBtnPrimary: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   exportBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.primary,
-  },
-  exportBtnTextPrimary: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#ffffff',
   },
   bentoGrid: {
     gap: 16,
@@ -379,12 +341,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   statCard: {
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
     borderRadius: 12,
     padding: 20,
-    shadowColor: colors.primaryContainer,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -401,7 +361,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '600',
-    color: colors.onSurfaceVariant,
     letterSpacing: 0.7,
   },
   iconBox: {
@@ -412,13 +371,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 28,
     fontWeight: '700',
-    color: colors.primary,
     marginBottom: 4,
   },
   statValueUnit: {
     fontSize: 16,
     fontWeight: '400',
-    color: colors.onSurfaceVariant,
   },
   trendRow: {
     flexDirection: 'row',
@@ -428,12 +385,10 @@ const styles = StyleSheet.create({
   trendTextUp: {
     fontFamily: 'Inter',
     fontSize: 13,
-    color: colors.tertiary,
   },
   trendTextNeutral: {
     fontFamily: 'Inter',
     fontSize: 13,
-    color: colors.onSurfaceVariant,
   },
   chartsRow: {
     flexDirection: 'column',
@@ -459,14 +414,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 18,
     fontWeight: '600',
-    color: colors.onSurface,
   },
   dropdownPicker: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -475,7 +427,6 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontFamily: 'Inter',
     fontSize: 13,
-    color: colors.onSurface,
   },
   barChartContainer: {
     height: 200,
@@ -483,7 +434,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     position: 'relative',
     borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
     paddingBottom: 8,
   },
   gridLines: {
@@ -497,7 +447,6 @@ const styles = StyleSheet.create({
   },
   gridLine: {
     height: 1,
-    backgroundColor: colors.outlineVariant,
     opacity: 0.3,
   },
   barsArea: {
@@ -521,7 +470,6 @@ const styles = StyleSheet.create({
   },
   barFill: {
     width: '100%',
-    backgroundColor: colors.primaryContainer,
     borderTopLeftRadius: 6,
     borderTopRightRadius: 6,
   },
@@ -529,12 +477,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '600',
-    color: colors.onSurfaceVariant,
     marginTop: 8,
-  },
-  barLabelActive: {
-    color: colors.primary,
-    fontWeight: '700',
   },
   donutChartContainer: {
     flex: 1,
@@ -547,11 +490,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: colors.primaryContainer,
     borderWidth: 18,
-    borderColor: colors.primary,
-    borderTopColor: colors.primaryFixed,
-    borderRightColor: colors.surfaceTint,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -559,7 +498,6 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -567,7 +505,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 28,
     fontWeight: '700',
-    color: colors.onSurface,
   },
   legendContainer: {
     marginTop: 16,
@@ -591,13 +528,11 @@ const styles = StyleSheet.create({
   legendLabel: {
     fontFamily: 'Inter',
     fontSize: 13,
-    color: colors.onSurface,
   },
   legendValue: {
     fontFamily: 'Inter',
     fontSize: 13,
     fontWeight: '600',
-    color: colors.onSurface,
   },
 });
 

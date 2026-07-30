@@ -9,50 +9,42 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
+import { useTheme } from '../theme/useTheme';
 
 const NOTIFICATIONS = [
   {
     id: '1',
     unread: true,
     icon: 'local-shipping',
-    iconBg: colors.primaryContainer,
-    iconColor: colors.onPrimaryContainer,
-    time: '2 hours ago',
+    time: '2 saat önce',
     title: 'MacBook Pro M3',
-    description: 'Your package is Out for delivery and will arrive today by 8:00 PM.',
+    description: 'Paketiniz dağıtımda, bugün saat 20:00\'e kadar teslim edilecek.',
     trackingNumber: 'TR-982347102',
   },
   {
     id: '2',
     unread: true,
     icon: 'warehouse',
-    iconBg: colors.surfaceContainerHigh,
-    iconColor: colors.onSurface,
-    time: 'Yesterday, 14:30',
-    title: 'Office Supplies',
-    description: 'Package arrived at local sorting facility in Istanbul.',
+    time: 'Dün, 14:30',
+    title: 'Ofis Malzemeleri',
+    description: 'Paket İstanbul\'daki yerel dağıtım merkezine ulaştı.',
     trackingNumber: 'TR-551029384',
   },
   {
     id: '3',
     unread: false,
     icon: 'check-circle',
-    iconBg: colors.tertiaryContainer,
-    iconColor: colors.onTertiaryContainer,
-    time: 'Oct 12, 2023',
-    title: 'Winter Jacket',
-    description: 'Delivered successfully. Left at front door.',
+    time: 'Eki 12, 2023',
+    title: 'Kış Montu',
+    description: 'Başarıyla teslim edildi. Ön kapıya bırakıldı.',
   },
   {
     id: '4',
     unread: false,
     icon: 'flight-takeoff',
-    iconBg: colors.surfaceContainerHigh,
-    iconColor: colors.onSurface,
-    time: 'Oct 10, 2023',
-    title: 'Mechanical Keyboard',
-    description: 'Departed origin country facility (Shenzhen, CN).',
+    time: 'Eki 10, 2023',
+    title: 'Mekanik Klavye',
+    description: 'Çıkış ülkesi tesisinden ayrıldı (Shenzhen, CN).',
   }
 ];
 
@@ -60,16 +52,29 @@ export const NotificationsScreen = () => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
+  const { theme: colors } = useTheme();
+
+  const getIconBg = (icon: string) => {
+    if (icon === 'check-circle') return colors.tertiaryContainer;
+    if (icon === 'local-shipping') return colors.primaryContainer;
+    return colors.surfaceContainerHigh;
+  };
+
+  const getIconColor = (icon: string) => {
+    if (icon === 'check-circle') return colors.onTertiaryContainer;
+    if (icon === 'local-shipping') return colors.onPrimaryContainer;
+    return colors.onSurface;
+  };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* TopAppBar */}
-      <View style={[styles.appBar, { paddingTop: insets.top }]}>
+      <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface }]}>
         <View style={styles.appBarContent}>
           <TouchableOpacity style={styles.iconButton}>
             <MaterialIcons name="menu" size={24} color={colors.onSurfaceVariant} />
           </TouchableOpacity>
-          <Text style={styles.appBarTitle}>KargoTakip</Text>
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>KargoTakip</Text>
           <TouchableOpacity style={styles.iconButton}>
             <MaterialIcons name="add" size={24} color={colors.primary} />
           </TouchableOpacity>
@@ -84,9 +89,9 @@ export const NotificationsScreen = () => {
         ]}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.pageTitle}>Notifications</Text>
+          <Text style={[styles.pageTitle, { color: colors.onSurface }]}>Bildirimler</Text>
           <TouchableOpacity>
-            <Text style={styles.markReadText}>Mark all as read</Text>
+            <Text style={[styles.markReadText, { color: colors.primary }]}>Tümünü okundu işaretle</Text>
           </TouchableOpacity>
         </View>
 
@@ -96,30 +101,33 @@ export const NotificationsScreen = () => {
               key={notification.id} 
               style={[
                 styles.notificationCard,
+                { 
+                  backgroundColor: colors.surfaceContainerLowest,
+                  borderColor: colors.outlineVariant,
+                },
                 !notification.unread && styles.notificationCardRead
               ]}
               activeOpacity={0.7}
             >
               {notification.unread && (
-                <View style={styles.unreadIndicator} />
+                <View style={[styles.unreadIndicator, { backgroundColor: colors.primary }]} />
               )}
               
               <View style={styles.notificationContent}>
-                <View style={[styles.iconContainer, { backgroundColor: notification.iconBg }]}>
-                  <MaterialIcons name={notification.icon as any} size={20} color={notification.iconColor} />
+                <View style={[styles.iconContainer, { backgroundColor: getIconBg(notification.icon) }]}>
+                  <MaterialIcons name={notification.icon as any} size={20} color={getIconColor(notification.icon)} />
                 </View>
                 
                 <View style={styles.textContainer}>
-                  <Text style={styles.timeText}>{notification.time}</Text>
-                  <Text style={styles.titleText}>{notification.title}</Text>
+                  <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>{notification.time}</Text>
+                  <Text style={[styles.titleText, { color: colors.onSurface }]}>{notification.title}</Text>
                   
-                  {/* Highlight specific words if needed, based on the mockup string, doing a simple render */}
-                  <Text style={styles.descriptionText}>
+                  <Text style={[styles.descriptionText, { color: colors.onSurface }]}>
                     {notification.description}
                   </Text>
                   
                   {notification.trackingNumber && (
-                    <Text style={styles.trackingText}>{notification.trackingNumber}</Text>
+                    <Text style={[styles.trackingText, { color: colors.outline }]}>{notification.trackingNumber}</Text>
                   )}
                 </View>
               </View>
@@ -135,10 +143,8 @@ export const NotificationsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   appBar: {
-    backgroundColor: colors.surface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -160,7 +166,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '700',
-    color: colors.primary,
   },
   iconButton: {
     padding: 8,
@@ -169,7 +174,7 @@ const styles = StyleSheet.create({
   mainContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    maxWidth: 896, // max-w-4xl
+    maxWidth: 896,
     alignSelf: 'center',
     width: '100%',
   },
@@ -181,25 +186,21 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontFamily: 'Inter',
-    fontSize: 24, // headline-lg-mobile
+    fontSize: 24,
     fontWeight: '700',
-    color: colors.onSurface,
   },
   markReadText: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.primary,
     textDecorationLine: 'underline',
   },
   notificationList: {
     gap: 16,
   },
   notificationCard: {
-    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
-    borderColor: colors.surfaceVariant,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -219,7 +220,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.secondaryContainer,
   },
   notificationContent: {
     flexDirection: 'row',
@@ -235,83 +235,28 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    paddingRight: 16, // space for unread dot
+    paddingRight: 16,
   },
   timeText: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurfaceVariant,
     marginBottom: 4,
   },
   titleText: {
     fontFamily: 'Inter',
     fontSize: 16,
     fontWeight: '600',
-    color: colors.onSurface,
     marginBottom: 4,
   },
   descriptionText: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurface,
     lineHeight: 20,
   },
   trackingText: {
-    fontFamily: 'Courier Prime',
+    fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.outline,
     marginTop: 8,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.outlineVariant + '4D',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 8,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 10,
-    zIndex: 50,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-  },
-  navItemActive: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-    backgroundColor: colors.primaryContainer,
-    borderRadius: 999,
-  },
-  navText: {
-    fontFamily: 'Inter',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-  navTextActive: {
-    fontFamily: 'Inter',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onPrimaryContainer,
-    marginTop: 4,
   },
 });
 

@@ -8,32 +8,41 @@ import {
   TextInput,
   Image,
   useWindowDimensions,
-  Platform
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme/useTheme';
 import useResponsive from '../hooks/useResponsive';
 
 export const PackagesScreen = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
+  const { theme: colors } = useTheme();
 
   return (
-    <View style={[styles.container, isLargeScreen && { paddingLeft: 240 }]}>
+    <View style={[{ flex: 1, backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
       {/* TopAppBar */}
-      <View style={[styles.appBar, { paddingTop: insets.top }]}>
+      <View style={[{
+        backgroundColor: colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.outlineVariant + '40',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 2,
+        zIndex: 30,
+        paddingTop: insets.top,
+      }]}>
         <View style={styles.appBarContent}>
           <TouchableOpacity style={styles.iconButton}>
             <MaterialIcons name="menu" size={24} color={colors.onSurfaceVariant} />
           </TouchableOpacity>
-          
-          <Text style={styles.appBarTitle}>KargoTakip</Text>
-          
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="add" size={24} color={colors.onSurfaceVariant} />
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>KargoTakip</Text>
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('AddPackage')}>
+            <MaterialIcons name="add" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -42,19 +51,21 @@ export const PackagesScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.mainContent, 
-          { paddingBottom: isLargeScreen ? 32 : insets.bottom + 96 } // Space for bottom nav & FAB
+          { paddingBottom: isLargeScreen ? 32 : insets.bottom + 96 }
         ]}
       >
         {/* Header & Search Area */}
         <View style={styles.headerSection}>
-          <Text style={isLargeScreen ? styles.pageTitleLarge : styles.pageTitle}>Active Packages</Text>
+          <Text style={[isLargeScreen ? styles.pageTitleLarge : styles.pageTitle, { color: colors.primary }]}>
+            Aktif Kargolar
+          </Text>
           
-          <View style={styles.searchContainer}>
+          <View style={[styles.searchContainer, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
             <MaterialIcons name="search" size={20} color={colors.outline} style={styles.searchIconLeft} />
             <TextInput 
-              style={styles.searchInput}
-              placeholder="Search tracking number or company..."
-              placeholderTextColor={colors.outlineVariant}
+              style={[styles.searchInput, { color: colors.onSurface }]}
+              placeholder="Takip no veya firma ara..."
+              placeholderTextColor={colors.onSurfaceVariant}
             />
             <TouchableOpacity style={styles.searchIconRight}>
               <MaterialIcons name="filter-list" size={20} color={colors.outline} />
@@ -62,14 +73,14 @@ export const PackagesScreen = () => {
           </View>
         </View>
 
-        {/* Package List (Grid on Desktop) */}
+        {/* Package List */}
         <View style={styles.packageGrid}>
           
           {/* Card 1: In Transit */}
-          <TouchableOpacity style={[styles.card, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <View style={styles.companyLogoBg}>
+                <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
                   <Image 
                     source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY' }}
                     style={styles.companyLogo}
@@ -77,42 +88,42 @@ export const PackagesScreen = () => {
                   />
                 </View>
                 <View>
-                  <Text style={styles.trackingNumber}>KP8943271105</Text>
-                  <Text style={styles.companyName}>Global Express</Text>
+                  <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>KP8943271105</Text>
+                  <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>Global Express</Text>
                 </View>
               </View>
-              <View style={[styles.badge, { backgroundColor: colors.secondaryContainer, borderColor: colors.secondaryFixed }]}>
-                <Text style={[styles.badgeText, { color: colors.onSecondaryContainer }]}>In Transit</Text>
+              <View style={[styles.badge, { backgroundColor: colors.secondaryContainer, borderColor: colors.outlineVariant }]}>
+                <Text style={[styles.badgeText, { color: colors.onSurface }]}>Yolda</Text>
               </View>
             </View>
 
-            <View style={styles.progressSection}>
+            <View style={[styles.progressSection]}>
               <View style={styles.routeTextContainer}>
-                <Text style={styles.routeText}>Origin: SHZ</Text>
-                <Text style={styles.routeText}>Dest: BER</Text>
+                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Kaynak: SHZ</Text>
+                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Hedef: BER</Text>
               </View>
-              <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: '65%', backgroundColor: colors.secondaryContainer }]} />
+              <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
+                <View style={[styles.progressBarFill, { width: '65%', backgroundColor: colors.primary }]} />
               </View>
             </View>
 
-            <View style={styles.cardFooter}>
+            <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
               <View>
-                <Text style={styles.footerLabel}>Estimated Delivery</Text>
-                <Text style={styles.footerValuePrimary}>Oct 24, 2023</Text>
+                <Text style={[styles.footerLabel, { color: colors.outline }]}>Tahmini Teslimat</Text>
+                <Text style={[styles.footerValuePrimary, { color: colors.primary }]}>Eki 24, 2023</Text>
               </View>
               <View style={styles.footerAction}>
-                <Text style={styles.footerActionText}>Details</Text>
+                <Text style={[styles.footerActionText, { color: colors.primary }]}>Detaylar</Text>
                 <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
               </View>
             </View>
           </TouchableOpacity>
 
           {/* Card 2: Delivered */}
-          <TouchableOpacity style={[styles.card, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <View style={styles.companyLogoBg}>
+                <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
                   <Image 
                     source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDndS9Xc59oX3WY735_crAmXQ57-GM1fOr2dpm7X82EOQi_wrJYw-pezBidOWHCa5k2Jy1QwtHqXyIABwy5DXMNneud1hVTvgLgVAXu0tIpyFM5yXixn4oLdsd9Tx8vvrITOEE58KWT8S-4-o6DUn-AZC0lkllVys5M0fxjZ5uZ5Ua6NrZA9PNoMvaOzlJcX2YxYivdZlnA8-We-T7hLcjvmmqA9xl7THZHNToHPMHiUGTg-sN5OTNsTIi5wCXOW9ahAtLQ_qb-4rk' }}
                     style={styles.companyLogo}
@@ -120,42 +131,42 @@ export const PackagesScreen = () => {
                   />
                 </View>
                 <View>
-                  <Text style={styles.trackingNumber}>TR1029384756</Text>
-                  <Text style={styles.companyName}>National Post</Text>
+                  <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>TR1029384756</Text>
+                  <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>National Post</Text>
                 </View>
               </View>
-              <View style={[styles.badge, { backgroundColor: '#e6f4ea', borderColor: '#ceead6' }]}>
-                <Text style={[styles.badgeText, { color: colors.tertiaryContainer }]}>Delivered</Text>
+              <View style={[styles.badge, { backgroundColor: colors.tertiaryContainer, borderColor: colors.outlineVariant }]}>
+                <Text style={[styles.badgeText, { color: colors.onTertiaryContainer }]}>Teslim Edildi</Text>
               </View>
             </View>
 
             <View style={[styles.progressSection, { opacity: 0.7 }]}>
               <View style={styles.routeTextContainer}>
-                <Text style={styles.routeText}>Origin: IST</Text>
-                <Text style={styles.routeText}>Dest: ANK</Text>
+                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Kaynak: IST</Text>
+                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Hedef: ANK</Text>
               </View>
-              <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: '100%', backgroundColor: colors.tertiaryFixedDim }]} />
+              <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
+                <View style={[styles.progressBarFill, { width: '100%', backgroundColor: colors.tertiary }]} />
               </View>
             </View>
 
-            <View style={styles.cardFooter}>
+            <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
               <View>
-                <Text style={styles.footerLabel}>Delivered On</Text>
-                <Text style={styles.footerValueDark}>Oct 21, 2023</Text>
+                <Text style={[styles.footerLabel, { color: colors.outline }]}>Teslim Tarihi</Text>
+                <Text style={[styles.footerValuePrimary, { color: colors.onSurface }]}>Eki 21, 2023</Text>
               </View>
               <View style={styles.footerAction}>
-                <Text style={styles.footerActionText}>Receipt</Text>
+                <Text style={[styles.footerActionText, { color: colors.primary }]}>Makbuz</Text>
                 <MaterialIcons name="receipt-long" size={18} color={colors.primary} />
               </View>
             </View>
           </TouchableOpacity>
 
-          {/* Card 3: Exception/Delayed */}
-          <TouchableOpacity style={[styles.card, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
+          {/* Card 3: Action Required */}
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <View style={styles.companyLogoBg}>
+                <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
                   <Image 
                     source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjM3WGmIKGRLjMW6IRU1kYHLqZV247A1R0k-tu002NXpTR9eBvCgJzSinfaCiyYFOL64rFF1bMhhEwZaJJxSkhUQPMWtaYISoFfhJliBKil7ol02FyEnBl2oBWRcxIwHPIpon6aPVYhSD6r7A3WpnmCQ3zsHhjl_muE97mWCTx9X9PyZ7C6jrUdCAkKaLg2jZ5e2XeWi3tgRJVO0bOJzm2jxXY9i2clZORqFEiiPJGldegt9z6hfKr4wZjrwqxlMY8QQev542fsWA' }}
                     style={styles.companyLogo}
@@ -163,33 +174,35 @@ export const PackagesScreen = () => {
                   />
                 </View>
                 <View>
-                  <Text style={styles.trackingNumber}>DHL987654321</Text>
-                  <Text style={styles.companyName}>Prime Courier</Text>
+                  <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>DHL987654321</Text>
+                  <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>Prime Courier</Text>
                 </View>
               </View>
-              <View style={[styles.badge, { backgroundColor: colors.errorContainer, borderColor: '#ffb4ab' }]}>
-                <Text style={[styles.badgeText, { color: colors.onErrorContainer }]}>Action Required</Text>
+              <View style={[styles.badge, { backgroundColor: colors.errorContainer, borderColor: colors.outlineVariant }]}>
+                <Text style={[styles.badgeText, { color: colors.onErrorContainer }]}>İşlem Gerekli</Text>
               </View>
             </View>
 
             <View style={styles.progressSection}>
-              <View style={styles.warningContainer}>
-                <MaterialIcons name="warning" size={16} color={colors.error} />
-                <Text style={styles.warningText}>Customs clearance pending</Text>
+              <View style={styles.routeTextContainer}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <MaterialIcons name="warning" size={16} color={colors.error} />
+                  <Text style={[styles.routeText, { color: colors.error }]}>Gümrük onayı bekleniyor</Text>
+                </View>
               </View>
-              <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
                 <View style={[styles.progressBarFill, { width: '40%', backgroundColor: colors.error }]} />
               </View>
             </View>
 
-            <View style={styles.cardFooter}>
+            <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
               <View>
-                <Text style={styles.footerLabel}>Updated Est. Delivery</Text>
-                <Text style={styles.footerValueStrikethrough}>Oct 23, 2023</Text>
-                <Text style={styles.footerValueSecondary}>Pending</Text>
+                <Text style={[styles.footerLabel, { color: colors.outline }]}>Güncellenen Teslimat</Text>
+                <Text style={[{ fontSize: 16, fontWeight: '600', color: colors.onSurface, textDecorationLine: 'line-through', opacity: 0.5 }]}>Eki 23, 2023</Text>
+                <Text style={[{ fontSize: 16, fontWeight: '600', color: colors.secondary }]}>Beklemede</Text>
               </View>
-              <TouchableOpacity style={styles.resolveButton}>
-                <Text style={styles.resolveButtonText}>Resolve</Text>
+              <TouchableOpacity style={[styles.resolveButton, { backgroundColor: colors.secondary }]}>
+                <Text style={[styles.resolveButtonText, { color: colors.onSecondary }]}>Çöz</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -197,12 +210,9 @@ export const PackagesScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Floating Action Button (FAB) */}
+      {/* Floating Action Button */}
       <TouchableOpacity 
-        style={[
-          styles.fab, 
-          { bottom: 24, right: 16 }
-        ]} 
+        style={[styles.fab, { backgroundColor: colors.primary, bottom: insets.bottom + 80, right: 16 }]} 
         activeOpacity={0.8}
         onPress={() => navigation.navigate('AddPackage')}
       >
@@ -214,21 +224,6 @@ export const PackagesScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  appBar: {
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant + '40', // 40 hex for roughly 25% opacity
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    zIndex: 30,
-  },
   appBarContent: {
     height: 64,
     flexDirection: 'row',
@@ -243,7 +238,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '700',
-    color: colors.primary,
   },
   iconButton: {
     padding: 8,
@@ -266,7 +260,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 32,
     letterSpacing: -0.24,
-    color: colors.primary,
   },
   pageTitleLarge: {
     fontFamily: 'Inter',
@@ -274,17 +267,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 40,
     letterSpacing: -0.64,
-    color: colors.primary,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 8,
     height: 48,
-    maxWidth: 672, // max-w-2xl
+    maxWidth: 672,
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -305,7 +295,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurface,
   },
   packageGrid: {
     flexDirection: 'row',
@@ -313,18 +302,16 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   card: {
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 12,
     padding: 24,
     width: '100%',
-    shadowColor: colors.primaryContainer,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
     elevation: 2,
-    marginBottom: 16, // fallback if flexWrap gap isn't supported smoothly on older RN
+    marginBottom: 16,
   },
   cardDesktop: {
     width: '48%',
@@ -347,9 +334,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -358,14 +343,13 @@ const styles = StyleSheet.create({
     height: 32,
   },
   trackingNumber: {
-    fontFamily: 'Courier Prime',
+    fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurface,
+    fontWeight: '600',
   },
   companyName: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurfaceVariant,
     marginTop: 2,
   },
   badge: {
@@ -378,7 +362,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '600',
-    letterSpacing: 0.6,
   },
   progressSection: {
     gap: 8,
@@ -392,23 +375,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
-  },
-  warningContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  warningText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: colors.error,
   },
   progressBarBg: {
     height: 8,
     width: '100%',
-    backgroundColor: colors.surfaceContainer,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -421,41 +391,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: colors.surfaceVariant,
     paddingTop: 16,
-    marginTop: 'auto',
   },
   footerLabel: {
     fontFamily: 'Inter',
-    fontSize: 14,
-    color: colors.outline,
+    fontSize: 12,
     marginBottom: 2,
   },
   footerValuePrimary: {
     fontFamily: 'Inter',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: colors.primary,
-  },
-  footerValueDark: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.onSurface,
-  },
-  footerValueStrikethrough: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.onSurface,
-    opacity: 0.5,
-    textDecorationLine: 'line-through',
-  },
-  footerValueSecondary: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.secondary,
   },
   footerAction: {
     flexDirection: 'row',
@@ -469,91 +415,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.6,
-    color: colors.primary,
   },
   resolveButton: {
-    backgroundColor: colors.secondary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
   },
   resolveButtonText: {
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSecondary,
   },
   fab: {
     position: 'absolute',
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.primaryContainer,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 24,
     elevation: 6,
     zIndex: 40,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.outlineVariant + '4D', // 30% opacity
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 8,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 10,
-    zIndex: 50,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-  },
-  navItemActive: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-    backgroundColor: colors.primaryContainer,
-    borderRadius: 999,
-  },
-  navText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-  navTextActive: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onPrimaryContainer,
-    marginTop: 4,
   },
 });
 
