@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
   TouchableOpacity,
-  Image,
-  Alert
+  Image
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import useResponsive from '../hooks/useResponsive';
 import { useAuthStore } from '../store/auth.store';
@@ -20,31 +18,6 @@ import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import HeaderRightActions from '../components/common/HeaderRightActions';
-import { AddAddressModal, UserAddress } from '../components/profile/AddAddressModal';
-
-const ADDRESSES_STORAGE_KEY = '@cargo_tracker_user_addresses';
-
-const DEFAULT_ADDRESSES: UserAddress[] = [
-  {
-    id: 'addr_default_1',
-    title: 'Ev Adresim',
-    fullName: 'Ahmet Yılmaz',
-    phone: '0555 123 45 67',
-    city: 'İstanbul',
-    district: 'Beşiktaş',
-    fullAddress: 'Cihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul',
-    isDefault: true,
-  },
-  {
-    id: 'addr_default_2',
-    title: 'İş Yeri (Ofis)',
-    fullName: 'Ahmet Yılmaz',
-    phone: '0555 987 65 43',
-    city: 'İstanbul',
-    district: 'Levent',
-    fullAddress: 'Büyükdere Cad. No:199 K:12, Levent / İstanbul',
-  },
-];
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
@@ -58,45 +31,6 @@ export const ProfileScreen = () => {
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
   const { data: dbShipments } = useShipments(user?.id);
-
-  const [addresses, setAddresses] = useState<UserAddress[]>(DEFAULT_ADDRESSES);
-  const [addressModalVisible, setAddressModalVisible] = useState(false);
-
-  useEffect(() => {
-    const loadAddresses = async () => {
-      try {
-        const stored = await AsyncStorage.getItem(ADDRESSES_STORAGE_KEY);
-        if (stored) {
-          setAddresses(JSON.parse(stored));
-        }
-      } catch (err) {
-        console.error('Adresler yüklenemedi:', err);
-      }
-    };
-    loadAddresses();
-  }, []);
-
-  const handleSaveAddress = async (newAddress: UserAddress) => {
-    const updated = [newAddress, ...addresses];
-    setAddresses(updated);
-    await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
-    Alert.alert('Başarılı', 'Yeni adresiniz kaydedildi.');
-  };
-
-  const handleDeleteAddress = (id: string) => {
-    Alert.alert('Adresi Sil', 'Bu adresi silmek istediğinize emin misiniz?', [
-      { text: 'İptal', style: 'cancel' },
-      {
-        text: 'Sil',
-        style: 'destructive',
-        onPress: async () => {
-          const updated = addresses.filter((a) => a.id !== id);
-          setAddresses(updated);
-          await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
-        },
-      },
-    ]);
-  };
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
   const displayEmail = user?.email || 'ornek@email.com';
@@ -198,62 +132,7 @@ export const ProfileScreen = () => {
 
         </View>
 
-        {/* Adreslerim (My Addresses) Section */}
-        <View style={[styles.addressSectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
-          <View style={styles.addressSectionHeader}>
-            <View style={styles.addressTitleRow}>
-              <MaterialIcons name="location-on" size={22} color={colors.primary} />
-              <Text style={[styles.addressSectionTitle, { color: colors.onSurface }]}>Adreslerim</Text>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.addAddressBtn, { backgroundColor: colors.primary }]}
-              onPress={() => setAddressModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <MaterialIcons name="add" size={18} color="#ffffff" />
-              <Text style={styles.addAddressBtnText}>Adres Ekle</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Address Cards List */}
-          <View style={styles.addressListContainer}>
-            {addresses.map((item) => (
-              <View key={item.id} style={[styles.addressCard, { borderColor: colors.outlineVariant }]}>
-                <View style={styles.addressCardHeader}>
-                  <View style={styles.addressCardBadgeRow}>
-                    <Text style={[styles.addressCardTitle, { color: colors.primary }]}>{item.title}</Text>
-                    {item.isDefault && (
-                      <View style={styles.defaultBadge}>
-                        <Text style={styles.defaultBadgeText}>Varsayılan</Text>
-                      </View>
-                    )}
-                  </View>
-                  <TouchableOpacity onPress={() => handleDeleteAddress(item.id)} style={styles.deleteAddressBtn}>
-                    <MaterialIcons name="delete-outline" size={20} color={colors.error} />
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[styles.addressText, { color: colors.onSurface }]}>{item.fullAddress}</Text>
-
-                <View style={styles.addressContactRow}>
-                  <Text style={[styles.addressContactText, { color: colors.onSurfaceVariant }]}>
-                    👤 {item.fullName} | 📞 {item.phone}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
       </ScrollView>
-
-      {/* Add Address Modal with GPS Support */}
-      <AddAddressModal
-        visible={addressModalVisible}
-        onClose={() => setAddressModalVisible(false)}
-        onSaveAddress={handleSaveAddress}
-      />
     </View>
   );
 };
@@ -297,7 +176,7 @@ const styles = StyleSheet.create({
     maxWidth: 896,
     alignSelf: 'center',
     width: '100%',
-    gap: 24,
+    gap: 32,
   },
   profileHeader: {
     borderRadius: 12,
@@ -414,94 +293,6 @@ const styles = StyleSheet.create({
   },
   statBoxSubtext: {
     fontFamily: 'Inter',
-    fontSize: 12,
-  },
-  addressSectionCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(197, 197, 211, 0.3)',
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  addressSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  addressTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  addressSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  addAddressBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  addAddressBtnText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  addressListContainer: {
-    gap: 12,
-  },
-  addressCard: {
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 14,
-    backgroundColor: '#fafafa',
-  },
-  addressCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  addressCardBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  addressCardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  defaultBadge: {
-    backgroundColor: '#dbeafe',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  defaultBadgeText: {
-    color: '#1e40af',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  deleteAddressBtn: {
-    padding: 4,
-  },
-  addressText: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginVertical: 4,
-  },
-  addressContactRow: {
-    marginTop: 4,
-  },
-  addressContactText: {
     fontSize: 12,
   },
 });

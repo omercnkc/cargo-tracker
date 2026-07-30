@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -17,6 +17,7 @@ import { useDrawerStore } from '../../store/drawer.store';
 import { useAuthStore } from '../../store/auth.store';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
+import { AddressManagementModal } from '../profile/AddressManagementModal';
 
 export const DrawerMenuModal = () => {
   const { isOpen, closeDrawer } = useDrawerStore();
@@ -28,6 +29,8 @@ export const DrawerMenuModal = () => {
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
   const signOut = useAuthStore((state) => state.signOut);
+
+  const [addressesModalVisible, setAddressesModalVisible] = useState(false);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
   const displayEmail = user?.email || 'ornek@email.com';
@@ -59,109 +62,117 @@ export const DrawerMenuModal = () => {
   if (!isOpen) return null;
 
   return (
-    <Modal
-      visible={isOpen}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={closeDrawer}
-    >
-      <View style={styles.overlay}>
-        {/* Backdrop Tap to Close */}
-        <TouchableWithoutFeedback onPress={closeDrawer}>
-          <View style={styles.backdrop} />
-        </TouchableWithoutFeedback>
+    <>
+      <Modal
+        visible={isOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeDrawer}
+      >
+        <View style={styles.overlay}>
+          {/* Backdrop Tap to Close */}
+          <TouchableWithoutFeedback onPress={closeDrawer}>
+            <View style={styles.backdrop} />
+          </TouchableWithoutFeedback>
 
-        {/* Drawer Body */}
-        <View style={[
-          styles.drawerContainer, 
-          { backgroundColor: colors.surfaceContainerLowest, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }
-        ]}>
-          
-          {/* Header User Profile Card */}
-          <View style={styles.header}>
-            <View style={styles.avatarWrapper}>
-              <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+          {/* Drawer Body */}
+          <View style={[
+            styles.drawerContainer, 
+            { backgroundColor: colors.surfaceContainerLowest, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }
+          ]}>
+            
+            {/* Header User Profile Card */}
+            <View style={styles.header}>
+              <View style={styles.avatarWrapper}>
+                <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={[styles.userName, { color: colors.onSurface }]}>{displayName}</Text>
+                <Text style={[styles.userEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
+              </View>
+              <TouchableOpacity style={styles.closeBtn} onPress={closeDrawer}>
+                <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
             </View>
-            <View style={styles.userInfo}>
-              <Text style={[styles.userName, { color: colors.onSurface }]}>{displayName}</Text>
-              <Text style={[styles.userEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
+
+            <View style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
+
+            {/* Menu Items */}
+            <View style={styles.menuList}>
+              {/* Adreslerim */}
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => {
+                  closeDrawer();
+                  setAddressesModalVisible(true);
+                }}
+              >
+                <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
+                  <MaterialIcons name="location-on" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.menuTextGroup}>
+                  <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Adreslerim</Text>
+                  <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>Teslimat adreslerini yönet</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
+              </TouchableOpacity>
+
+              {/* Hesap Ayarları */}
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => handleNavigate('Settings')}
+              >
+                <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
+                  <MaterialIcons name="settings" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.menuTextGroup}>
+                  <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Hesap Ayarları</Text>
+                  <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>Şifre, bildirimler, dil</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
+              </TouchableOpacity>
+
+              {/* Yardım Merkezi */}
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => {
+                  closeDrawer();
+                  Alert.alert('Yardım Merkezi', 'Müşteri desteği 7/24 hizmetinizdedir.');
+                }}
+              >
+                <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
+                  <MaterialIcons name="help-outline" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.menuTextGroup}>
+                  <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Yardım Merkezi</Text>
+                  <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>SSS ve müşteri desteği</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.closeBtn} onPress={closeDrawer}>
-              <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
-            </TouchableOpacity>
+
+            {/* Footer Logout */}
+            <View style={styles.footer}>
+              <View style={[styles.divider, { backgroundColor: colors.outlineVariant, marginBottom: 16 }]} />
+              <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.7} onPress={handleLogout}>
+                <MaterialIcons name="logout" size={22} color={colors.error} />
+                <Text style={[styles.logoutText, { color: colors.error }]}>{t('signOut')}</Text>
+              </TouchableOpacity>
+            </View>
+
           </View>
-
-          <View style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
-
-          {/* Menu Items */}
-          <View style={styles.menuList}>
-            {/* Adreslerim */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
-              activeOpacity={0.7}
-              onPress={() => {
-                closeDrawer();
-                Alert.alert('Adreslerim', 'Teslimat adres yönetimi yakında eklenecektir.');
-              }}
-            >
-              <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
-                <MaterialIcons name="location-on" size={20} color={colors.primary} />
-              </View>
-              <View style={styles.menuTextGroup}>
-                <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Adreslerim</Text>
-                <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>Teslimat adreslerini yönet</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
-            </TouchableOpacity>
-
-            {/* Hesap Ayarları */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
-              activeOpacity={0.7}
-              onPress={() => handleNavigate('Settings')}
-            >
-              <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
-                <MaterialIcons name="settings" size={20} color={colors.primary} />
-              </View>
-              <View style={styles.menuTextGroup}>
-                <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Hesap Ayarları</Text>
-                <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>Şifre, bildirimler, dil</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
-            </TouchableOpacity>
-
-            {/* Yardım Merkezi */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
-              activeOpacity={0.7}
-              onPress={() => {
-                closeDrawer();
-                Alert.alert('Yardım Merkezi', 'Müşteri desteği 7/24 hizmetinizdedir.');
-              }}
-            >
-              <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
-                <MaterialIcons name="help-outline" size={20} color={colors.primary} />
-              </View>
-              <View style={styles.menuTextGroup}>
-                <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Yardım Merkezi</Text>
-                <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>SSS ve müşteri desteği</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Footer Logout */}
-          <View style={styles.footer}>
-            <View style={[styles.divider, { backgroundColor: colors.outlineVariant, marginBottom: 16 }]} />
-            <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.7} onPress={handleLogout}>
-              <MaterialIcons name="logout" size={22} color={colors.error} />
-              <Text style={[styles.logoutText, { color: colors.error }]}>{t('signOut')}</Text>
-            </TouchableOpacity>
-          </View>
-
         </View>
-      </View>
-    </Modal>
+      </Modal>
+
+      {/* Address Management Modal triggered from Drawer */}
+      <AddressManagementModal
+        visible={addressesModalVisible}
+        onClose={() => setAddressesModalVisible(false)}
+      />
+    </>
   );
 };
 

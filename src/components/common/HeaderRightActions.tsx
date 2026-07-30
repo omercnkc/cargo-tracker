@@ -10,6 +10,53 @@ export const HeaderRightActions = () => {
 
   return (
     <View style={styles.container}>
+      {/* CopyCase Dribbble Style Light/Dark Mode Switcher */}
+      <View
+        style={[
+          styles.switchTrack,
+          {
+            backgroundColor: isDarkMode ? '#0f172a' : '#f1f5f9',
+            borderColor: isDarkMode ? '#1e293b' : '#cbd5e1',
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={[
+            styles.switchPill,
+            !isDarkMode && [
+              styles.switchPillActive,
+              { backgroundColor: '#ffffff', shadowColor: '#000' },
+            ],
+          ]}
+          onPress={() => isDarkMode && toggleTheme()}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons
+            name="wb-sunny"
+            size={14}
+            color={!isDarkMode ? '#f59e0b' : '#64748b'}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.switchPill,
+            isDarkMode && [
+              styles.switchPillActive,
+              { backgroundColor: '#3b82f6', shadowColor: '#3b82f6' },
+            ],
+          ]}
+          onPress={() => !isDarkMode && toggleTheme()}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons
+            name="dark-mode"
+            size={14}
+            color={isDarkMode ? '#ffffff' : '#94a3b8'}
+          />
+        </TouchableOpacity>
+      </View>
+
       {/* CopyCase Dribbble Style Language Switcher */}
       <View
         style={[
@@ -62,87 +109,41 @@ export const HeaderRightActions = () => {
           </Text>
         </TouchableOpacity>
       </View>
-
-      {/* CopyCase Dribbble Style Light/Dark Mode Switcher */}
-      <View
-        style={[
-          styles.switchTrack,
-          {
-            backgroundColor: isDarkMode ? '#0f172a' : '#f1f5f9',
-            borderColor: isDarkMode ? '#1e293b' : '#cbd5e1',
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={[
-            styles.switchPill,
-            !isDarkMode && [
-              styles.switchPillActive,
-              { backgroundColor: '#ffffff', shadowColor: '#000' },
-            ],
-          ]}
-          onPress={() => isDarkMode && toggleTheme()}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons
-            name="wb-sunny"
-            size={16}
-            color={!isDarkMode ? '#f59e0b' : '#64748b'}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.switchPill,
-            isDarkMode && [
-              styles.switchPillActive,
-              { backgroundColor: '#3b82f6', shadowColor: '#3b82f6' },
-            ],
-          ]}
-          onPress={() => !isDarkMode && toggleTheme()}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons
-            name="dark-mode"
-            size={16}
-            color={isDarkMode ? '#ffffff' : '#94a3b8'}
-          />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 6,
   },
   switchTrack: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 36,
-    borderRadius: 18,
-    padding: 3,
+    height: 28,
+    borderRadius: 14,
+    padding: 2,
     borderWidth: 1,
   },
   switchPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 30,
+    minWidth: 26,
   },
   switchPillActive: {
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 2,
   },
   switchText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '700',
     fontFamily: 'Inter',
   },
