@@ -7,7 +7,8 @@ import {
   Modal, 
   Image, 
   Alert,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  ScrollView
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,8 +33,8 @@ export const DrawerMenuModal = () => {
 
   const [addressesModalVisible, setAddressesModalVisible] = useState(false);
 
-  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
-  const displayEmail = user?.email || 'ornek@email.com';
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
+  const displayEmail = user?.email || 'omercnkc123@gmail.com';
   const displayAvatar = profile?.avatar_url || 'https://i.pravatar.cc/300?img=11';
 
   const handleNavigate = (screenName: string) => {
@@ -78,28 +79,45 @@ export const DrawerMenuModal = () => {
           {/* Drawer Body */}
           <View style={[
             styles.drawerContainer, 
-            { backgroundColor: colors.surfaceContainerLowest, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }
+            { backgroundColor: colors.surfaceContainerLowest, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 }
           ]}>
             
-            {/* Header User Profile Card */}
-            <View style={styles.header}>
-              <View style={styles.avatarWrapper}>
-                <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+            {/* Top Brand & Close Header */}
+            <View style={styles.topBrandRow}>
+              <View style={styles.brandGroup}>
+                <MaterialIcons name="inventory-2" size={24} color="#00236f" />
+                <Text style={styles.brandTitle}>KargoTakip</Text>
               </View>
-              <View style={styles.userInfo}>
-                <Text style={[styles.userName, { color: colors.onSurface }]}>{displayName}</Text>
-                <Text style={[styles.userEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
-              </View>
+
               <TouchableOpacity style={styles.closeBtn} onPress={closeDrawer}>
                 <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
+            {/* Profile Avatar & Info Centered */}
+            <View style={styles.userProfileSection}>
+              <View style={styles.avatarWrapper}>
+                <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+              </View>
+              <Text style={[styles.userName, { color: colors.onSurface }]}>{displayName}</Text>
+              <Text style={[styles.userEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
+            </View>
 
-            {/* Menu Items */}
-            <View style={styles.menuList}>
-              {/* Adreslerim */}
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuScrollContent}>
+              
+              {/* HESAP SECTION */}
+              <Text style={styles.sectionHeaderTitle}>HESAP</Text>
+              
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => handleNavigate('Profile')}
+              >
+                <MaterialIcons name="person-outline" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kişisel Bilgiler</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
@@ -108,66 +126,124 @@ export const DrawerMenuModal = () => {
                   setAddressesModalVisible(true);
                 }}
               >
-                <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
-                  <MaterialIcons name="location-on" size={20} color={colors.primary} />
-                </View>
-                <View style={styles.menuTextGroup}>
-                  <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Adreslerim</Text>
-                  <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>Teslimat adreslerini yönet</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
+                <MaterialIcons name="location-on" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Adreslerim</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
-              {/* Hesap Ayarları */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
                 onPress={() => handleNavigate('Settings')}
               >
-                <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
-                  <MaterialIcons name="settings" size={20} color={colors.primary} />
-                </View>
-                <View style={styles.menuTextGroup}>
-                  <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Hesap Ayarları</Text>
-                  <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>Şifre, bildirimler, dil</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
+                <MaterialIcons name="lock-outline" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Şifre Değiştir</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
-              {/* Yardım Merkezi */}
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => handleNavigate('Notifications')}
+              >
+                <MaterialIcons name="notifications-none" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Bildirim Ayarları</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => handleNavigate('CarrierSelection')}
+              >
+                <MaterialIcons name="local-shipping" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Varsayılan Kargo Firmaları</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+              </TouchableOpacity>
+
+              <View style={styles.menuDivider} />
+
+              {/* DESTEK SECTION */}
+              <Text style={styles.sectionHeaderTitle}>DESTEK</Text>
+
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
                 onPress={() => {
                   closeDrawer();
-                  Alert.alert('Yardım Merkezi', 'Müşteri desteği 7/24 hizmetinizdedir.');
+                  Alert.alert('Yardım Merkezi', '7/24 Müşteri Destek ekibimiz hizmetinizdedir.');
                 }}
               >
-                <View style={[styles.iconBg, { backgroundColor: colors.surfaceVariant }]}>
-                  <MaterialIcons name="help-outline" size={20} color={colors.primary} />
-                </View>
-                <View style={styles.menuTextGroup}>
-                  <Text style={[styles.menuTitle, { color: colors.onSurface }]}>Yardım Merkezi</Text>
-                  <Text style={[styles.menuSubtitle, { color: colors.onSurfaceVariant }]}>SSS ve müşteri desteği</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={20} color={colors.outline} />
+                <MaterialIcons name="help-outline" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Yardım Merkezi</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
-            </View>
 
-            {/* Footer Logout */}
-            <View style={styles.footer}>
-              <View style={[styles.divider, { backgroundColor: colors.outlineVariant, marginBottom: 16 }]} />
-              <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.7} onPress={handleLogout}>
-                <MaterialIcons name="logout" size={22} color={colors.error} />
-                <Text style={[styles.logoutText, { color: colors.error }]}>{t('signOut')}</Text>
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => {
+                  closeDrawer();
+                  Alert.alert('Uygulamayı Puanla', 'Bize 5 yıldız verdiğiniz için teşekkür ederiz! ⭐');
+                }}
+              >
+                <MaterialIcons name="star-outline" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Uygulamayı Puanla</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
-            </View>
+
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => {
+                  closeDrawer();
+                  Alert.alert('Geri Bildirim', 'Görüşlerinizi bizimle paylaştığınız için teşekkürler.');
+                }}
+              >
+                <MaterialIcons name="chat-bubble-outline" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Geri Bildirim Gönder</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => {
+                  closeDrawer();
+                  Alert.alert('Gizlilik Politikası', 'Verileriniz endüstri standardı şifreleme ile korunmaktadır.');
+                }}
+              >
+                <MaterialIcons name="shield" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Gizlilik Politikası</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => {
+                  closeDrawer();
+                  Alert.alert('Kullanım Koşulları', 'KargoTakip Hizmet Şartları v2.4.');
+                }}
+              >
+                <MaterialIcons name="description" size={22} color={colors.onSurface} />
+                <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kullanım Koşulları</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+              </TouchableOpacity>
+
+              {/* Logout Pill Button */}
+              <TouchableOpacity style={styles.logoutPillBtn} activeOpacity={0.8} onPress={handleLogout}>
+                <MaterialIcons name="logout" size={20} color="#dc2626" />
+                <Text style={styles.logoutPillText}>{t('signOut')}</Text>
+              </TouchableOpacity>
+
+            </ScrollView>
 
           </View>
         </View>
       </Modal>
 
-      {/* Address Management Modal triggered from Drawer */}
+      {/* Address Management Modal */}
       <AddressManagementModal
         visible={addressesModalVisible}
         onClose={() => setAddressesModalVisible(false)}
@@ -183,103 +259,116 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(11, 28, 48, 0.5)',
+    backgroundColor: 'rgba(11, 28, 48, 0.4)',
   },
   drawerContainer: {
-    width: '80%',
+    width: '82%',
     maxWidth: 320,
     height: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 4, height: 0 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 24,
     paddingHorizontal: 20,
     zIndex: 10,
   },
-  header: {
+  topBrandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  brandGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  brandTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#00236f',
+    fontFamily: 'Inter',
+  },
+  closeBtn: {
+    padding: 4,
+  },
+  userProfileSection: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   avatarWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     overflow: 'hidden',
-    backgroundColor: '#e5eeff',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 10,
   },
   avatar: {
     width: '100%',
     height: '100%',
   },
-  userInfo: {
-    flex: 1,
-  },
   userName: {
-    fontFamily: 'Inter',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
+    fontFamily: 'Inter',
+    marginBottom: 2,
   },
   userEmail: {
+    fontSize: 13,
     fontFamily: 'Inter',
+  },
+  menuScrollContent: {
+    gap: 12,
+    paddingBottom: 24,
+  },
+  sectionHeaderTitle: {
     fontSize: 12,
-    marginTop: 2,
-  },
-  closeBtn: {
-    padding: 6,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 16,
-    opacity: 0.4,
-  },
-  menuList: {
-    flex: 1,
-    gap: 16,
+    fontWeight: '700',
+    color: '#94a3b8',
+    letterSpacing: 0.8,
+    marginTop: 8,
+    marginBottom: 4,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 10,
     gap: 12,
-    paddingVertical: 8,
   },
-  iconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuTextGroup: {
+  menuItemText: {
     flex: 1,
-  },
-  menuTitle: {
-    fontFamily: 'Inter',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-  },
-  menuSubtitle: {
     fontFamily: 'Inter',
-    fontSize: 12,
-    marginTop: 2,
   },
-  footer: {
-    paddingTop: 8,
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginVertical: 8,
   },
-  logoutBtn: {
+  logoutPillBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    borderRadius: 8,
+    gap: 8,
+    backgroundColor: '#fee2e2',
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 16,
   },
-  logoutText: {
-    fontFamily: 'Inter',
+  logoutPillText: {
+    color: '#dc2626',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontFamily: 'Inter',
   },
 });
 
