@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
-  Image,
   useWindowDimensions,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +17,10 @@ import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useShipmentDetail } from '../features/shipment/hooks/useShipments';
 import HeaderRightActions from '../components/common/HeaderRightActions';
+import { ShipmentMapView } from '../components/map/ShipmentMapView';
+import { useShipmentRealtime } from '../hooks/useShipmentRealtime';
+import { useNotifications } from '../hooks/useNotifications';
+import { LocationPoint } from '../types/location';
 
 export const PackageDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -29,24 +33,60 @@ export const PackageDetailScreen = () => {
   const isLargeScreen = width >= 768;
 
   const shipmentId = route.params?.id;
-  const { data: shipment, isLoading, isError } = useShipmentDetail(shipmentId);
+  const { data: shipment, isLoading } = useShipmentDetail(shipmentId);
+  const { notifyStatusChange } = useNotifications();
 
-  // Fallback mock detail if not found or no ID provided for demo preview
+  // Supabase Realtime Canlı Takip Hook'u
+  useShipmentRealtime(shipmentId);
+
+  // Fallback mock detail if not found or demo preview
   const displayShipment = shipment || {
     id: 'demo',
-    tracking_number: shipmentId || 'TR-849201048',
+    tracking_number: shipmentId || '24B392Q',
     title: 'Aras Kargo Paketim',
     current_status: 'transit',
     sender: 'TechStore Elektronik A.Ş.',
     receiver: 'Ahmet Yılmaz',
-    last_location: 'Levent Dağıtım Merkezi, İstanbul',
+    last_location: 'Dolmabahçe Dağıtım Bölgesi, İstanbul',
     estimated_delivery: 'Bugün, 14:00 - 18:00',
     courier_companies: { name: 'Aras Kargo' },
     shipment_events: [
-      { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresine doğru yola çıktı.', location: 'Beşiktaş Şubesi', event_time: 'Bugün, 09:15' },
+      { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: 'Beşiktaş Şubesi', event_time: 'Bugün, 09:15' },
       { id: 'e2', status: 'Transfer Merkezinde', description: 'Avrupa Yakası Aktarma Merkezi', location: 'İstanbul', event_time: 'Dün, 22:45' },
       { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'Ankara', event_time: 'Dün, 14:10' },
     ]
+  };
+
+  const nowMs = Date.now();
+
+  // Alıcı (User) Teslimat Adresi Konumu (Dolmabahçe / Beşiktaş)
+  const mapDestination: LocationPoint = {
+    latitude: 41.0390,
+    longitude: 29.0005,
+    title: 'Ahmet Yılmaz - Teslimat Adresi',
+    description: 'Beşiktaş, İstanbul',
+    recordedAt: new Date(nowMs).toISOString(),
+  };
+
+  // Kuryenin 15 dk gecikmeli konum noktası (Aynı karada, Beşiktaş / Kabataş güzergahı üzerinde)
+  const rawCourierLocations: LocationPoint[] = useMemo(() => [
+    {
+      latitude: 41.0330,
+      longitude: 28.9920,
+      title: 'Kargo Aracı (Dağıtımda)',
+      recordedAt: new Date(nowMs - 20 * 60 * 1000).toISOString(), // 20 dk önce -> Son Güvenli Nokta
+    },
+    {
+      latitude: 41.0360,
+      longitude: 28.9960,
+      title: 'Kurye Anlık Yakın Konum',
+      recordedAt: new Date(nowMs - 3 * 60 * 1000).toISOString(), // 3 dk önce -> 15 DK FİLTRESİ İLE GİZLENİR
+    },
+  ], [nowMs]);
+
+  const handleTestNotification = async () => {
+    await notifyStatusChange(displayShipment.tracking_number, 'Kurye Yaklaştı! (Teslimat Bölgesinde)', shipmentId);
+    Alert.alert('🔔 Bildirim Tetiklendi', 'Kargo güncelleme bildirimi cihazınıza gönderildi.');
   };
 
   return (
@@ -82,31 +122,24 @@ export const PackageDetailScreen = () => {
               <Text style={[styles.trackingLabel, { color: colors.onSurfaceVariant }]}>{t('trackingNumberLabel')}</Text>
               <Text style={[styles.trackingNumber, { color: colors.primary }]}>{displayShipment.tracking_number}</Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}>
-              <MaterialIcons name="local-shipping" size={18} color={colors.secondary} />
+            <TouchableOpacity 
+              style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}
+              onPress={handleTestNotification}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="notifications-active" size={18} color={colors.secondary} />
               <Text style={[styles.statusBadgeText, { color: colors.onSecondaryFixedVariant }]}>
                 {displayShipment.current_status === 'delivered' ? t('statusDelivered') : t('statusInTransit')}
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Map View */}
-          <View style={[styles.mapContainer, { borderColor: colors.outlineVariant }]}>
-            <Image 
-              source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD_X65X_0Z7qD_s4nMcvGVOmmypg_x5GAUTUSfexI2rfOJOB1rBp64UHrtL9lRyQoLfs0XuH6bJMk0OSsV_31wiv0B2lOROtDu2V_nSW2ccuk_iZqozOyueKutuCNxDYnLxpXKzKlYSeutWQjAY4mx1BUK1MirTkqG1sPFuLCuli1P0vMYXpLKOCspvPhlizqkNTmR_XOeaVTmOCtofO18yopONDpxNjaOlGz8IhIQc9kQ4tN2_RKTkpgAmYrWYZbZzagW6iJxGQEg' }}
-              style={styles.mapImage}
-              resizeMode="cover"
-            />
-            <View style={[styles.mapOverlay, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-              <View style={[styles.mapIconBg, { backgroundColor: colors.primaryContainer }]}>
-                <MaterialIcons name="location-on" size={20} color={colors.onPrimaryContainer} />
-              </View>
-              <View>
-                <Text style={[styles.mapOverlayLabel, { color: colors.onSurfaceVariant }]}>{t('lastLocation')}</Text>
-                <Text style={[styles.mapOverlayValue, { color: colors.onBackground }]}>{displayShipment.last_location || 'Levent Dağıtım Merkezi'}</Text>
-              </View>
-            </View>
-          </View>
+          {/* Clean Map View: Only User Address & Courier Vehicle (No lines across sea) */}
+          <ShipmentMapView
+            destination={mapDestination}
+            rawCourierLocations={rawCourierLocations}
+            height={260}
+          />
 
           {/* Bento Grid for Details & Timeline */}
           <View style={[styles.gridContainer, isLargeScreen && styles.gridContainerDesktop]}>
@@ -142,6 +175,18 @@ export const PackageDetailScreen = () => {
                 </View>
               </View>
 
+              {/* Quick Actions Card */}
+              <TouchableOpacity 
+                style={[styles.notificationTriggerCard, { backgroundColor: colors.primaryContainer }]}
+                onPress={handleTestNotification}
+                activeOpacity={0.85}
+              >
+                <MaterialIcons name="notifications-active" size={22} color={colors.onPrimaryContainer} />
+                <Text style={[styles.notificationTriggerText, { color: colors.onPrimaryContainer }]}>
+                  Test Bildirimi Gönder (Durum Güncellemesi)
+                </Text>
+              </TouchableOpacity>
+
             </View>
 
             {/* Vertical Timeline */}
@@ -153,7 +198,7 @@ export const PackageDetailScreen = () => {
 
               <View style={styles.timelineContainer}>
                 {displayShipment.shipment_events && displayShipment.shipment_events.length > 0 ? (
-                  displayShipment.shipment_events.map((event, index) => (
+                  displayShipment.shipment_events.map((event: any, index: number) => (
                     <View key={event.id || index} style={styles.timelineStep}>
                       <View style={[
                         index === 0 ? styles.timelineDotActiveWrapper : styles.timelineDotCompleted,
@@ -231,18 +276,18 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingTop: 16,
     maxWidth: 896,
     alignSelf: 'center',
     width: '100%',
-    gap: 24,
+    gap: 16,
   },
   summaryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    padding: 24,
+    padding: 20,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -266,7 +311,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
   },
@@ -276,50 +321,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.6,
   },
-  mapContainer: {
-    height: 256,
-    width: '100%',
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  mapImage: {
-    width: '100%',
-    height: '100%',
-  },
-  mapOverlay: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    padding: 12,
-    borderRadius: 8,
+  notificationTriggerCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
+    gap: 10,
+    padding: 16,
+    borderRadius: 12,
+    justifyContent: 'center',
   },
-  mapIconBg: {
-    padding: 8,
-    borderRadius: 999,
-  },
-  mapOverlayLabel: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  mapOverlayValue: {
+  notificationTriggerText: {
     fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '600',
@@ -334,7 +344,7 @@ const styles = StyleSheet.create({
   },
   detailsSection: {
     flexDirection: 'column',
-    gap: 24,
+    gap: 16,
   },
   detailsColDesktop: {
     flex: 1,

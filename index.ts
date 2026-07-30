@@ -1,4 +1,13 @@
 import { registerRootComponent } from 'expo';
+import { LogBox } from 'react-native';
+
+// Expo Go SDK 53+ Android push notification uyarısını bastırır (Expo Go kısıtlaması)
+LogBox.ignoreLogs([
+  'expo-notifications: Android Push notifications',
+  'Android Push notifications (remote notifications)',
+  'remotely-triggered notifications',
+  'was removed from Expo Go',
+]);
 
 import App from './src/app/App';
 

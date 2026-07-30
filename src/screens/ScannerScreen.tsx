@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
+import { OCRService } from '../services/ocr/ocrService';
 
 const BG_IMAGE_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAW4D6V42SnIcoqTa5C_56p4e9Myk4KihNXxdwGMtq5hOnKBHg2vs8npkwWIt3q7LeLcsMTcTpDNHEkKnfZH6XsS6KIEkqctSbXLxFkcO2s8SzLPpeqSplx9oJP_ko1QS7YlMB9dmPiV_RTP0Lj0oYSYWNmlHG7DTzumEukaYgGoDBhia-Y9nmxC7G_8mA7oRBpQu1wUowgBaEpFgBYtZMjWiMHCPAotSCXSJflxRIHK9Sq-stmFp47_1A9O1dr6W29ciuntdgZwuY';
 
@@ -22,6 +23,7 @@ export const ScannerScreen = () => {
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
 
+  const [scanMode, setScanMode] = useState<'QR' | 'OCR'>('QR');
   const [flashlight, setFlashlight] = useState(false);
 
   // Animation for the scanning line
@@ -42,15 +44,39 @@ export const ScannerScreen = () => {
   }, [scanLineAnim]);
 
   const handleSimulateScan = () => {
-    const scannedCode = `TR-${Math.floor(100000000 + Math.random() * 900000000)}`;
-    Alert.alert('QR Kodu Tarandı', `Takip No: ${scannedCode}`, [
-      {
-        text: 'Tamam',
-        onPress: () => {
-          navigation.navigate('AddPackage', { scannedTrackingNumber: scannedCode });
-        }
-      }
-    ]);
+    if (scanMode === 'OCR') {
+      // Simüle edilen kargo etiketi metni
+      const sampleReceiptText = `
+        GÖNDERİCİ: HIZLI KARGO A.Ş.
+        İRSALİYE NO: 9948201
+        TAKİP NO: TR-948201948
+        TARİH: 30.07.2026
+      `;
+      const ocrResult = OCRService.extractTrackingNumber(sampleReceiptText);
+
+      Alert.alert(
+        '📄 OCR Metin Algılandı',
+        `Tespit Edilen Takip No: ${ocrResult.detectedNumber}\nGüven Oranı: %${Math.round(ocrResult.confidence * 100)}`,
+        [
+          {
+            text: 'Forma Aktar',
+            onPress: () => {
+              navigation.navigate('AddPackage', { scannedTrackingNumber: ocrResult.detectedNumber });
+            },
+          },
+        ]
+      );
+    } else {
+      const scannedCode = `TR-${Math.floor(100000000 + Math.random() * 900000000)}`;
+      Alert.alert('QR / Barkod Tarandı', `Takip No: ${scannedCode}`, [
+        {
+          text: 'Forma Aktar',
+          onPress: () => {
+            navigation.navigate('AddPackage', { scannedTrackingNumber: scannedCode });
+          },
+        },
+      ]);
+    }
   };
 
   return (
@@ -71,8 +97,22 @@ export const ScannerScreen = () => {
           <MaterialIcons name="close" size={24} color="#ffffff" />
         </TouchableOpacity>
         
-        <Text style={styles.appBarTitle}>{t('qrScan')}</Text>
-        
+        {/* QR vs OCR Mode Selector Switch */}
+        <View style={styles.modeSwitchContainer}>
+          <TouchableOpacity
+            style={[styles.modeTab, scanMode === 'QR' && styles.modeTabActive]}
+            onPress={() => setScanMode('QR')}
+          >
+            <Text style={[styles.modeTabText, scanMode === 'QR' && styles.modeTabTextActive]}>QR / Barkod</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modeTab, scanMode === 'OCR' && styles.modeTabActive]}
+            onPress={() => setScanMode('OCR')}
+          >
+            <Text style={[styles.modeTabText, scanMode === 'OCR' && styles.modeTabTextActive]}>OCR Metin</Text>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity 
           style={styles.iconButton}
           onPress={() => setFlashlight(!flashlight)}
@@ -84,7 +124,11 @@ export const ScannerScreen = () => {
       {/* Scanner Overlay Content */}
       <View style={styles.overlayContent}>
         <View style={styles.instructionBubble}>
-          <Text style={styles.instructionText}>Center the QR code within the frame</Text>
+          <Text style={styles.instructionText}>
+            {scanMode === 'OCR'
+              ? '📷 Kargo etiketini veya fişini hizada tutun'
+              : '📷 QR kodu çerçevenin ortasına hizalayın'}
+          </Text>
         </View>
 
         {/* Scanner Frame */}
@@ -101,7 +145,7 @@ export const ScannerScreen = () => {
             {/* Scanning Line Animation */}
             <Animated.View style={[
               styles.scanLine, 
-              { backgroundColor: colors.primary, transform: [{ translateY: scanLineAnim }] }
+              { backgroundColor: scanMode === 'OCR' ? '#10b981' : colors.primary, transform: [{ translateY: scanLineAnim }] }
             ]} />
           </View>
         </TouchableOpacity>
@@ -110,9 +154,11 @@ export const ScannerScreen = () => {
         <View style={styles.controlsContainer}>
           <TouchableOpacity style={styles.controlButton} onPress={handleSimulateScan}>
             <View style={styles.controlIconBox}>
-              <MaterialIcons name="qr-code-scanner" size={24} color="#ffffff" />
+              <MaterialIcons name={scanMode === 'OCR' ? "document-scanner" : "qr-code-scanner"} size={24} color="#ffffff" />
             </View>
-            <Text style={styles.controlText}>Tara (Simüle Et)</Text>
+            <Text style={styles.controlText}>
+              {scanMode === 'OCR' ? 'Metni Tara (OCR)' : 'QR Tara (Simüle)'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -124,7 +170,7 @@ export const ScannerScreen = () => {
           onPress={() => navigation.navigate('AddPackage')}
           activeOpacity={0.8}
         >
-          <MaterialIcons name="keyboard" size={24} color={colors.primary} />
+          <MaterialIcons name="keyboard" size={24} color="#ffffff" />
           <Text style={styles.manualEntryText}>Manuel Takip No Girin</Text>
           <MaterialIcons name="arrow-forward" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -147,14 +193,29 @@ const styles = StyleSheet.create({
     zIndex: 20,
     backgroundColor: 'transparent',
   },
-  appBarTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
+  modeSwitchContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 20,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  modeTab: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  modeTabActive: {
+    backgroundColor: '#ffffff',
+  },
+  modeTabText: {
     color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modeTabTextActive: {
+    color: '#0b1c30',
   },
   iconButton: {
     width: 40,
@@ -180,7 +241,8 @@ const styles = StyleSheet.create({
   },
   instructionText: {
     fontFamily: 'Inter',
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '600',
     color: '#ffffff',
   },
   scannerFrameContainer: {

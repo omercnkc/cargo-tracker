@@ -1,58 +1,72 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
   TouchableOpacity,
-  useWindowDimensions
+  Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
-
-// Simulated Bar Chart Data
 import useResponsive from '../hooks/useResponsive';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { ExportUtils } from '../utils/exportUtils';
+import { QRCodeModal } from '../components/package/QRCodeModal';
 
 const BAR_CHART_DATA = [
-  { month: 'Jan', value: 120, height: '33.3%' },
-  { month: 'Feb', value: 180, height: '50%' },
+  { month: 'Oca', value: 120, height: '33.3%' },
+  { month: 'Şub', value: 180, height: '50%' },
   { month: 'Mar', value: 150, height: '40%' },
-  { month: 'Apr', value: 280, height: '75%' },
+  { month: 'Nis', value: 280, height: '75%' },
   { month: 'May', value: 350, height: '100%', active: true },
-  { month: 'Jun', value: 300, height: '80%' },
+  { month: 'Haz', value: 300, height: '80%' },
 ];
 
 export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
+  const { isOnline, pendingCount } = useNetworkStatus();
+
+  const [qrModalVisible, setQrModalVisible] = useState(false);
+
+  const sampleExportData = [
+    { tracking_number: 'TR-849201048', title: 'Elektronik Sipariş', courier_company: 'Aras Kargo', current_status: 'Dağıtımda', created_at: '2026-07-29' },
+    { tracking_number: 'TR-102938475', title: 'Kitap Paketi', courier_company: 'Yurtiçi Kargo', current_status: 'Teslim Edildi', created_at: '2026-07-28' },
+    { tracking_number: 'TR-994820194', title: 'Kıyafet Siparişi', courier_company: 'PTT Kargo', current_status: 'Aktarmada', created_at: '2026-07-27' },
+  ];
+
+  const handleExportCSV = async () => {
+    const csvData = await ExportUtils.exportShipmentsToCSV(sampleExportData);
+    Alert.alert('📄 CSV Raporu Oluşturuldu', 'Geçmiş kargo raporu CSV formatında hazırlandı:\n\n' + csvData.substring(0, 150) + '...');
+  };
+
+  const handleExportPDFReport = async () => {
+    await ExportUtils.exportShipmentToPDF({
+      tracking_number: 'TR-GENEL-RAPOR',
+      title: 'Aylık Kargo İstatistik Raporu',
+      sender: 'KargoTakip Analitik Servisi',
+      receiver: 'Ömer Ç.',
+      current_status: 'Başarılı (%98.2)',
+      courier_company: 'Tüm Kargo Firmaları',
+    });
+  };
 
   return (
     <View style={[styles.container, isLargeScreen && { paddingLeft: 240 }]}>
-      {/* TopAppBar (Desktop) / Mobile Header */}
+      {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top }]}>
         <View style={styles.appBarContent}>
-          {isLargeScreen ? (
-            <>
-              <View style={styles.headerLeft}>
-                <TouchableOpacity style={styles.iconButton}>
-                  <MaterialIcons name="menu" size={24} color={colors.primary} />
-                </TouchableOpacity>
-                <Text style={styles.appBarTitle}>KargoTakip</Text>
-              </View>
-              <View style={styles.headerNav}>
-                <Text style={styles.navLink}>Home</Text>
-                <Text style={styles.navLink}>Packages</Text>
-                <Text style={styles.navLinkActive}>Stats</Text>
-                <Text style={styles.navLink}>Profile</Text>
-              </View>
-              <TouchableOpacity style={styles.iconButton}>
-                <MaterialIcons name="add" size={24} color={colors.primary} />
-              </TouchableOpacity>
-            </>
-          ) : (
-            <Text style={[styles.appBarTitle, { flex: 1 }]}>Statistics</Text>
-          )}
+          <Text style={[styles.appBarTitle, { flex: 1 }]}>Analiz & Raporlama</Text>
+          
+          {/* Network Status Badge */}
+          <View style={[styles.networkBadge, { backgroundColor: isOnline ? '#dcfce7' : '#fee2e2' }]}>
+            <MaterialIcons name={isOnline ? "wifi" : "wifi-off"} size={14} color={isOnline ? "#166534" : "#991b1b"} />
+            <Text style={[styles.networkBadgeText, { color: isOnline ? "#166534" : "#991b1b" }]}>
+              {isOnline ? 'Çevrimiçi' : `Çevrimdışı (${pendingCount} Bekleyen)`}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -63,20 +77,39 @@ export const StatisticsScreen = () => {
           { paddingBottom: isLargeScreen ? 32 : insets.bottom + 96 }
         ]}
       >
-        <View style={styles.pageHeader}>
-          {isLargeScreen && <Text style={styles.pageTitle}>Dashboard Overview</Text>}
-          <Text style={styles.pageSubtitle}>Your shipping performance at a glance.</Text>
+        <View style={styles.pageHeaderRow}>
+          <View>
+            <Text style={styles.pageTitle}>Performans Özeti</Text>
+            <Text style={styles.pageSubtitle}>Kargo teslimat ve istatistik raporlarınız</Text>
+          </View>
+
+          {/* Export Action Buttons */}
+          <View style={styles.exportButtonRow}>
+            <TouchableOpacity style={styles.exportBtn} onPress={handleExportCSV} activeOpacity={0.8}>
+              <MaterialIcons name="table-chart" size={18} color={colors.primary} />
+              <Text style={styles.exportBtnText}>CSV İndir</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.exportBtn, styles.exportBtnPrimary]} onPress={handleExportPDFReport} activeOpacity={0.8}>
+              <MaterialIcons name="picture-as-pdf" size={18} color="#ffffff" />
+              <Text style={styles.exportBtnTextPrimary}>PDF Rapor Al</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.exportBtn} onPress={() => setQrModalVisible(true)} activeOpacity={0.8}>
+              <MaterialIcons name="qr-code" size={18} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={[styles.bentoGrid, isLargeScreen && styles.bentoGridDesktop]}>
           
-          {/* KPI Row (Mobile: column, Desktop: row) */}
+          {/* KPI Row */}
           <View style={[styles.kpiRow, isLargeScreen && styles.kpiRowDesktop]}>
             
             {/* Total Packages */}
             <View style={styles.statCard}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>TOTAL PACKAGES</Text>
+                <Text style={styles.statCardLabel}>TOPLAM KARGO</Text>
                 <View style={[styles.iconBox, { backgroundColor: colors.primaryContainer }]}>
                   <MaterialIcons name="inventory" size={16} color={colors.onPrimaryContainer} />
                 </View>
@@ -85,7 +118,7 @@ export const StatisticsScreen = () => {
                 <Text style={styles.statValue}>1,248</Text>
                 <View style={styles.trendRow}>
                   <MaterialIcons name="trending-up" size={12} color={colors.tertiary} />
-                  <Text style={styles.trendTextUp}>+12% from last month</Text>
+                  <Text style={styles.trendTextUp}>+12% geçen aya göre</Text>
                 </View>
               </View>
             </View>
@@ -93,16 +126,16 @@ export const StatisticsScreen = () => {
             {/* Average Delivery Time */}
             <View style={styles.statCard}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>AVG DELIVERY TIME</Text>
+                <Text style={styles.statCardLabel}>ORT. TESLİMAT SÜRESİ</Text>
                 <View style={[styles.iconBox, { backgroundColor: colors.surfaceVariant }]}>
                   <MaterialIcons name="timer" size={16} color={colors.primary} />
                 </View>
               </View>
               <View>
-                <Text style={styles.statValue}>2.4 <Text style={styles.statValueUnit}>Days</Text></Text>
+                <Text style={styles.statValue}>2.4 <Text style={styles.statValueUnit}>Gün</Text></Text>
                 <View style={styles.trendRow}>
                   <MaterialIcons name="trending-down" size={12} color={colors.tertiary} />
-                  <Text style={styles.trendTextUp}>-0.3 days improvement</Text>
+                  <Text style={styles.trendTextUp}>-0.3 gün iyileşme</Text>
                 </View>
               </View>
             </View>
@@ -110,7 +143,7 @@ export const StatisticsScreen = () => {
             {/* Success Rate */}
             <View style={styles.statCard}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>DELIVERY SUCCESS</Text>
+                <Text style={styles.statCardLabel}>TESLİMAT BAŞARISI</Text>
                 <View style={[styles.iconBox, { backgroundColor: colors.tertiaryFixed }]}>
                   <MaterialIcons name="check-circle" size={16} color={colors.onTertiaryFixedVariant} />
                 </View>
@@ -118,7 +151,7 @@ export const StatisticsScreen = () => {
               <View>
                 <Text style={styles.statValue}>98.2%</Text>
                 <View style={styles.trendRow}>
-                  <Text style={styles.trendTextNeutral}>Consistent performance</Text>
+                  <Text style={styles.trendTextNeutral}>Yüksek performans</Text>
                 </View>
               </View>
             </View>
@@ -130,9 +163,9 @@ export const StatisticsScreen = () => {
             {/* Bar Chart */}
             <View style={[styles.statCard, isLargeScreen && styles.barChartCardDesktop]}>
               <View style={styles.chartHeader}>
-                <Text style={styles.chartTitle}>Monthly Deliveries</Text>
+                <Text style={styles.chartTitle}>Aylık Gönderi Dağılımı</Text>
                 <View style={styles.dropdownPicker}>
-                  <Text style={styles.dropdownText}>Last 6 Months</Text>
+                  <Text style={styles.dropdownText}>Son 6 Ay</Text>
                   <MaterialIcons name="arrow-drop-down" size={20} color={colors.onSurface} />
                 </View>
               </View>
@@ -171,10 +204,9 @@ export const StatisticsScreen = () => {
 
             {/* Pie Chart (Simulated Donut) */}
             <View style={[styles.statCard, isLargeScreen && styles.pieChartCardDesktop]}>
-              <Text style={styles.chartTitle}>Company Distribution</Text>
+              <Text style={styles.chartTitle}>Kargo Firması Oranları</Text>
               
               <View style={styles.donutChartContainer}>
-                {/* Simplified visual representation of donut chart for Native */}
                 <View style={styles.donutOuter}>
                   <View style={styles.donutInner}>
                     <Text style={styles.donutCenterText}>4</Text>
@@ -186,7 +218,7 @@ export const StatisticsScreen = () => {
                 <View style={styles.legendRow}>
                   <View style={styles.legendLeft}>
                     <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-                    <Text style={styles.legendLabel}>SpeedyGo Logistics</Text>
+                    <Text style={styles.legendLabel}>Aras Kargo</Text>
                   </View>
                   <Text style={styles.legendValue}>45%</Text>
                 </View>
@@ -194,7 +226,7 @@ export const StatisticsScreen = () => {
                 <View style={styles.legendRow}>
                   <View style={styles.legendLeft}>
                     <View style={[styles.legendDot, { backgroundColor: colors.primaryContainer }]} />
-                    <Text style={styles.legendLabel}>Global Freight</Text>
+                    <Text style={styles.legendLabel}>Yurtiçi Kargo</Text>
                   </View>
                   <Text style={styles.legendValue}>30%</Text>
                 </View>
@@ -202,7 +234,7 @@ export const StatisticsScreen = () => {
                 <View style={styles.legendRow}>
                   <View style={styles.legendLeft}>
                     <View style={[styles.legendDot, { backgroundColor: colors.surfaceTint }]} />
-                    <Text style={styles.legendLabel}>City Express</Text>
+                    <Text style={styles.legendLabel}>PTT Kargo</Text>
                   </View>
                   <Text style={styles.legendValue}>15%</Text>
                 </View>
@@ -210,7 +242,7 @@ export const StatisticsScreen = () => {
                 <View style={styles.legendRow}>
                   <View style={styles.legendLeft}>
                     <View style={[styles.legendDot, { backgroundColor: colors.primaryFixed }]} />
-                    <Text style={styles.legendLabel}>Others</Text>
+                    <Text style={styles.legendLabel}>Diğerleri</Text>
                   </View>
                   <Text style={styles.legendValue}>10%</Text>
                 </View>
@@ -221,6 +253,18 @@ export const StatisticsScreen = () => {
         </View>
       </ScrollView>
 
+      {/* QR Modal */}
+      <QRCodeModal
+        visible={qrModalVisible}
+        onClose={() => setQrModalVisible(false)}
+        shipment={{
+          tracking_number: 'TR-849201048',
+          title: 'Aras Kargo Paketim',
+          sender: 'TechStore Elektronik A.Ş.',
+          receiver: 'Ahmet Yılmaz',
+          current_status: 'Dağıtımda',
+        }}
+      />
     </View>
   );
 };
@@ -228,7 +272,7 @@ export const StatisticsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC', // using exact color from mockup for bg
+    backgroundColor: '#F8FAFC',
   },
   appBar: {
     backgroundColor: colors.surface,
@@ -246,67 +290,80 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
   appBarTitle: {
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '700',
     color: colors.primary,
   },
-  headerNav: {
+  networkBadge: {
     flexDirection: 'row',
-    gap: 24,
-  },
-  navLink: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  navLinkActive: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: colors.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
-  },
-  iconButton: {
-    padding: 8,
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 999,
   },
+  networkBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
   mainContent: {
-    paddingHorizontal: 16, // margin-mobile
+    paddingHorizontal: 16,
     paddingTop: 16,
-    maxWidth: 1280, // max-w-7xl
+    maxWidth: 1280,
     alignSelf: 'center',
     width: '100%',
   },
-  pageHeader: {
-    marginBottom: 32,
+  pageHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+    flexWrap: 'wrap',
+    gap: 12,
   },
   pageTitle: {
     fontFamily: 'Inter',
-    fontSize: 32, // headline-lg
+    fontSize: 24,
     fontWeight: '700',
-    letterSpacing: -0.64,
     color: colors.onSurface,
-    marginBottom: 8,
   },
   pageSubtitle: {
     fontFamily: 'Inter',
-    fontSize: 16,
+    fontSize: 14,
     color: colors.onSurfaceVariant,
+    marginTop: 2,
+  },
+  exportButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+    backgroundColor: '#ffffff',
+  },
+  exportBtnPrimary: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  exportBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  exportBtnTextPrimary: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#ffffff',
   },
   bentoGrid: {
     gap: 16,
@@ -324,9 +381,9 @@ const styles = StyleSheet.create({
   statCard: {
     backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: '#E2E8F0', // specific to this mockup
+    borderColor: '#E2E8F0',
     borderRadius: 12,
-    padding: 24,
+    padding: 20,
     shadowColor: colors.primaryContainer,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -342,7 +399,7 @@ const styles = StyleSheet.create({
   },
   statCardLabel: {
     fontFamily: 'Inter',
-    fontSize: 14, // body-sm
+    fontSize: 12,
     fontWeight: '600',
     color: colors.onSurfaceVariant,
     letterSpacing: 0.7,
@@ -353,7 +410,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontFamily: 'Inter',
-    fontSize: 32, // text-4xl equivalent roughly
+    fontSize: 28,
     fontWeight: '700',
     color: colors.primary,
     marginBottom: 4,
@@ -370,18 +427,18 @@ const styles = StyleSheet.create({
   },
   trendTextUp: {
     fontFamily: 'Inter',
-    fontSize: 14,
+    fontSize: 13,
     color: colors.tertiary,
   },
   trendTextNeutral: {
     fontFamily: 'Inter',
-    fontSize: 14,
+    fontSize: 13,
     color: colors.onSurfaceVariant,
   },
   chartsRow: {
     flexDirection: 'column',
     gap: 16,
-    marginTop: 16,
+    marginTop: 8,
   },
   chartsRowDesktop: {
     flexDirection: 'row',
@@ -400,7 +457,7 @@ const styles = StyleSheet.create({
   },
   chartTitle: {
     fontFamily: 'Inter',
-    fontSize: 20, // headline-md
+    fontSize: 18,
     fontWeight: '600',
     color: colors.onSurface,
   },
@@ -417,7 +474,7 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontFamily: 'Inter',
-    fontSize: 14,
+    fontSize: 13,
     color: colors.onSurface,
   },
   barChartContainer: {
@@ -434,7 +491,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    bottom: 30, // account for labels
+    bottom: 30,
     justifyContent: 'space-between',
     zIndex: 0,
   },
@@ -487,13 +544,11 @@ const styles = StyleSheet.create({
     minHeight: 160,
   },
   donutOuter: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     backgroundColor: colors.primaryContainer,
-    // Note: Conic gradients not directly supported in standard RN Views.
-    // Using a solid color or border hack to simulate chart presence.
-    borderWidth: 20,
+    borderWidth: 18,
     borderColor: colors.primary,
     borderTopColor: colors.primaryFixed,
     borderRightColor: colors.surfaceTint,
@@ -501,22 +556,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   donutInner: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   donutCenterText: {
     fontFamily: 'Inter',
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     color: colors.onSurface,
   },
   legendContainer: {
     marginTop: 16,
-    gap: 12,
+    gap: 10,
   },
   legendRow: {
     flexDirection: 'row',
@@ -529,71 +584,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   legendLabel: {
     fontFamily: 'Inter',
-    fontSize: 14,
+    fontSize: 13,
     color: colors.onSurface,
   },
   legendValue: {
     fontFamily: 'Inter',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.onSurface,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.outlineVariant + '4D',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 8,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 10,
-    zIndex: 50,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-  },
-  navItemActive: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-    backgroundColor: colors.primaryContainer,
-    borderRadius: 999,
-  },
-  navText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-  navTextActive: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: colors.onPrimaryContainer,
-    marginTop: 4,
   },
 });
 

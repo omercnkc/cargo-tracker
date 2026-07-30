@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  StyleSheet,
   TouchableOpacity,
   TextInput,
   ScrollView,
@@ -20,7 +20,7 @@ const CARRIERS = [
   {
     id: '1',
     name: 'Aras Kargo',
-    logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUixqteUkvVuCtTekD11ZPAYGfotm_0-u2d6PkWmTDbDsIy359BoMk_iaPb0dAuFIh76cxt7kOuh12kLFi0RsP6O9bKbRbKf_ZGzsymDu25kr9yQscZ-QysYc5X3rMpzBVQGPbcsfcN4r7oKpyzRS6y7FY-bJ-05KXIdZS75nVXD2JdUAsu2nDlOwLKxwlKeTWh9f7MnVYRp8REThNF7W1zBhAVkuC3laz3iYowXMXNZ9tJU1EipWmjpYhrQDSk6hB-c5WRxZapMU'
+    logo: 'https://www.araskargo.com.tr/assets/images/aras-logo.svg'
   },
   {
     id: '2',
@@ -57,13 +57,13 @@ export const CarrierSelectionScreen = () => {
   const [sheetVisible, setSheetVisible] = useState(true); // Open by default for demo
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCarriers = CARRIERS.filter(carrier => 
+  const filteredCarriers = CARRIERS.filter(carrier =>
     carrier.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <View style={styles.container}>
-      
+
       {/* Background Main Context (Mock) */}
       <View style={[styles.appBar, { paddingTop: insets.top }]}>
         <View style={styles.appBarContent}>
@@ -80,7 +80,7 @@ export const CarrierSelectionScreen = () => {
       <View style={styles.mockMainContent}>
         <Text style={styles.mockTitle}>Track a Package</Text>
         <Text style={styles.mockSubtitle}>Select a carrier to begin tracking your shipment.</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.openButton}
           onPress={() => setSheetVisible(true)}
         >
@@ -95,22 +95,22 @@ export const CarrierSelectionScreen = () => {
         animationType="slide"
         onRequestClose={() => setSheetVisible(false)}
       >
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFill} 
-            activeOpacity={1} 
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
             onPress={() => setSheetVisible(false)}
           />
 
           <View style={[
-            styles.bottomSheetContainer, 
+            styles.bottomSheetContainer,
             { paddingBottom: insets.bottom || 24 },
             isLargeScreen && styles.bottomSheetContainerLarge
           ]}>
-            
+
             {/* Drag Handle (Mobile) */}
             {!isLargeScreen && (
               <View style={styles.dragHandleContainer}>
@@ -121,7 +121,7 @@ export const CarrierSelectionScreen = () => {
             {/* Sheet Header */}
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Select Carrier</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setSheetVisible(false)}
               >
@@ -144,7 +144,7 @@ export const CarrierSelectionScreen = () => {
             </View>
 
             {/* Carrier Grid / Empty State */}
-            <ScrollView 
+            <ScrollView
               style={styles.gridScroll}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.gridContentContainer}
@@ -152,13 +152,13 @@ export const CarrierSelectionScreen = () => {
               {filteredCarriers.length > 0 ? (
                 <View style={styles.grid}>
                   {filteredCarriers.map(carrier => (
-                    <TouchableOpacity 
-                      key={carrier.id} 
+                    <TouchableOpacity
+                      key={carrier.id}
                       style={styles.carrierCard}
                       activeOpacity={0.7}
                     >
                       <View style={styles.carrierIconBg}>
-                        <Image 
+                        <Image
                           source={{ uri: carrier.logo }}
                           style={styles.carrierLogo}
                           resizeMode="contain"
