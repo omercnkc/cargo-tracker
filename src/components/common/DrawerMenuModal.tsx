@@ -19,6 +19,8 @@ import { useAuthStore } from '../../store/auth.store';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { AddressManagementModal } from '../profile/AddressManagementModal';
+import { ChangePasswordModal } from './ChangePasswordModal';
+import { SupportHelpModal, SupportModalType } from './SupportHelpModal';
 
 export const DrawerMenuModal = () => {
   const { isOpen, closeDrawer } = useDrawerStore();
@@ -32,6 +34,11 @@ export const DrawerMenuModal = () => {
   const signOut = useAuthStore((state) => state.signOut);
 
   const [addressesModalVisible, setAddressesModalVisible] = useState(false);
+  const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
+  const [supportModalState, setSupportModalState] = useState<{ visible: boolean; type: SupportModalType }>({
+    visible: false,
+    type: 'help',
+  });
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
   const displayEmail = user?.email || 'omercnkc123@gmail.com';
@@ -40,6 +47,11 @@ export const DrawerMenuModal = () => {
   const handleNavigate = (screenName: string) => {
     closeDrawer();
     navigation.navigate(screenName);
+  };
+
+  const openSupportModal = (type: SupportModalType) => {
+    closeDrawer();
+    setSupportModalState({ visible: true, type });
   };
 
   const handleLogout = () => {
@@ -108,16 +120,18 @@ export const DrawerMenuModal = () => {
               {/* HESAP SECTION */}
               <Text style={styles.sectionHeaderTitle}>HESAP</Text>
               
+              {/* 1. Kişisel Bilgiler */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
-                onPress={() => handleNavigate('Profile')}
+                onPress={() => handleNavigate('Settings')}
               >
                 <MaterialIcons name="person-outline" size={22} color={colors.onSurface} />
                 <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kişisel Bilgiler</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 2. Adreslerim */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
@@ -131,16 +145,21 @@ export const DrawerMenuModal = () => {
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 3. Şifre Değiştir */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
-                onPress={() => handleNavigate('Settings')}
+                onPress={() => {
+                  closeDrawer();
+                  setChangePasswordModalVisible(true);
+                }}
               >
                 <MaterialIcons name="lock-outline" size={22} color={colors.onSurface} />
                 <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Şifre Değiştir</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 4. Bildirim Ayarları */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
@@ -151,6 +170,7 @@ export const DrawerMenuModal = () => {
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 5. Varsayılan Kargo Firmaları */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
@@ -166,65 +186,55 @@ export const DrawerMenuModal = () => {
               {/* DESTEK SECTION */}
               <Text style={styles.sectionHeaderTitle}>DESTEK</Text>
 
+              {/* 6. Yardım Merkezi */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
-                onPress={() => {
-                  closeDrawer();
-                  Alert.alert('Yardım Merkezi', '7/24 Müşteri Destek ekibimiz hizmetinizdedir.');
-                }}
+                onPress={() => openSupportModal('help')}
               >
                 <MaterialIcons name="help-outline" size={22} color={colors.onSurface} />
                 <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Yardım Merkezi</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 7. Uygulamayı Puanla */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
-                onPress={() => {
-                  closeDrawer();
-                  Alert.alert('Uygulamayı Puanla', 'Bize 5 yıldız verdiğiniz için teşekkür ederiz! ⭐');
-                }}
+                onPress={() => openSupportModal('rate')}
               >
                 <MaterialIcons name="star-outline" size={22} color={colors.onSurface} />
                 <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Uygulamayı Puanla</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 8. Geri Bildirim Gönder */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
-                onPress={() => {
-                  closeDrawer();
-                  Alert.alert('Geri Bildirim', 'Görüşlerinizi bizimle paylaştığınız için teşekkürler.');
-                }}
+                onPress={() => openSupportModal('feedback')}
               >
                 <MaterialIcons name="chat-bubble-outline" size={22} color={colors.onSurface} />
                 <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Geri Bildirim Gönder</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 9. Gizlilik Politikası */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
-                onPress={() => {
-                  closeDrawer();
-                  Alert.alert('Gizlilik Politikası', 'Verileriniz endüstri standardı şifreleme ile korunmaktadır.');
-                }}
+                onPress={() => openSupportModal('privacy')}
               >
                 <MaterialIcons name="shield" size={22} color={colors.onSurface} />
                 <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Gizlilik Politikası</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
               </TouchableOpacity>
 
+              {/* 10. Kullanım Koşulları */}
               <TouchableOpacity 
                 style={styles.menuItem} 
                 activeOpacity={0.7}
-                onPress={() => {
-                  closeDrawer();
-                  Alert.alert('Kullanım Koşulları', 'KargoTakip Hizmet Şartları v2.4.');
-                }}
+                onPress={() => openSupportModal('terms')}
               >
                 <MaterialIcons name="description" size={22} color={colors.onSurface} />
                 <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kullanım Koşulları</Text>
@@ -247,6 +257,19 @@ export const DrawerMenuModal = () => {
       <AddressManagementModal
         visible={addressesModalVisible}
         onClose={() => setAddressesModalVisible(false)}
+      />
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        visible={changePasswordModalVisible}
+        onClose={() => setChangePasswordModalVisible(false)}
+      />
+
+      {/* Support & Legal Help Modal */}
+      <SupportHelpModal
+        visible={supportModalState.visible}
+        type={supportModalState.type}
+        onClose={() => setSupportModalState({ ...supportModalState, visible: false })}
       />
     </>
   );
