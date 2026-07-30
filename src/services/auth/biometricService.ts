@@ -1,7 +1,7 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 
-const BIOMETRIC_ENABLED_KEY = '@cargo_tracker_biometric_enabled';
+const BIOMETRIC_ENABLED_KEY = 'cargo_tracker_biometric_enabled';
 
 export class BiometricService {
   /**
