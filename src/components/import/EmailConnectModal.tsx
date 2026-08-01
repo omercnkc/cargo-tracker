@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { EmailSyncService, EmailScanResult } from '../../services/import/emailSyncService';
 import { useTheme } from '../../theme/useTheme';
 import { useAuthStore } from '../../store/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
+import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
 
 interface EmailConnectModalProps {
   visible: boolean;
@@ -22,6 +23,19 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
+  const [feedback, setFeedback] = useState<{
+    visible: boolean;
+    type: FeedbackType;
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
+
   useEffect(() => {
     if (visible) {
       EmailSyncService.getConnectedEmail().then((mail) => {
@@ -33,7 +47,12 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
 
   const handleConnect = async () => {
     if (!emailInput || !emailInput.includes('@')) {
-      Alert.alert('Geçersiz E-Posta', 'Lütfen geçerli bir e-posta adresi girin.');
+      setFeedback({
+        visible: true,
+        type: 'warning',
+        title: 'Geçersiz E-Posta',
+        message: 'Lütfen geçerli bir e-posta adresi girin.',
+      });
       return;
     }
 
@@ -43,7 +62,12 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
 
     if (success) {
       setConnectedEmail(emailInput);
-      Alert.alert('E-Posta Bağlandı', `${emailInput} hesabı başarıyla bağlandı! Artık kargo bildirimleri otomatik taranacak.`);
+      setFeedback({
+        visible: true,
+        type: 'success',
+        title: 'E-Posta Bağlandı 📧',
+        message: `${emailInput} hesabı başarıyla bağlandı. Artık yeni kargolarınız otomatik taranacak.`,
+      });
     }
   };
 
@@ -55,31 +79,29 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
     setSyncing(false);
 
     if (results.length > 0) {
-      // Önbelleği yenile ki kargo listesi anında güncellensin
       queryClient.invalidateQueries({ queryKey: ['shipments'] });
-
       const shipmentSummary = results.map((r, i) => `${i + 1}. ${r.sender}: ${r.trackingNumber}`).join('\n');
 
-      Alert.alert(
-        '🎉 Yeni Kargolar Bulundu!',
-        `E-postanızda ${results.length} adet yeni kargo bildirimi tespit edildi ve kargo listenize eklendi:\n\n${shipmentSummary}`,
-        [
-          {
-            text: 'Harika!',
-            onPress: () => {
-              if (onShipmentsImported) {
-                onShipmentsImported(results);
-              }
-              onClose();
-            },
-          },
-        ]
-      );
+      setFeedback({
+        visible: true,
+        type: 'success',
+        title: '🎉 Yeni Kargolar Bulundu!',
+        message: `E-postanızda ${results.length} adet yeni kargo bildirimi tespit edildi ve kargo listenize eklendi:\n\n${shipmentSummary}`,
+        onConfirm: () => {
+          setFeedback(prev => ({ ...prev, visible: false }));
+          if (onShipmentsImported) {
+            onShipmentsImported(results);
+          }
+          onClose();
+        },
+      });
     } else {
-      Alert.alert(
-        'Bilgi',
-        'E-postanızda taranmamış yeni kargo bildirimi bulunamadı. Önceki kargo e-postalarınız zaten listenize eklenmiş durumda.'
-      );
+      setFeedback({
+        visible: true,
+        type: 'info',
+        title: 'Kargo Güncel',
+        message: 'E-postanızda taranmamış yeni kargo bildirimi bulunamadı. Önceki kargolarınız zaten listenizde.',
+      });
     }
   };
 
@@ -87,7 +109,12 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
     await EmailSyncService.disconnectEmail();
     setConnectedEmail(null);
     setEmailInput('');
-    Alert.alert('Bağlantı Kesildi', 'E-posta hesabı bağlantısı ve taranmış kayıtlar temizlendi.');
+    setFeedback({
+      visible: true,
+      type: 'info',
+      title: 'Bağlantı Kesildi',
+      message: 'E-posta hesabı bağlantısı kaldırıldı ve kayıtlar temizlendi.',
+    });
   };
 
   return (
@@ -175,6 +202,21 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           </View>
         </View>
       </View>
+
+      <ModernFeedbackModal
+        visible={feedback.visible}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onPrimaryAction={() => {
+          if (feedback.onConfirm) {
+            feedback.onConfirm();
+          } else {
+            setFeedback(prev => ({ ...prev, visible: false }));
+          }
+        }}
+        onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
+      />
     </Modal>
   );
 }

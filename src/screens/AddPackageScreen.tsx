@@ -27,6 +27,8 @@ import colors from '../theme/colors';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
 import { OCRService } from '../services/ocr/ocrService';
 
+import { ModernFeedbackModal, FeedbackType } from '../components/common/ModernFeedbackModal';
+
 const FALLBACK_CARRIERS = [
   { id: '1', name: 'Aras Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUixqteUkvVuCtTekD11ZPAYGfotm_0-u2d6PkWmTDbDsIy359BoMk_iaPb0dAuFIh76cxt7kOuh12kLFi0RsP6O9bKbRbKf_ZGzsymDu25kr9yQscZ-QysYc5X3rMpzBVQGPbcsfcN4r7oKpyzRS6y7FY-bJ-05KXIdZS75nVXD2JdUAsu2nDlOwLKxwlKeTWh9f7MnVYRp8REThNF7W1zBhAVkuC3laz3iYowXMXNZ9tJU1EipWmjpYhrQDSk6hB-c5WRxZapMU' },
   { id: '2', name: 'Yurtiçi Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDuMcqEYYXnINPebCw47LFOwDAEMkaPK0wkeZYhHC-Y1LRo27vSXiwsZj-2POLuiDyVEddgFZANr12CozIOIyEof2JvxXsB1DjK2vioCTunxDqoJr4nzFx8w_-szhNS3pk3KzoXMbqeK2TFgx6r6y7Ff4PO8TWhLneY3AWgC_3KS8I__emL-zS8NOEYR3iqGhnPt8GcmFOMjETNhMD9anaVguTp1-0aROE6WKzmTrPlyoovRqgAh9kPS_J0s0kf5V7N-LOzaJW8xRs' },
@@ -56,6 +58,20 @@ export const AddPackageScreen = () => {
   const [nickname, setNickname] = useState('');
   const [clipboardDetected, setClipboardDetected] = useState<string | null>(null);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
+
+  const [feedback, setFeedback] = useState<{
+    visible: boolean;
+    type: FeedbackType;
+    title: string;
+    message: string;
+    trackingNumber?: string;
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   useEffect(() => {
     if (route.params?.scannedTrackingNumber) {
@@ -96,12 +112,22 @@ export const AddPackageScreen = () => {
 
   const handleSubmit = async () => {
     if (!trackingNumber.trim()) {
-      Alert.alert('Hata', 'Lütfen bir takip numarası girin.');
+      setFeedback({
+        visible: true,
+        type: 'warning',
+        title: 'Eksik Bilgi',
+        message: 'Lütfen kargonuzun takip numarasını girin.',
+      });
       return;
     }
 
     if (!user) {
-      Alert.alert('Hata', 'Oturum bulunamadı.');
+      setFeedback({
+        visible: true,
+        type: 'error',
+        title: 'Oturum Bulunamadı',
+        message: 'Kargo eklemek için giriş yapmış olmanız gerekmektedir.',
+      });
       return;
     }
 
@@ -114,11 +140,25 @@ export const AddPackageScreen = () => {
         current_status: 'transit',
       });
 
-      Alert.alert('Başarılı', 'Kargo başarıyla eklendi!', [
-        { text: 'Tamam', onPress: () => navigation.goBack() }
-      ]);
+      const addedCode = trackingNumber.trim();
+      setFeedback({
+        visible: true,
+        type: 'success',
+        title: 'Kargo Başarıyla Eklendi 🎉',
+        message: `${addedCode} takip numaralı kargonuz takip listenize eklendi.`,
+        trackingNumber: addedCode,
+        onConfirm: () => {
+          setFeedback(prev => ({ ...prev, visible: false }));
+          navigation.goBack();
+        },
+      });
     } catch (err: any) {
-      Alert.alert('Hata', err.message || 'Kargo eklenirken bir hata oluştu.');
+      setFeedback({
+        visible: true,
+        type: 'error',
+        title: 'Kargo Eklenemedi',
+        message: err.message || 'Kargo eklenirken beklenmeyen bir hata oluştu.',
+      });
     }
   };
 
@@ -381,6 +421,22 @@ export const AddPackageScreen = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <ModernFeedbackModal
+        visible={feedback.visible}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        trackingNumber={feedback.trackingNumber}
+        onPrimaryAction={() => {
+          if (feedback.onConfirm) {
+            feedback.onConfirm();
+          } else {
+            setFeedback(prev => ({ ...prev, visible: false }));
+          }
+        }}
+        onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
+      />
 
     </View>
   );

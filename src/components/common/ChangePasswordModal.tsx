@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase/supabase';
 import { useTheme } from '../../theme/useTheme';
+import { ModernFeedbackModal, FeedbackType } from './ModernFeedbackModal';
 
 interface ChangePasswordModalProps {
   visible: boolean;
@@ -16,14 +17,37 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [feedback, setFeedback] = useState<{
+    visible: boolean;
+    type: FeedbackType;
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
+
   const handleChangePassword = async () => {
     if (!newPassword || newPassword.length < 6) {
-      Alert.alert('Geçersiz Şifre', 'Yeni şifreniz en az 6 karakterden oluşmalıdır.');
+      setFeedback({
+        visible: true,
+        type: 'warning',
+        title: 'Geçersiz Şifre',
+        message: 'Yeni şifreniz en az 6 karakterden oluşmalıdır.',
+      });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Şifre Uyuşmazlığı', 'Girdiğiniz yeni şifreler birbirleriyle uyuşmuyor.');
+      setFeedback({
+        visible: true,
+        type: 'warning',
+        title: 'Şifre Uyuşmazlığı',
+        message: 'Girdiğiniz yeni şifreler birbirleriyle uyuşmuyor.',
+      });
       return;
     }
 
@@ -33,16 +57,34 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
       setLoading(false);
 
       if (error) {
-        Alert.alert('Hata', error.message || 'Şifre güncellenemedi.');
+        setFeedback({
+          visible: true,
+          type: 'error',
+          title: 'Hata',
+          message: error.message || 'Şifre güncellenemedi.',
+        });
       } else {
-        Alert.alert('🎉 Başarılı', 'Şifreniz başarıyla güncellendi.');
-        setNewPassword('');
-        setConfirmPassword('');
-        onClose();
+        setFeedback({
+          visible: true,
+          type: 'success',
+          title: 'Şifre Güncellendi 🔒',
+          message: 'Hesap şifreniz başarıyla değiştirilmiştir.',
+          onConfirm: () => {
+            setFeedback(prev => ({ ...prev, visible: false }));
+            setNewPassword('');
+            setConfirmPassword('');
+            onClose();
+          },
+        });
       }
     } catch (err: any) {
       setLoading(false);
-      Alert.alert('Hata', err.message || 'Şifre güncellenirken bir hata oluştu.');
+      setFeedback({
+        visible: true,
+        type: 'error',
+        title: 'Hata',
+        message: err.message || 'Şifre güncellenirken bir sorun oluştu.',
+      });
     }
   };
 
@@ -106,6 +148,21 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
           </TouchableOpacity>
         </View>
       </View>
+
+      <ModernFeedbackModal
+        visible={feedback.visible}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onPrimaryAction={() => {
+          if (feedback.onConfirm) {
+            feedback.onConfirm();
+          } else {
+            setFeedback(prev => ({ ...prev, visible: false }));
+          }
+        }}
+        onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
+      />
     </Modal>
   );
 }

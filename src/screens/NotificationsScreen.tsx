@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -7,45 +7,68 @@ import {
   TouchableOpacity,
   useWindowDimensions
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 
-const NOTIFICATIONS = [
+interface NotificationItem {
+  id: string;
+  type: 'delivered' | 'in_transit' | 'hub' | 'received' | 'reminder' | 'failed';
+  title: string;
+  description: string;
+  time: string;
+  unread: boolean;
+}
+
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: '1',
+    type: 'delivered',
+    title: 'Kargonuz teslim edildi',
+    description: '5738 2901 2345 takip numaralı kargonuz teslim edildi.',
+    time: '10:30',
     unread: true,
-    icon: 'local-shipping',
-    time: '2 saat önce',
-    title: 'MacBook Pro M3',
-    description: 'Paketiniz dağıtımda, bugün saat 20:00\'e kadar teslim edilecek.',
-    trackingNumber: 'TR-982347102',
   },
   {
     id: '2',
+    type: 'in_transit',
+    title: 'Kargonuz yola çıktı',
+    description: '5738 2901 2345 takip numaralı kargonuz dağıtıma çıktı.',
+    time: '09:15',
     unread: true,
-    icon: 'warehouse',
-    time: 'Dün, 14:30',
-    title: 'Ofis Malzemeleri',
-    description: 'Paket İstanbul\'daki yerel dağıtım merkezine ulaştı.',
-    trackingNumber: 'TR-551029384',
   },
   {
     id: '3',
-    unread: false,
-    icon: 'check-circle',
-    time: 'Eki 12, 2023',
-    title: 'Kış Montu',
-    description: 'Başarıyla teslim edildi. Ön kapıya bırakıldı.',
+    type: 'hub',
+    title: 'Kargonuz dağıtım merkezinde',
+    description: 'Kargonuz bulunduğunuz şehre ulaştı ve dağıtım merkezinde.',
+    time: 'Dün, 16:45',
+    unread: true,
   },
   {
     id: '4',
+    type: 'received',
+    title: 'Kargonuz teslim alındı',
+    description: 'Kargonuz gönderici tarafından kargo firmasına teslim edildi.',
+    time: 'Dün, 11:20',
     unread: false,
-    icon: 'flight-takeoff',
-    time: 'Eki 10, 2023',
-    title: 'Mekanik Klavye',
-    description: 'Çıkış ülkesi tesisinden ayrıldı (Shenzhen, CN).',
-  }
+  },
+  {
+    id: '5',
+    type: 'reminder',
+    title: 'Hatırlatma',
+    description: 'Bekleyen 2 kargonuz var. Takip etmek için hemen kontrol edin.',
+    time: '2 gün önce',
+    unread: false,
+  },
+  {
+    id: '6',
+    type: 'failed',
+    title: 'Teslimat başarısız',
+    description: 'Kargonuz teslim edilemedi. Lütfen adres bilgilerinizi kontrol edin.',
+    time: '3 gün önce',
+    unread: false,
+  },
 ];
 
 export const NotificationsScreen = () => {
@@ -54,16 +77,69 @@ export const NotificationsScreen = () => {
   const isLargeScreen = width >= 768;
   const { theme: colors } = useTheme();
 
-  const getIconBg = (icon: string) => {
-    if (icon === 'check-circle') return colors.tertiaryContainer;
-    if (icon === 'local-shipping') return colors.primaryContainer;
-    return colors.surfaceContainerHigh;
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+
+  const toggleUnread = (id: string) => {
+    setNotifications(prev => 
+      prev.map(item => item.id === id ? { ...item, unread: !item.unread } : item)
+    );
   };
 
-  const getIconColor = (icon: string) => {
-    if (icon === 'check-circle') return colors.onTertiaryContainer;
-    if (icon === 'local-shipping') return colors.onPrimaryContainer;
-    return colors.onSurface;
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(item => ({ ...item, unread: false })));
+  };
+
+  const renderIcon = (type: NotificationItem['type']) => {
+    switch (type) {
+      case 'delivered':
+        return (
+          <View style={[styles.iconWrapper, { backgroundColor: '#E8F2FF' }]}>
+            <MaterialCommunityIcons name="package-variant-closed" size={24} color="#2563EB" />
+            <View style={[styles.miniCheckBadge, { backgroundColor: '#2563EB' }]}>
+              <MaterialIcons name="check" size={9} color="#FFFFFF" />
+            </View>
+          </View>
+        );
+      case 'in_transit':
+        return (
+          <View style={[styles.iconWrapper, { backgroundColor: '#FFF5E5' }]}>
+            <MaterialCommunityIcons name="truck-delivery" size={24} color="#D97706" />
+          </View>
+        );
+      case 'hub':
+        return (
+          <View style={[styles.iconWrapper, { backgroundColor: '#F3E8FF' }]}>
+            <MaterialCommunityIcons name="map-marker" size={24} color="#7C3AED" />
+          </View>
+        );
+      case 'received':
+        return (
+          <View style={[styles.iconWrapper, { backgroundColor: '#ECFDF5' }]}>
+            <MaterialCommunityIcons name="package-variant-closed" size={24} color="#10B981" />
+            <View style={[styles.miniCheckBadge, { backgroundColor: '#10B981' }]}>
+              <MaterialIcons name="check" size={9} color="#FFFFFF" />
+            </View>
+          </View>
+        );
+      case 'reminder':
+        return (
+          <View style={[styles.iconWrapper, { backgroundColor: '#E0F2FE' }]}>
+            <MaterialCommunityIcons name="bell" size={24} color="#0284C7" />
+          </View>
+        );
+      case 'failed':
+        return (
+          <View style={[styles.iconWrapper, { backgroundColor: '#FEE2E2' }]}>
+            <MaterialCommunityIcons name="alert-circle" size={24} color="#EF4444" />
+          </View>
+        );
+      default:
+        return (
+          <View style={[styles.iconWrapper, { backgroundColor: '#F1F5F9' }]}>
+            <MaterialCommunityIcons name="bell-outline" size={24} color="#64748B" />
+          </View>
+        );
+    }
   };
 
   return (
@@ -90,44 +166,41 @@ export const NotificationsScreen = () => {
       >
         <View style={styles.headerRow}>
           <Text style={[styles.pageTitle, { color: colors.onSurface }]}>Bildirimler</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={markAllAsRead}>
             <Text style={[styles.markReadText, { color: colors.primary }]}>Tümünü okundu işaretle</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.notificationList}>
-          {NOTIFICATIONS.map(notification => (
+          {notifications.map(notification => (
             <TouchableOpacity 
               key={notification.id} 
               style={[
                 styles.notificationCard,
                 { 
-                  backgroundColor: colors.surfaceContainerLowest,
-                  borderColor: colors.outlineVariant,
+                  backgroundColor: colors.surface,
+                  borderColor: colors.outlineVariant || '#E2E8F0',
                 },
-                !notification.unread && styles.notificationCardRead
               ]}
+              onPress={() => toggleUnread(notification.id)}
               activeOpacity={0.7}
             >
-              {notification.unread && (
-                <View style={[styles.unreadIndicator, { backgroundColor: colors.primary }]} />
-              )}
-              
-              <View style={styles.notificationContent}>
-                <View style={[styles.iconContainer, { backgroundColor: getIconBg(notification.icon) }]}>
-                  <MaterialIcons name={notification.icon as any} size={20} color={getIconColor(notification.icon)} />
-                </View>
+              <View style={styles.cardMainRow}>
+                {renderIcon(notification.type)}
                 
                 <View style={styles.textContainer}>
-                  <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>{notification.time}</Text>
-                  <Text style={[styles.titleText, { color: colors.onSurface }]}>{notification.title}</Text>
-                  
-                  <Text style={[styles.descriptionText, { color: colors.onSurface }]}>
+                  <Text style={[styles.titleText, { color: colors.onSurface }]}>
+                    {notification.title}
+                  </Text>
+                  <Text style={[styles.descriptionText, { color: colors.onSurfaceVariant || '#64748B' }]}>
                     {notification.description}
                   </Text>
-                  
-                  {notification.trackingNumber && (
-                    <Text style={[styles.trackingText, { color: colors.outline }]}>{notification.trackingNumber}</Text>
+                </View>
+
+                <View style={styles.rightActionColumn}>
+                  <Text style={styles.timeText}>{notification.time}</Text>
+                  {notification.unread && (
+                    <View style={styles.unreadBlueDot} />
                   )}
                 </View>
               </View>
@@ -135,7 +208,6 @@ export const NotificationsScreen = () => {
           ))}
         </View>
       </ScrollView>
-
     </View>
   );
 };
@@ -182,7 +254,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   pageTitle: {
     fontFamily: 'Inter',
@@ -195,69 +267,77 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   notificationList: {
-    gap: 16,
+    gap: 12,
   },
   notificationCard: {
-    borderRadius: 8,
+    borderRadius: 18,
     padding: 16,
     borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
     elevation: 1,
-    position: 'relative',
   },
-  notificationCardRead: {
-    opacity: 0.75,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  unreadIndicator: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  notificationContent: {
+  cardMainRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 16,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  iconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+    marginRight: 14,
+  },
+  miniCheckBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 13,
+    height: 13,
+    borderRadius: 6.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
   textContainer: {
     flex: 1,
-    paddingRight: 16,
-  },
-  timeText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    marginBottom: 4,
+    paddingRight: 12,
+    justifyContent: 'center',
   },
   titleText: {
     fontFamily: 'Inter',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     marginBottom: 4,
+    lineHeight: 20,
   },
   descriptionText: {
     fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13.5,
+    lineHeight: 19,
   },
-  trackingText: {
+  rightActionColumn: {
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+  },
+  timeText: {
     fontFamily: 'Inter',
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: 12.5,
+    color: '#94A3B8',
+  },
+  unreadBlueDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#2563EB',
+    marginTop: 10,
   },
 });
 
 export default NotificationsScreen;
+

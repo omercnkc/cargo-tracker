@@ -13,7 +13,21 @@ import useResponsive from '../hooks/useResponsive';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 
+import AnimatedCurvedTabBar from '../components/navigation/AnimatedCurvedTabBar';
+import SwipeableTabWrapper from '../components/navigation/SwipeableTabWrapper';
+
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const withSwipe = (Component: React.ComponentType<any>) => (props: any) => (
+  <SwipeableTabWrapper>
+    <Component {...props} />
+  </SwipeableTabWrapper>
+);
+
+const HomeScreenWithSwipe = withSwipe(HomeScreen);
+const PackagesScreenWithSwipe = withSwipe(PackagesScreen);
+const StatisticsScreenWithSwipe = withSwipe(StatisticsScreen);
+const ProfileScreenWithSwipe = withSwipe(ProfileScreen);
 
 // Custom Left Sidebar for Large Screens (Tablet / Desktop)
 const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
@@ -94,46 +108,19 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
 };
 
 export const BottomTabs = () => {
-  const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const { theme: colors } = useTheme();
-  const { t } = useTranslation();
-
-  const bottomInset = insets.bottom > 0 ? insets.bottom : 12;
 
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.onSurfaceVariant,
-        tabBarLabelStyle: {
-          fontFamily: 'Inter',
-          fontSize: 12,
-          fontWeight: '600',
-          marginBottom: 4,
-        },
-        tabBarStyle: isLargeScreen
-          ? { display: 'none' }
-          : {
-              backgroundColor: colors.surface,
-              borderTopWidth: 1,
-              borderTopColor: colors.outlineVariant + '4D',
-              height: 56 + bottomInset,
-              paddingBottom: bottomInset,
-              paddingTop: 6,
-              elevation: 8,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 4,
-            },
       }}
-      tabBar={isLargeScreen ? (props) => <CustomDesktopSidebar {...props} /> : undefined}
+      tabBar={(props) => (isLargeScreen ? <CustomDesktopSidebar {...props} /> : <AnimatedCurvedTabBar {...props} />)}
     >
       <Tab.Screen 
         name="Home" 
-        component={HomeScreen} 
+        component={HomeScreenWithSwipe} 
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => (
@@ -143,7 +130,7 @@ export const BottomTabs = () => {
       />
       <Tab.Screen 
         name="Packages" 
-        component={PackagesScreen} 
+        component={PackagesScreenWithSwipe} 
         options={{
           tabBarLabel: 'Packages',
           tabBarIcon: ({ color }) => (
@@ -153,7 +140,7 @@ export const BottomTabs = () => {
       />
       <Tab.Screen 
         name="Statistics" 
-        component={StatisticsScreen} 
+        component={StatisticsScreenWithSwipe} 
         options={{
           tabBarLabel: 'Stats',
           tabBarIcon: ({ color }) => (
@@ -163,7 +150,7 @@ export const BottomTabs = () => {
       />
       <Tab.Screen 
         name="Profile" 
-        component={ProfileScreen} 
+        component={ProfileScreenWithSwipe} 
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color }) => (

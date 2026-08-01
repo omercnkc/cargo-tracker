@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
+import { ModernFeedbackModal, FeedbackType } from './ModernFeedbackModal';
 
 export type SupportModalType = 'help' | 'rate' | 'feedback' | 'privacy' | 'terms';
 
@@ -13,6 +14,19 @@ interface SupportHelpModalProps {
 
 export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalProps) {
   const { theme: colors } = useTheme();
+
+  const [feedback, setFeedback] = useState<{
+    visible: boolean;
+    type: FeedbackType;
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   const getModalConfig = () => {
     switch (type) {
@@ -68,7 +82,21 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           content: (
             <View style={styles.contentGroup}>
               <Text style={styles.aText}>Görüş ve önerileriniz uygulamamızı geliştirmemiz için çok değerlidir!</Text>
-              <TouchableOpacity style={styles.actionPillBtn} onPress={() => { Alert.alert('Teşekkürler', 'Geri bildiriminiz başarıyla iletildi.'); onClose(); }}>
+              <TouchableOpacity
+                style={styles.actionPillBtn}
+                onPress={() => {
+                  setFeedback({
+                    visible: true,
+                    type: 'success',
+                    title: 'Teşekkürler! 💬',
+                    message: 'Geri bildiriminiz ekibimize başarıyla iletildi.',
+                    onConfirm: () => {
+                      setFeedback(prev => ({ ...prev, visible: false }));
+                      onClose();
+                    },
+                  });
+                }}
+              >
                 <MaterialIcons name="send" size={18} color="#ffffff" />
                 <Text style={styles.actionPillText}>Geri Bildirim Formunu Gönder</Text>
               </TouchableOpacity>
@@ -82,7 +110,21 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           content: (
             <View style={styles.contentGroup}>
               <Text style={styles.aText}>KargoTakip deneyiminizi 5 yıldızla değerlendirmek ister misiniz?</Text>
-              <TouchableOpacity style={styles.actionPillBtn} onPress={() => { Alert.alert('🎉 Harika!', '5 yıldız verdiğiniz için çok teşekkür ederiz!'); onClose(); }}>
+              <TouchableOpacity
+                style={styles.actionPillBtn}
+                onPress={() => {
+                  setFeedback({
+                    visible: true,
+                    type: 'success',
+                    title: '🎉 Harika!',
+                    message: '5 yıldız verdiğiniz ve bize destek olduğunuz için çok teşekkür ederiz!',
+                    onConfirm: () => {
+                      setFeedback(prev => ({ ...prev, visible: false }));
+                      onClose();
+                    },
+                  });
+                }}
+              >
                 <MaterialIcons name="star" size={20} color="#f59e0b" />
                 <Text style={styles.actionPillText}>App Store / Google Play'de Puanla</Text>
               </TouchableOpacity>
@@ -113,6 +155,21 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           </ScrollView>
         </View>
       </View>
+
+      <ModernFeedbackModal
+        visible={feedback.visible}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onPrimaryAction={() => {
+          if (feedback.onConfirm) {
+            feedback.onConfirm();
+          } else {
+            setFeedback(prev => ({ ...prev, visible: false }));
+          }
+        }}
+        onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
+      />
     </Modal>
   );
 }

@@ -46,25 +46,32 @@ export const RootNavigator = () => {
 
   return (
     <>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          animation: 'slide_from_right',
+          animationDuration: 220,
+          gestureEnabled: true,
+        }}
+      >
         {isAuthenticated ? (
           // App Stack
           <Stack.Group>
-            <Stack.Screen name="MainTabs" component={BottomTabs} />
-            <Stack.Screen name="PackageDetail" component={PackageDetailScreen} />
-            <Stack.Screen name="AddPackage" component={AddPackageScreen} />
-            <Stack.Screen name="Search" component={SearchScreen} />
-            <Stack.Screen name="Notifications" component={NotificationsScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
-            <Stack.Screen name="CarrierSelection" component={CarrierSelectionScreen} />
-            <Stack.Screen name="Scanner" component={ScannerScreen} />
+            <Stack.Screen name="MainTabs" component={BottomTabs} options={{ animation: 'fade' }} />
+            <Stack.Screen name="PackageDetail" component={PackageDetailScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="AddPackage" component={AddPackageScreen} options={{ animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="CarrierSelection" component={CarrierSelectionScreen} options={{ animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="Scanner" component={ScannerScreen} options={{ animation: 'slide_from_bottom' }} />
           </Stack.Group>
         ) : (
           // Auth Stack
-          <Stack.Group>
+          <Stack.Group screenOptions={{ animation: 'fade_from_bottom' }}>
             <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ animation: 'slide_from_right' }} />
           </Stack.Group>
         )}
       </Stack.Navigator>
