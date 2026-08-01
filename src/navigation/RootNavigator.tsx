@@ -59,7 +59,6 @@ export const RootNavigator = () => {
           <Stack.Group>
             <Stack.Screen name="MainTabs" component={BottomTabs} options={{ animation: 'fade' }} />
             <Stack.Screen name="PackageDetail" component={PackageDetailScreen} options={{ animation: 'slide_from_right' }} />
-            <Stack.Screen name="AddPackage" component={AddPackageScreen} options={{ animation: 'slide_from_bottom' }} />
             <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ animation: 'slide_from_right' }} />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -7,19 +7,244 @@ import {
   TouchableOpacity, 
   TextInput,
   Image,
-  useWindowDimensions,
+  Modal,
+  FlatList,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import useResponsive from '../hooks/useResponsive';
+import { useAuthStore } from '../store/auth.store';
+import { useShipments } from '../features/shipment/hooks/useShipments';
+
+interface PackageItem {
+  id: string;
+  trackingNumber: string;
+  companyName: string;
+  companyLogo: string;
+  status: 'transit' | 'delivered' | 'action_required';
+  statusText: string;
+  origin: string;
+  destination: string;
+  progress: number;
+  deliveryDateLabel: string;
+  deliveryDateValue: string;
+  warningText?: string;
+  createdAt: string;
+}
+
+const INITIAL_PACKAGES: PackageItem[] = [
+  {
+    id: '1',
+    trackingNumber: 'KP8943271105',
+    companyName: 'Global Express',
+    companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
+    status: 'transit',
+    statusText: 'Yolda',
+    origin: 'SHZ',
+    destination: 'BER',
+    progress: 65,
+    deliveryDateLabel: 'Tahmini Teslimat',
+    deliveryDateValue: 'Eki 24, 2023',
+    createdAt: '2023-10-20',
+  },
+  {
+    id: '2',
+    trackingNumber: 'TR1029384756',
+    companyName: 'Yurtiçi Kargo',
+    companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDndS9Xc59oX3WY735_crAmXQ57-GM1fOr2dpm7X82EOQi_wrJYw-pezBidOWHCa5k2Jy1QwtHqXyIABwy5DXMNneud1hVTvgLgVAXu0tIpyFM5yXixn4oLdsd9Tx8vvrITOEE58KWT8S-4-o6DUn-AZC0lkllVys5M0fxjZ5uZ5Ua6NrZA9PNoMvaOzlJcX2YxYivdZlnA8-We-T7hLcjvmmqA9xl7THZHNToHPMHiUGTg-sN5OTNsTIi5wCXOW9ahAtLQ_qb-4rk',
+    status: 'delivered',
+    statusText: 'Teslim Edildi',
+    origin: 'IST',
+    destination: 'ANK',
+    progress: 100,
+    deliveryDateLabel: 'Teslim Tarihi',
+    deliveryDateValue: 'Eki 21, 2023',
+    createdAt: '2023-10-18',
+  },
+  {
+    id: '3',
+    trackingNumber: 'DHL987654321',
+    companyName: 'DHL Express',
+    companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjM3WGmIKGRLjMW6IRU1kYHLqZV247A1R0k-tu002NXpTR9eBvCgJzSinfaCiyYFOL64rFF1bMhhEwZaJJxSkhUQPMWtaYISoFfhJliBKil7ol02FyEnBl2oBWRcxIwHPIpon6aPVYhSD6r7A3WpnmCQ3zsHhjl_muE97mWCTx9X9PyZ7C6jrUdCAkKaLg2jZ5e2XeWi3tgRJVO0bOJzm2jxXY9i2clZORqFEiiPJGldegt9z6hfKr4wZjrwqxlMY8QQev542fsWA',
+    status: 'action_required',
+    statusText: 'İşlem Gerekli',
+    origin: 'FRA',
+    destination: 'IST',
+    progress: 40,
+    deliveryDateLabel: 'Güncellenen Teslimat',
+    deliveryDateValue: 'Beklemede',
+    warningText: 'Gümrük onayı bekleniyor',
+    createdAt: '2023-10-15',
+  },
+  {
+    id: '4',
+    trackingNumber: 'ARAS99283019',
+    companyName: 'Aras Kargo',
+    companyLogo: 'https://www.araskargo.com.tr/assets/images/aras-logo.svg',
+    status: 'transit',
+    statusText: 'Dağıtımda',
+    origin: 'IZM',
+    destination: 'Bursa',
+    progress: 85,
+    deliveryDateLabel: 'Tahmini Teslimat',
+    deliveryDateValue: 'Bugün',
+    createdAt: '2023-10-22',
+  },
+  {
+    id: '5',
+    trackingNumber: 'PTT448201934',
+    companyName: 'PTT Kargo',
+    companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCB1zSf7kxmY8C_5-etb0sfPsXQb5pwjtQED4ORcd9zL4fLFvWwBk5o-ZtMFKOWLnnuBL9d5u8r13hSJhClaZ0mSFpTQ59Gq70-Jiq9upSGmh5UYZShhSyJNk_DXxw_r6Om53_2I4sVreetCk3gbt3c1k6GAjVHZsSqwkBO028upnqYqIEEqeID6wXrURWDd1sUmpLL1grFDo3ckXKY3W_u3DCM1YCRLT-ZDAE_5g__b1r0HK1tEJgiAzZ-xGV1djAzx--hzv74yPo',
+    status: 'delivered',
+    statusText: 'Teslim Edildi',
+    origin: 'ANK',
+    destination: 'TRB',
+    progress: 100,
+    deliveryDateLabel: 'Teslim Tarihi',
+    deliveryDateValue: 'Eki 19, 2023',
+    createdAt: '2023-10-14',
+  },
+];
+
+const CARRIER_OPTIONS = [
+  'Tümü',
+  'Global Express',
+  'Yurtiçi Kargo',
+  'Aras Kargo',
+  'DHL Express',
+  'PTT Kargo',
+];
 
 export const PackagesScreen = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const { theme: colors } = useTheme();
+  const user = useAuthStore((state) => state.user);
+  const { data: dbShipments } = useShipments(user?.id);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+
+  // PanResponder for drag-down-to-dismiss gesture on sheetHandle
+  const panY = useRef(new Animated.Value(600)).current;
+
+  const closeFilterModal = () => {
+    Animated.timing(panY, {
+      toValue: 600,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setFilterModalVisible(false);
+    });
+  };
+
+  const openFilterModal = () => {
+    panY.setValue(600);
+    setFilterModalVisible(true);
+    Animated.spring(panY, {
+      toValue: 0,
+      damping: 24,
+      mass: 0.8,
+      stiffness: 240,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 5,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          panY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 80 || gestureState.vy > 0.4) {
+          closeFilterModal();
+        } else {
+          Animated.spring(panY, {
+            toValue: 0,
+            friction: 7,
+            tension: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // Filter States
+  const [statusFilter, setStatusFilter] = useState<'all' | 'transit' | 'delivered' | 'action_required'>('all');
+  const [carrierFilter, setCarrierFilter] = useState<string>('Tümü');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
+
+  // Combined packages list (from DB or fallback)
+  const allPackages = useMemo<PackageItem[]>(() => {
+    if (dbShipments && dbShipments.length > 0) {
+      return dbShipments.map(s => ({
+        id: s.id,
+        trackingNumber: s.tracking_number,
+        companyName: s.courier_companies?.name || s.title || 'Kargo',
+        companyLogo: s.courier_companies?.logo_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
+        status: (s.current_status === 'delivered' ? 'delivered' : s.current_status === 'pending' ? 'action_required' : 'transit') as any,
+        statusText: s.current_status === 'delivered' ? 'Teslim Edildi' : s.current_status === 'pending' ? 'Beklemede' : 'Yolda',
+        origin: s.sender ? s.sender.substring(0, 3).toUpperCase() : 'TR',
+        destination: s.receiver ? s.receiver.substring(0, 3).toUpperCase() : 'TR',
+        progress: s.current_status === 'delivered' ? 100 : 65,
+        deliveryDateLabel: s.current_status === 'delivered' ? 'Teslim Tarihi' : 'Tahmini Teslimat',
+        deliveryDateValue: s.estimated_delivery || 'Yakında',
+        createdAt: s.created_at || new Date().toISOString(),
+      }));
+    }
+    return INITIAL_PACKAGES;
+  }, [dbShipments]);
+
+  // Check if any filter is active
+  const isFilterActive = statusFilter !== 'all' || carrierFilter !== 'Tümü' || sortBy !== 'newest';
+
+  const resetFilters = () => {
+    setStatusFilter('all');
+    setCarrierFilter('Tümü');
+    setSortBy('newest');
+    setSearchQuery('');
+  };
+
+  // Filtered & Sorted Packages
+  const filteredPackages = useMemo(() => {
+    return allPackages
+      .filter((pkg) => {
+        // Search query match
+        const matchesSearch =
+          pkg.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          pkg.companyName.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // Status match
+        const matchesStatus =
+          statusFilter === 'all' || pkg.status === statusFilter;
+
+        // Carrier match
+        const matchesCarrier =
+          carrierFilter === 'Tümü' ||
+          pkg.companyName.toLowerCase().includes(carrierFilter.toLowerCase());
+
+        return matchesSearch && matchesStatus && matchesCarrier;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'newest') {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        } else if (sortBy === 'oldest') {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        } else {
+          return a.companyName.localeCompare(b.companyName);
+        }
+      });
+  }, [allPackages, searchQuery, statusFilter, carrierFilter, sortBy]);
 
   return (
     <View style={[{ flex: 1, backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
@@ -37,13 +262,7 @@ export const PackagesScreen = () => {
         paddingTop: insets.top,
       }]}>
         <View style={styles.appBarContent}>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="menu" size={24} color={colors.onSurfaceVariant} />
-          </TouchableOpacity>
-          <Text style={[styles.appBarTitle, { color: colors.primary }]}>KargoTakip</Text>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('AddPackage')}>
-            <MaterialIcons name="add" size={24} color={colors.primary} />
-          </TouchableOpacity>
+          <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>KargoTakip</Text>
         </View>
       </View>
 
@@ -66,158 +285,302 @@ export const PackagesScreen = () => {
               style={[styles.searchInput, { color: colors.onSurface }]}
               placeholder="Takip no veya firma ara..."
               placeholderTextColor={colors.onSurfaceVariant}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
-            <TouchableOpacity style={styles.searchIconRight}>
-              <MaterialIcons name="filter-list" size={20} color={colors.outline} />
+            {searchQuery ? (
+              <TouchableOpacity style={{ padding: 4 }} onPress={() => setSearchQuery('')}>
+                <MaterialIcons name="close" size={18} color={colors.outline} />
+              </TouchableOpacity>
+            ) : null}
+
+            {/* Filter Trigger Button */}
+            <TouchableOpacity 
+              style={[
+                styles.searchIconRight,
+                isFilterActive && { backgroundColor: colors.primaryContainer, borderRadius: 8, paddingVertical: 4, paddingHorizontal: 6 }
+              ]}
+              onPress={openFilterModal}
+              activeOpacity={0.8}
+            >
+              <View style={{ position: 'relative' }}>
+                <MaterialIcons name="filter-list" size={22} color={isFilterActive ? colors.primary : colors.outline} />
+                {isFilterActive && <View style={styles.activeFilterDot} />}
+              </View>
             </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Package List */}
-        <View style={styles.packageGrid}>
-          
-          {/* Card 1: In Transit */}
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-                  <Image 
-                    source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY' }}
-                    style={styles.companyLogo}
-                    resizeMode="contain"
-                  />
+          {/* Active Filter Badges Row */}
+          {isFilterActive && (
+            <View style={styles.activeFilterChipsRow}>
+              {statusFilter !== 'all' && (
+                <View style={[styles.filterChip, { backgroundColor: colors.primaryContainer }]}>
+                  <Text style={[styles.filterChipText, { color: colors.primary }]}>
+                    {statusFilter === 'transit' ? '🚚 Yolda' : statusFilter === 'delivered' ? '✅ Teslim Edildi' : '⚠️ İşlem Gerekli'}
+                  </Text>
+                  <TouchableOpacity onPress={() => setStatusFilter('all')}>
+                    <MaterialIcons name="close" size={14} color={colors.primary} />
+                  </TouchableOpacity>
                 </View>
-                <View>
-                  <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>KP8943271105</Text>
-                  <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>Global Express</Text>
+              )}
+              {carrierFilter !== 'Tümü' && (
+                <View style={[styles.filterChip, { backgroundColor: colors.secondaryContainer }]}>
+                  <Text style={[styles.filterChipText, { color: colors.secondary }]}>{carrierFilter}</Text>
+                  <TouchableOpacity onPress={() => setCarrierFilter('Tümü')}>
+                    <MaterialIcons name="close" size={14} color={colors.secondary} />
+                  </TouchableOpacity>
                 </View>
-              </View>
-              <View style={[styles.badge, { backgroundColor: colors.secondaryContainer, borderColor: colors.outlineVariant }]}>
-                <Text style={[styles.badgeText, { color: colors.onSurface }]}>Yolda</Text>
-              </View>
-            </View>
-
-            <View style={[styles.progressSection]}>
-              <View style={styles.routeTextContainer}>
-                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Kaynak: SHZ</Text>
-                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Hedef: BER</Text>
-              </View>
-              <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
-                <View style={[styles.progressBarFill, { width: '65%', backgroundColor: colors.primary }]} />
-              </View>
-            </View>
-
-            <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
-              <View>
-                <Text style={[styles.footerLabel, { color: colors.outline }]}>Tahmini Teslimat</Text>
-                <Text style={[styles.footerValuePrimary, { color: colors.primary }]}>Eki 24, 2023</Text>
-              </View>
-              <View style={styles.footerAction}>
-                <Text style={[styles.footerActionText, { color: colors.primary }]}>Detaylar</Text>
-                <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Card 2: Delivered */}
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-                  <Image 
-                    source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDndS9Xc59oX3WY735_crAmXQ57-GM1fOr2dpm7X82EOQi_wrJYw-pezBidOWHCa5k2Jy1QwtHqXyIABwy5DXMNneud1hVTvgLgVAXu0tIpyFM5yXixn4oLdsd9Tx8vvrITOEE58KWT8S-4-o6DUn-AZC0lkllVys5M0fxjZ5uZ5Ua6NrZA9PNoMvaOzlJcX2YxYivdZlnA8-We-T7hLcjvmmqA9xl7THZHNToHPMHiUGTg-sN5OTNsTIi5wCXOW9ahAtLQ_qb-4rk' }}
-                    style={styles.companyLogo}
-                    resizeMode="contain"
-                  />
+              )}
+              {sortBy !== 'newest' && (
+                <View style={[styles.filterChip, { backgroundColor: colors.tertiaryContainer }]}>
+                  <Text style={[styles.filterChipText, { color: colors.tertiary }]}>
+                    {sortBy === 'oldest' ? 'En Eski' : 'A-Z'}
+                  </Text>
+                  <TouchableOpacity onPress={() => setSortBy('newest')}>
+                    <MaterialIcons name="close" size={14} color={colors.tertiary} />
+                  </TouchableOpacity>
                 </View>
-                <View>
-                  <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>TR1029384756</Text>
-                  <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>National Post</Text>
-                </View>
-              </View>
-              <View style={[styles.badge, { backgroundColor: colors.tertiaryContainer, borderColor: colors.outlineVariant }]}>
-                <Text style={[styles.badgeText, { color: colors.onTertiaryContainer }]}>Teslim Edildi</Text>
-              </View>
-            </View>
-
-            <View style={[styles.progressSection, { opacity: 0.7 }]}>
-              <View style={styles.routeTextContainer}>
-                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Kaynak: IST</Text>
-                <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Hedef: ANK</Text>
-              </View>
-              <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
-                <View style={[styles.progressBarFill, { width: '100%', backgroundColor: colors.tertiary }]} />
-              </View>
-            </View>
-
-            <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
-              <View>
-                <Text style={[styles.footerLabel, { color: colors.outline }]}>Teslim Tarihi</Text>
-                <Text style={[styles.footerValuePrimary, { color: colors.onSurface }]}>Eki 21, 2023</Text>
-              </View>
-              <View style={styles.footerAction}>
-                <Text style={[styles.footerActionText, { color: colors.primary }]}>Makbuz</Text>
-                <MaterialIcons name="receipt-long" size={18} color={colors.primary} />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Card 3: Action Required */}
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} activeOpacity={0.8}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-                  <Image 
-                    source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjM3WGmIKGRLjMW6IRU1kYHLqZV247A1R0k-tu002NXpTR9eBvCgJzSinfaCiyYFOL64rFF1bMhhEwZaJJxSkhUQPMWtaYISoFfhJliBKil7ol02FyEnBl2oBWRcxIwHPIpon6aPVYhSD6r7A3WpnmCQ3zsHhjl_muE97mWCTx9X9PyZ7C6jrUdCAkKaLg2jZ5e2XeWi3tgRJVO0bOJzm2jxXY9i2clZORqFEiiPJGldegt9z6hfKr4wZjrwqxlMY8QQev542fsWA' }}
-                    style={styles.companyLogo}
-                    resizeMode="contain"
-                  />
-                </View>
-                <View>
-                  <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>DHL987654321</Text>
-                  <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>Prime Courier</Text>
-                </View>
-              </View>
-              <View style={[styles.badge, { backgroundColor: colors.errorContainer, borderColor: colors.outlineVariant }]}>
-                <Text style={[styles.badgeText, { color: colors.onErrorContainer }]}>İşlem Gerekli</Text>
-              </View>
-            </View>
-
-            <View style={styles.progressSection}>
-              <View style={styles.routeTextContainer}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <MaterialIcons name="warning" size={16} color={colors.error} />
-                  <Text style={[styles.routeText, { color: colors.error }]}>Gümrük onayı bekleniyor</Text>
-                </View>
-              </View>
-              <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
-                <View style={[styles.progressBarFill, { width: '40%', backgroundColor: colors.error }]} />
-              </View>
-            </View>
-
-            <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
-              <View>
-                <Text style={[styles.footerLabel, { color: colors.outline }]}>Güncellenen Teslimat</Text>
-                <Text style={[{ fontSize: 16, fontWeight: '600', color: colors.onSurface, textDecorationLine: 'line-through', opacity: 0.5 }]}>Eki 23, 2023</Text>
-                <Text style={[{ fontSize: 16, fontWeight: '600', color: colors.secondary }]}>Beklemede</Text>
-              </View>
-              <TouchableOpacity style={[styles.resolveButton, { backgroundColor: colors.secondary }]}>
-                <Text style={[styles.resolveButtonText, { color: colors.onSecondary }]}>Çöz</Text>
+              )}
+              <TouchableOpacity onPress={resetFilters} style={styles.resetFiltersBtn}>
+                <Text style={{ fontSize: 12, color: colors.error, fontWeight: '600' }}>Tümünü Sıfırla</Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-
+          )}
         </View>
+
+        {/* Package List Grid */}
+        {filteredPackages.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <MaterialIcons name="search-off" size={48} color={colors.outline} />
+            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>Kargo Bulunamadı</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>
+              Arama kriterlerinize uygun kargo kaydı bulunmuyor.
+            </Text>
+            <TouchableOpacity style={[styles.resetButton, { backgroundColor: colors.primary }]} onPress={resetFilters}>
+              <Text style={styles.resetButtonText}>Filtreleri Temizle</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.packageGrid}>
+            {filteredPackages.map((pkg) => (
+              <TouchableOpacity 
+                key={pkg.id} 
+                style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} 
+                onPress={() => navigation.navigate('PackageDetail', { shipmentId: pkg.id })}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardHeaderLeft}>
+                    <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+                      <Image 
+                        source={{ uri: pkg.companyLogo }}
+                        style={styles.companyLogo}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <View>
+                      <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>{pkg.trackingNumber}</Text>
+                      <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>{pkg.companyName}</Text>
+                    </View>
+                  </View>
+                  <View style={[
+                    styles.badge, 
+                    pkg.status === 'delivered' 
+                      ? { backgroundColor: colors.tertiaryContainer, borderColor: colors.outlineVariant }
+                      : pkg.status === 'action_required'
+                      ? { backgroundColor: colors.errorContainer, borderColor: colors.outlineVariant }
+                      : { backgroundColor: colors.secondaryContainer, borderColor: colors.outlineVariant }
+                  ]}>
+                    <Text style={[
+                      styles.badgeText, 
+                      pkg.status === 'delivered' 
+                        ? { color: colors.onTertiaryContainer }
+                        : pkg.status === 'action_required'
+                        ? { color: colors.onErrorContainer }
+                        : { color: colors.onSurface }
+                    ]}>{pkg.statusText}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.progressSection}>
+                  <View style={styles.routeTextContainer}>
+                    {pkg.warningText ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <MaterialIcons name="warning" size={16} color={colors.error} />
+                        <Text style={[styles.routeText, { color: colors.error }]}>{pkg.warningText}</Text>
+                      </View>
+                    ) : (
+                      <>
+                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Kaynak: {pkg.origin}</Text>
+                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Hedef: {pkg.destination}</Text>
+                      </>
+                    )}
+                  </View>
+                  <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
+                    <View style={[
+                      styles.progressBarFill, 
+                      { 
+                        width: `${pkg.progress}%`, 
+                        backgroundColor: pkg.status === 'delivered' ? colors.tertiary : pkg.status === 'action_required' ? colors.error : colors.primary 
+                      }
+                    ]} />
+                  </View>
+                </View>
+
+                <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
+                  <View>
+                    <Text style={[styles.footerLabel, { color: colors.outline }]}>{pkg.deliveryDateLabel}</Text>
+                    <Text style={[styles.footerValuePrimary, { color: pkg.status === 'delivered' ? colors.onSurface : colors.primary }]}>
+                      {pkg.deliveryDateValue}
+                    </Text>
+                  </View>
+                  <View style={styles.footerAction}>
+                    <Text style={[styles.footerActionText, { color: colors.primary }]}>Detaylar</Text>
+                    <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity 
-        style={[styles.fab, { backgroundColor: colors.primary, bottom: insets.bottom + 80, right: 16 }]} 
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate('AddPackage')}
+      {/* Filter Options Modal */}
+      <Modal
+        visible={filterModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeFilterModal}
       >
-        <MaterialIcons name="add" size={28} color={colors.onPrimary} />
-      </TouchableOpacity>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFill} 
+            activeOpacity={1} 
+            onPress={closeFilterModal}
+          />
+
+          <Animated.View 
+            style={[
+              styles.modalSheet, 
+              { backgroundColor: colors.surfaceContainerLowest, transform: [{ translateY: panY }] }
+            ]} 
+          >
+            {/* Sheet Handle with PanResponder Gesture */}
+            <View style={styles.dragHandleArea} {...panResponder.panHandlers}>
+              <View style={styles.sheetHandle} />
+            </View>
+
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <MaterialIcons name="tune" size={22} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.primary }]}>Filtrele & Sırala</Text>
+              </View>
+              <TouchableOpacity onPress={closeFilterModal}>
+                <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalBody}>
+              
+              {/* 1. Status Filter */}
+              <View style={styles.filterGroup}>
+                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>Kargo Durumu</Text>
+                <View style={styles.chipOptionsRow}>
+                  {[
+                    { id: 'all', label: 'Tümü' },
+                    { id: 'transit', label: '🚚 Yolda' },
+                    { id: 'delivered', label: '✅ Teslim Edildi' },
+                    { id: 'action_required', label: '⚠️ İşlem Gerekli' },
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.chipOption,
+                        { borderColor: colors.outlineVariant },
+                        statusFilter === item.id && { backgroundColor: colors.primary, borderColor: colors.primary }
+                      ]}
+                      onPress={() => setStatusFilter(item.id as any)}
+                    >
+                      <Text style={[
+                        styles.chipOptionText,
+                        { color: colors.onSurface },
+                        statusFilter === item.id && { color: colors.onPrimary, fontWeight: '700' }
+                      ]}>{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* 2. Carrier Filter */}
+              <View style={styles.filterGroup}>
+                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>Kargo Firması</Text>
+                <View style={styles.chipOptionsRow}>
+                  {CARRIER_OPTIONS.map((carrier) => (
+                    <TouchableOpacity
+                      key={carrier}
+                      style={[
+                        styles.chipOption,
+                        { borderColor: colors.outlineVariant },
+                        carrierFilter === carrier && { backgroundColor: colors.primary, borderColor: colors.primary }
+                      ]}
+                      onPress={() => setCarrierFilter(carrier)}
+                    >
+                      <Text style={[
+                        styles.chipOptionText,
+                        { color: colors.onSurface },
+                        carrierFilter === carrier && { color: colors.onPrimary, fontWeight: '700' }
+                      ]}>{carrier}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* 3. Sorting Criteria */}
+              <View style={styles.filterGroup}>
+                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>Sıralama Ölçütü</Text>
+                <View style={styles.chipOptionsRow}>
+                  {[
+                    { id: 'newest', label: '📅 En Yeni İlk' },
+                    { id: 'oldest', label: '📅 En Eski İlk' },
+                    { id: 'name', label: '🔤 Firma Adına Göre' },
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.chipOption,
+                        { borderColor: colors.outlineVariant },
+                        sortBy === item.id && { backgroundColor: colors.primary, borderColor: colors.primary }
+                      ]}
+                      onPress={() => setSortBy(item.id as any)}
+                    >
+                      <Text style={[
+                        styles.chipOptionText,
+                        { color: colors.onSurface },
+                        sortBy === item.id && { color: colors.onPrimary, fontWeight: '700' }
+                      ]}>{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+            </ScrollView>
+
+            {/* Modal Actions Footer */}
+            <View style={[styles.modalFooter, { borderTopColor: colors.outlineVariant }]}>
+              <TouchableOpacity style={styles.modalResetBtn} onPress={resetFilters}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.error }}>Sıfırla</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalApplyBtn, { backgroundColor: colors.primary }]}
+                onPress={closeFilterModal}
+              >
+                <Text style={styles.modalApplyBtnText}>Filtreleri Uygula ({filteredPackages.length})</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
 
     </View>
   );
@@ -439,6 +802,148 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 6,
     zIndex: 40,
+  },
+  activeFilterDot: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#2563eb',
+  },
+  activeFilterChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  resetFiltersBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    gap: 12,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    maxWidth: 280,
+  },
+  resetButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginTop: 8,
+  },
+  resetButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 24,
+    maxHeight: '85%',
+  },
+  dragHandleArea: {
+    width: '100%',
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  modalBody: {
+    padding: 20,
+    gap: 24,
+  },
+  filterGroup: {
+    gap: 10,
+  },
+  filterGroupTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  chipOptionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chipOption: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  chipOptionText: {
+    fontSize: 13,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  modalResetBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  modalApplyBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  modalApplyBtnText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 

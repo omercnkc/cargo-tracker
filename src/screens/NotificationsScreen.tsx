@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 
 interface NotificationItem {
@@ -72,6 +73,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
 ];
 
 export const NotificationsScreen = () => {
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
@@ -147,13 +149,11 @@ export const NotificationsScreen = () => {
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface }]}>
         <View style={styles.appBarContent}>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="menu" size={24} color={colors.onSurfaceVariant} />
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back" size={24} color={colors.onSurfaceVariant} />
           </TouchableOpacity>
-          <Text style={[styles.appBarTitle, { color: colors.primary }]}>KargoTakip</Text>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="add" size={24} color={colors.primary} />
-          </TouchableOpacity>
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>Bildirimler</Text>
+          <View style={{ width: 40 }} />
         </View>
       </View>
 

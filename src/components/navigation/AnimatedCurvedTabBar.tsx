@@ -21,6 +21,7 @@ interface AnimatedCurvedTabBarProps {
 const TAB_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   Home: 'home',
   Packages: 'inventory',
+  AddPackage: 'add',
   Statistics: 'leaderboard',
   Profile: 'person',
 };
@@ -28,6 +29,7 @@ const TAB_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
 const TAB_LABELS: Record<string, string> = {
   Home: 'Ana Sayfa',
   Packages: 'Kargolarım',
+  AddPackage: 'Ekle',
   Statistics: 'İstatistik',
   Profile: 'Profil',
 };
@@ -53,8 +55,8 @@ export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
     state.routes.forEach((_: any, index: number) => {
       Animated.spring(scaleAnimValues[index], {
         toValue: index === state.index ? 1.15 : 1,
-        friction: 6,
-        tension: 100,
+        friction: 8,
+        tension: 220,
         useNativeDriver: true,
       }).start();
     });
@@ -85,7 +87,7 @@ export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
         />
       </Svg>
 
-      {/* Tabs Container */}
+      {/* Flat Tabs Container */}
       <View style={[styles.tabsRow, { paddingBottom: bottomInset }]}>
         {state.routes.map((route: any, index: number) => {
           const isFocused = state.index === index;
@@ -105,6 +107,11 @@ export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
           const iconName = TAB_ICONS[route.name] || 'circle';
           const label = TAB_LABELS[route.name] || route.name;
 
+          const translateY = scaleAnimValues[index].interpolate({
+            inputRange: [1, 1.15],
+            outputRange: [0, -4],
+          });
+
           return (
             <TouchableOpacity
               key={route.key}
@@ -119,10 +126,12 @@ export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
                     styles.activeTabBadge,
                     { backgroundColor: colors.primary }
                   ] : styles.inactiveTabBadge,
-                  { transform: [
-                    { scale: scaleAnimValues[index] },
-                    { translateY: isFocused ? -3 : 0 }
-                  ] },
+                  {
+                    transform: [
+                      { scale: scaleAnimValues[index] },
+                      { translateY },
+                    ],
+                  },
                 ]}
               >
                 <MaterialIcons
@@ -166,7 +175,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   tabButton: {
     flex: 1,

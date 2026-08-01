@@ -31,6 +31,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
   const [district, setDistrict] = useState('');
   const [fullAddress, setFullAddress] = useState('');
   const [loadingGps, setLoadingGps] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; fullAddress?: string }>({});
 
   const handleFetchCurrentGpsLocation = async () => {
     try {
@@ -63,6 +64,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
         setFullAddress(`${detectedStreet}, ${detectedDistrict} / ${detectedCity}`);
 
         if (!title) setTitle('Mevcut Konumum');
+        setFieldErrors({});
         Alert.alert('📍 Konum Algılandı', `Adresiniz GPS üzerinden dolduruldu:\n${detectedDistrict} / ${detectedCity}`);
       }
     } catch (error) {
@@ -74,10 +76,23 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
   };
 
   const handleSave = () => {
-    if (!title.trim() || !fullAddress.trim()) {
-      Alert.alert('Eksik Bilgi', 'Lütfen en az Adres Başlığı ve Açık Adres alanlarını doldurun.');
+    const errors: { title?: string; fullAddress?: string } = {};
+
+    if (!title.trim()) {
+      errors.title = 'Adres başlığı girilmesi zorunludur.';
+    }
+
+    if (!fullAddress.trim()) {
+      errors.fullAddress = 'Açık adres girilmesi zorunludur.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      Alert.alert('Eksik Bilgi', 'Lütfen kırmızı ile belirtilen tüm zorunlu alanları doldurun.');
       return;
     }
+
+    setFieldErrors({});
 
     const newAddress: UserAddress = {
       id: `addr_${Date.now()}`,
@@ -133,14 +148,26 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
 
             {/* Address Title */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.onSurface }]}>Adres Başlığı *</Text>
+              <Text style={[styles.label, { color: colors.onSurface }]}>
+                Adres Başlığı <Text style={{ color: colors.error }}>*</Text>
+              </Text>
               <TextInput
-                style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
+                style={[
+                  styles.input, 
+                  { borderColor: fieldErrors.title ? colors.error : colors.outlineVariant, color: colors.onBackground },
+                  fieldErrors.title ? { borderWidth: 1.5 } : null
+                ]}
                 placeholder="Örn: Evim, İş Yeri, Yazlık"
                 placeholderTextColor={colors.onSurfaceVariant}
                 value={title}
-                onChangeText={setTitle}
+                onChangeText={(val) => {
+                  setTitle(val);
+                  if (fieldErrors.title) setFieldErrors(prev => ({ ...prev, title: undefined }));
+                }}
               />
+              {!!fieldErrors.title && (
+                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.title}</Text>
+              )}
             </View>
 
             {/* Name & Phone Row */}
@@ -196,16 +223,28 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
 
             {/* Full Address */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.onSurface }]}>Açık Adres *</Text>
+              <Text style={[styles.label, { color: colors.onSurface }]}>
+                Açık Adres <Text style={{ color: colors.error }}>*</Text>
+              </Text>
               <TextInput
-                style={[styles.inputMulti, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
+                style={[
+                  styles.inputMulti, 
+                  { borderColor: fieldErrors.fullAddress ? colors.error : colors.outlineVariant, color: colors.onBackground },
+                  fieldErrors.fullAddress ? { borderWidth: 1.5 } : null
+                ]}
                 placeholder="Mahalle, Cadde, Sokak, Bina No, Daire No"
                 placeholderTextColor={colors.onSurfaceVariant}
                 value={fullAddress}
-                onChangeText={setFullAddress}
+                onChangeText={(val) => {
+                  setFullAddress(val);
+                  if (fieldErrors.fullAddress) setFieldErrors(prev => ({ ...prev, fullAddress: undefined }));
+                }}
                 multiline
                 numberOfLines={3}
               />
+              {!!fieldErrors.fullAddress && (
+                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.fullAddress}</Text>
+              )}
             </View>
 
             {/* Save Button */}

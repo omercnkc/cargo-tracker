@@ -8,6 +8,7 @@ import HomeScreen from '../screens/HomeScreen';
 import PackagesScreen from '../screens/PackagesScreen';
 import StatisticsScreen from '../screens/StatisticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import AddPackageScreen from '../screens/AddPackageScreen';
 import { MainTabParamList } from './types';
 import useResponsive from '../hooks/useResponsive';
 import { useTheme } from '../theme/useTheme';
@@ -26,6 +27,7 @@ const withSwipe = (Component: React.ComponentType<any>) => (props: any) => (
 
 const HomeScreenWithSwipe = withSwipe(HomeScreen);
 const PackagesScreenWithSwipe = withSwipe(PackagesScreen);
+const AddPackageScreenWithSwipe = withSwipe(AddPackageScreen);
 const StatisticsScreenWithSwipe = withSwipe(StatisticsScreen);
 const ProfileScreenWithSwipe = withSwipe(ProfileScreen);
 
@@ -72,6 +74,7 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
           let iconName: any = 'home';
           if (route.name === 'Home') iconName = 'home';
           if (route.name === 'Packages') iconName = 'inventory';
+          if (route.name === 'AddPackage') iconName = 'add';
           if (route.name === 'Statistics') iconName = 'leaderboard';
           if (route.name === 'Profile') iconName = 'person';
 
@@ -135,6 +138,16 @@ export const BottomTabs = () => {
           tabBarLabel: 'Packages',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="inventory" size={24} color={color} />
+          )
+        }}
+      />
+      <Tab.Screen 
+        name="AddPackage" 
+        component={AddPackageScreenWithSwipe} 
+        options={{
+          tabBarLabel: 'Add',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="add" size={24} color={color} />
           )
         }}
       />

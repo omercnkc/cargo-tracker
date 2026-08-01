@@ -30,24 +30,43 @@ export const RegisterScreen = ({ navigation }: any) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ fullName?: string; email?: string; password?: string; confirmPassword?: string }>({});
 
   const signUp = useAuthStore((state) => state.signUp);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const handleRegister = async () => {
-    if (!fullName || !email || !password || !confirmPassword) {
-      setErrorMessage('Lütfen tüm alanları doldurun.');
-      return;
+    const errors: { fullName?: string; email?: string; password?: string; confirmPassword?: string } = {};
+
+    if (!fullName.trim()) {
+      errors.fullName = 'Ad Soyad girilmesi zorunludur.';
     }
-    if (password !== confirmPassword) {
-      setErrorMessage('Şifreler eşleşmiyor.');
-      return;
+
+    if (!email.trim()) {
+      errors.email = 'E-posta adresi girilmesi zorunludur.';
+    } else if (!email.includes('@') || !email.includes('.')) {
+      errors.email = 'Lütfen geçerli bir e-posta adresi girin.';
     }
-    if (password.length < 6) {
-      setErrorMessage('Şifre en az 6 karakter olmalıdır.');
+
+    if (!password) {
+      errors.password = 'Şifre girilmesi zorunludur.';
+    } else if (password.length < 6) {
+      errors.password = 'Şifre en az 6 karakter olmalıdır.';
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = 'Şifre tekrarı girilmesi zorunludur.';
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = 'Şifreler birbiriyle eşleşmiyor.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMessage('Lütfen kırmızı ile belirtilen tüm zorunlu alanları düzeltin.');
       return;
     }
 
+    setFieldErrors({});
     setErrorMessage('');
     const res = await signUp(email.trim(), password, fullName.trim());
     if (res.error) {
@@ -99,53 +118,74 @@ export const RegisterScreen = ({ navigation }: any) => {
             
             {/* Full Name */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Ad Soyad</Text>
-              <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>
+                Ad Soyad <Text style={{ color: colors.error }}>*</Text>
+              </Text>
+              <View style={[styles.inputWrapper, fieldErrors.fullName ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="person" size={20} color={colors.outline} />
+                  <MaterialIcons name="person" size={20} color={fieldErrors.fullName ? colors.error : colors.outline} />
                 </View>
                 <TextInput
                   style={styles.input}
                   placeholder="Adınız Soyadınız"
                   placeholderTextColor={colors.outline}
                   value={fullName}
-                  onChangeText={setFullName}
+                  onChangeText={(val) => {
+                    setFullName(val);
+                    if (fieldErrors.fullName) setFieldErrors(prev => ({ ...prev, fullName: undefined }));
+                  }}
                 />
               </View>
+              {!!fieldErrors.fullName && (
+                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.fullName}</Text>
+              )}
             </View>
 
             {/* Email */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>E-Posta Adresi</Text>
-              <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>
+                E-Posta Adresi <Text style={{ color: colors.error }}>*</Text>
+              </Text>
+              <View style={[styles.inputWrapper, fieldErrors.email ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="mail" size={20} color={colors.outline} />
+                  <MaterialIcons name="mail" size={20} color={fieldErrors.email ? colors.error : colors.outline} />
                 </View>
                 <TextInput
                   style={styles.input}
                   placeholder="ornek@sirket.com"
                   placeholderTextColor={colors.outline}
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(val) => {
+                    setEmail(val);
+                    if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
               </View>
+              {!!fieldErrors.email && (
+                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.email}</Text>
+              )}
             </View>
 
             {/* Password */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Şifre</Text>
-              <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>
+                Şifre <Text style={{ color: colors.error }}>*</Text>
+              </Text>
+              <View style={[styles.inputWrapper, fieldErrors.password ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="lock" size={20} color={colors.outline} />
+                  <MaterialIcons name="lock" size={20} color={fieldErrors.password ? colors.error : colors.outline} />
                 </View>
                 <TextInput
                   style={[styles.input, styles.inputWithRightIcon]}
                   placeholder="Güçlü bir şifre girin"
                   placeholderTextColor={colors.outline}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(val) => {
+                    setPassword(val);
+                    if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+                  }}
                   secureTextEntry={!isPasswordVisible}
                 />
                 <TouchableOpacity 
@@ -159,21 +199,29 @@ export const RegisterScreen = ({ navigation }: any) => {
                   />
                 </TouchableOpacity>
               </View>
+              {!!fieldErrors.password && (
+                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.password}</Text>
+              )}
             </View>
 
             {/* Confirm Password */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Şifre Tekrarı</Text>
-              <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>
+                Şifre Tekrarı <Text style={{ color: colors.error }}>*</Text>
+              </Text>
+              <View style={[styles.inputWrapper, fieldErrors.confirmPassword ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="lock-reset" size={20} color={colors.outline} />
+                  <MaterialIcons name="lock-reset" size={20} color={fieldErrors.confirmPassword ? colors.error : colors.outline} />
                 </View>
                 <TextInput
                   style={[styles.input, styles.inputWithRightIcon]}
                   placeholder="Şifrenizi tekrar girin"
                   placeholderTextColor={colors.outline}
                   value={confirmPassword}
-                  onChangeText={setConfirmPassword}
+                  onChangeText={(val) => {
+                    setConfirmPassword(val);
+                    if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                  }}
                   secureTextEntry={!isConfirmPasswordVisible}
                 />
                 <TouchableOpacity 
@@ -187,6 +235,9 @@ export const RegisterScreen = ({ navigation }: any) => {
                   />
                 </TouchableOpacity>
               </View>
+              {!!fieldErrors.confirmPassword && (
+                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.confirmPassword}</Text>
+              )}
             </View>
 
             {/* Actions */}

@@ -16,6 +16,7 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
 
   const [feedback, setFeedback] = useState<{
     visible: boolean;
@@ -31,25 +32,32 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
   });
 
   const handleChangePassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
+    const errors: { newPassword?: string; confirmPassword?: string } = {};
+
+    if (!newPassword) {
+      errors.newPassword = 'Yeni şifre girilmesi zorunludur.';
+    } else if (newPassword.length < 6) {
+      errors.newPassword = 'Şifre en az 6 karakterden oluşmalıdır.';
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = 'Şifre tekrarı girilmesi zorunludur.';
+    } else if (newPassword !== confirmPassword) {
+      errors.confirmPassword = 'Şifreler birbiriyle uyuşmuyor.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       setFeedback({
         visible: true,
         type: 'warning',
-        title: 'Geçersiz Şifre',
-        message: 'Yeni şifreniz en az 6 karakterden oluşmalıdır.',
+        title: 'Zorunlu Alanlar Eksik',
+        message: 'Lütfen kırmızı ile belirtilen tüm alanları doldurun.',
       });
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      setFeedback({
-        visible: true,
-        type: 'warning',
-        title: 'Şifre Uyuşmazlığı',
-        message: 'Girdiğiniz yeni şifreler birbirleriyle uyuşmuyor.',
-      });
-      return;
-    }
+    setFieldErrors({});
 
     try {
       setLoading(true);
@@ -108,27 +116,51 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
           </Text>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: colors.onSurface }]}>Yeni Şifre</Text>
+            <Text style={[styles.label, { color: colors.onSurface }]}>
+              Yeni Şifre <Text style={{ color: colors.error }}>*</Text>
+            </Text>
             <TextInput
-              style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
+              style={[
+                styles.input, 
+                { borderColor: fieldErrors.newPassword ? colors.error : colors.outlineVariant, color: colors.onBackground },
+                fieldErrors.newPassword ? { borderWidth: 1.5 } : null
+              ]}
               placeholder="••••••••"
               placeholderTextColor={colors.onSurfaceVariant}
               secureTextEntry
               value={newPassword}
-              onChangeText={setNewPassword}
+              onChangeText={(val) => {
+                setNewPassword(val);
+                if (fieldErrors.newPassword) setFieldErrors(prev => ({ ...prev, newPassword: undefined }));
+              }}
             />
+            {!!fieldErrors.newPassword && (
+              <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.newPassword}</Text>
+            )}
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: colors.onSurface }]}>Yeni Şifre (Tekrar)</Text>
+            <Text style={[styles.label, { color: colors.onSurface }]}>
+              Yeni Şifre (Tekrar) <Text style={{ color: colors.error }}>*</Text>
+            </Text>
             <TextInput
-              style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
+              style={[
+                styles.input, 
+                { borderColor: fieldErrors.confirmPassword ? colors.error : colors.outlineVariant, color: colors.onBackground },
+                fieldErrors.confirmPassword ? { borderWidth: 1.5 } : null
+              ]}
               placeholder="••••••••"
               placeholderTextColor={colors.onSurfaceVariant}
               secureTextEntry
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChangeText={(val) => {
+                setConfirmPassword(val);
+                if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: undefined }));
+              }}
             />
+            {!!fieldErrors.confirmPassword && (
+              <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.confirmPassword}</Text>
+            )}
           </View>
 
           <TouchableOpacity

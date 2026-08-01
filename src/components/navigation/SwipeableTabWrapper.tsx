@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { View, PanResponder, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-const TAB_ORDER = ['Home', 'Packages', 'Statistics', 'Profile'];
+const TAB_ORDER = ['Home', 'Packages', 'AddPackage', 'Statistics', 'Profile'];
 
 interface SwipeableTabWrapperProps {
   children: React.ReactNode;

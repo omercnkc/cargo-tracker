@@ -20,16 +20,24 @@ import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContai
 export const ForgotPasswordScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const handleResetPassword = async () => {
-    if (!email) {
+    if (!email.trim()) {
+      setEmailError('E-posta adresi girilmesi zorunludur.');
       setMessage({ type: 'error', text: 'Lütfen e-posta adresinizi girin.' });
       return;
+    } else if (!email.includes('@') || !email.includes('.')) {
+      setEmailError('Lütfen geçerli bir e-posta adresi girin.');
+      setMessage({ type: 'error', text: 'Geçersiz e-posta formatı.' });
+      return;
     }
+
+    setEmailError('');
     setMessage(null);
     const res = await resetPassword(email.trim());
     if (res.error) {
@@ -87,21 +95,29 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
           <View style={styles.form}>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>E-Posta Adresi</Text>
-              <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>
+                E-Posta Adresi <Text style={{ color: colors.error }}>*</Text>
+              </Text>
+              <View style={[styles.inputWrapper, emailError ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="mail" size={20} color={colors.outline} />
+                  <MaterialIcons name="mail" size={20} color={emailError ? colors.error : colors.outline} />
                 </View>
                 <TextInput
                   style={styles.input}
                   placeholder="ornek@sirket.com"
                   placeholderTextColor={colors.outline}
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(val) => {
+                    setEmail(val);
+                    if (emailError) setEmailError('');
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
               </View>
+              {!!emailError && (
+                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{emailError}</Text>
+              )}
             </View>
 
             <TouchableOpacity 

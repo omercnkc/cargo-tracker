@@ -1,11 +1,11 @@
 import { useRoute } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,7 +13,7 @@ import {
   Image,
   Modal,
   FlatList,
-  Alert, 
+  Alert,
   ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -99,6 +99,7 @@ export const AddPackageScreen = () => {
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ trackingNumber?: string; selectedCarrier?: string }>({});
 
   const filteredCarriers = carriers.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const activeCarrier = carriers.find(c => c.id === selectedCarrier);
@@ -111,15 +112,25 @@ export const AddPackageScreen = () => {
   };
 
   const handleSubmit = async () => {
+    const errors: { trackingNumber?: string; selectedCarrier?: string } = {};
     if (!trackingNumber.trim()) {
+      errors.trackingNumber = 'Takip numarası girilmesi zorunludur.';
+    }
+    if (!selectedCarrier) {
+      errors.selectedCarrier = 'Kargo firması seçilmesi zorunludur.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       setFeedback({
         visible: true,
         type: 'warning',
-        title: 'Eksik Bilgi',
-        message: 'Lütfen kargonuzun takip numarasını girin.',
+        title: 'Zorunlu Alanlar Eksik',
+        message: 'Lütfen kırmızı ile belirtilen zorunlu alanları doldurun.',
       });
       return;
     }
+    setFieldErrors({});
 
     if (!user) {
       setFeedback({
@@ -144,12 +155,12 @@ export const AddPackageScreen = () => {
       setFeedback({
         visible: true,
         type: 'success',
-        title: 'Kargo Başarıyla Eklendi 🎉',
-        message: `${addedCode} takip numaralı kargonuz takip listenize eklendi.`,
+        title: 'Kargo Başarıyla Eklendi',
+        message: 'Kargonuz takibe alındı. Durum değişikliklerinden anında haberdar edileceksiniz.',
         trackingNumber: addedCode,
         onConfirm: () => {
           setFeedback(prev => ({ ...prev, visible: false }));
-          navigation.goBack();
+          navigation.navigate('Packages');
         },
       });
     } catch (err: any) {
@@ -162,163 +173,180 @@ export const AddPackageScreen = () => {
     }
   };
 
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Home');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* Header - Adaptive for Mobile/Desktop */}
-        <View style={[styles.header, { paddingTop: insets.top }]}>
-          <View style={[styles.headerContent, isLargeScreen && styles.headerContentDesktop]}>
-            <View style={styles.headerLeft}>
-              <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
-                <MaterialIcons name="arrow-back" size={24} color={colors.onSurfaceVariant} />
-              </TouchableOpacity>
-              {isLargeScreen && (
-                <Text style={styles.headerBrandText}>KargoTakip</Text>
-              )}
-            </View>
-            
-            <Text style={styles.headerTitle}>
-              {isLargeScreen ? 'Add New Package' : 'Add Package'}
-            </Text>
-            
-            <View style={styles.headerRightSpacer} />
+        {/* TopAppBar */}
+        <View style={[{
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.outlineVariant + '40',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
+          elevation: 2,
+          zIndex: 30,
+          paddingTop: insets.top,
+        }]}>
+          <View style={styles.appBarContent}>
+            <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>KargoTakip</Text>
           </View>
         </View>
 
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={[
-            styles.scrollViewContent,
-            { paddingBottom: insets.bottom + 24 }
+            styles.mainContent,
+            { paddingBottom: isLargeScreen ? 32 : insets.bottom + 96 }
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets={true}
         >
-          {/* Main Card */}
-          <View style={styles.card}>
-            
-            {/* Decorative element */}
-            <View style={styles.decorativeBlur} />
+          {/* Header Section */}
+          <View style={styles.headerSection}>
+            <Text style={[isLargeScreen ? styles.pageTitleLarge : styles.pageTitle, { color: colors.primary }]}>
+              Yeni Kargo Ekle
+            </Text>
+            <Text style={[styles.pageSubtitle, { color: colors.onSurfaceVariant }]}>
+              Gönderinizi anlık olarak izlemek için takip bilgilerini girin.
+            </Text>
+          </View>
 
-            <View style={styles.cardHeader}>
-              <Text style={styles.title}>Track a New Shipment</Text>
-              <Text style={styles.subtitle}>Enter the details below to start tracking your cargo.</Text>
-            </View>
-
-            {/* Panodan Algılanan Kargo Bildirim Rozeti */}
-            {clipboardDetected && (
-              <TouchableOpacity style={styles.clipboardBadge} onPress={handleApplyClipboard} activeOpacity={0.8}>
-                <MaterialIcons name="content-paste-go" size={20} color="#2563eb" />
-                <Text style={styles.clipboardText}>
-                  📋 Panoda tespit edildi: <Text style={styles.clipboardCode}>{clipboardDetected}</Text> (Aktarmak için dokunun)
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            {/* E-Posta Bağlama Hızlı Butonu */}
-            <TouchableOpacity style={styles.emailSyncCard} onPress={() => setEmailModalVisible(true)} activeOpacity={0.85}>
-              <MaterialIcons name="mark-email-unread" size={22} color="#00236f" />
-              <View style={styles.emailSyncTextWrapper}>
-                <Text style={styles.emailSyncTitle}>E-Postadan Otomatik İçe Aktar</Text>
-                <Text style={styles.emailSyncSubtitle}>Trendyol, Hepsiburada ve Amazon maillerini otomatik tara</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color="#00236f" />
+          {/* Panodan Algılanan Kargo Bildirim Rozeti */}
+          {clipboardDetected && (
+            <TouchableOpacity style={styles.clipboardBadge} onPress={handleApplyClipboard} activeOpacity={0.8}>
+              <MaterialIcons name="content-paste-go" size={22} color="#2563eb" />
+              <Text style={styles.clipboardText}>
+                📋 Panoda tespit edildi: <Text style={styles.clipboardCode}>{clipboardDetected}</Text> (Aktarmak için dokunun)
+              </Text>
             </TouchableOpacity>
+          )}
 
-            <View style={styles.form}>
-              
-              {/* Tracking Number Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  Tracking Number <Text style={styles.requiredAsterisk}>*</Text>
-                </Text>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="tag" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={styles.inputMono}
-                    placeholder="e.g. 1Z9999999999999999"
-                    placeholderTextColor={colors.outlineVariant}
-                    value={trackingNumber}
-                    onChangeText={setTrackingNumber}
-                    autoCapitalize="characters"
-                  />
-                  <TouchableOpacity 
-                    style={styles.qrButton}
-                    onPress={() => navigation.navigate('Scanner')}
-                  >
-                    <MaterialIcons name="qr-code-scanner" size={20} color={colors.primary} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Carrier Selection */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  Carrier <Text style={styles.requiredAsterisk}>*</Text>
-                </Text>
-                <TouchableOpacity 
-                  style={styles.carrierSelectorBtn} 
-                  onPress={() => setSheetVisible(true)}
-                  activeOpacity={0.8}
-                >
-                  {activeCarrier ? (
-                    <View style={styles.carrierSelectorContent}>
-                      <Image source={{ uri: activeCarrier.logo }} style={styles.carrierSelectorLogo} />
-                      <Text style={styles.carrierSelectorText}>{activeCarrier.name}</Text>
-                    </View>
-                  ) : (
-                    <Text style={styles.carrierSelectorPlaceholder}>Select Carrier...</Text>
-                  )}
-                  <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Package Nickname */}
-              <View style={styles.inputGroup}>
-                <View style={styles.labelRow}>
-                  <Text style={styles.inputLabel}>Package Nickname</Text>
-                  <Text style={styles.optionalText}>Optional</Text>
-                </View>
-                <View style={styles.inputWrapper}>
-                  <View style={styles.inputIconLeft}>
-                    <MaterialIcons name="inventory" size={20} color={colors.outline} />
-                  </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="e.g. New Shoes"
-                    placeholderTextColor={colors.outlineVariant}
-                    value={nickname}
-                    onChangeText={setNickname}
-                  />
-                </View>
-              </View>
-
-              {/* Submit Button */}
-              <View style={styles.submitContainer}>
-                <TouchableOpacity 
-                  style={styles.submitButton} 
-                  activeOpacity={0.8}
-                  onPress={handleSubmit}
-                  disabled={addShipmentMutation.isPending}
-                >
-                  {addShipmentMutation.isPending ? (
-                    <ActivityIndicator size="small" color={colors.onPrimary} />
-                  ) : (
-                    <>
-                      <MaterialIcons name="add-box" size={20} color={colors.onPrimary} />
-                      <Text style={styles.submitButtonText}>Save Package</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </View>
-
+          {/* E-Posta Bağlama Hızlı Butonu */}
+          <TouchableOpacity style={styles.emailSyncCard} onPress={() => setEmailModalVisible(true)} activeOpacity={0.85}>
+            <MaterialIcons name="mark-email-unread" size={24} color="#00236f" />
+            <View style={styles.emailSyncTextWrapper}>
+              <Text style={styles.emailSyncTitle}>E-Postadan Otomatik İçe Aktar</Text>
+              <Text style={styles.emailSyncSubtitle}>Trendyol, Hepsiburada ve Amazon maillerini otomatik tara</Text>
             </View>
+            <MaterialIcons name="chevron-right" size={22} color="#00236f" />
+          </TouchableOpacity>
+
+          {/* Main Form Block */}
+          <View style={[styles.formBlock, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
+
+            {/* Tracking Number Input */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: colors.onSurface }]}>
+                Takip Numarası <Text style={styles.requiredAsterisk}>*</Text>
+              </Text>
+              <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: fieldErrors.trackingNumber ? (colors.error || '#BA1A1A') : colors.outlineVariant }, fieldErrors.trackingNumber ? { borderWidth: 1.5 } : null]}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="tag" size={22} color={fieldErrors.trackingNumber ? (colors.error || '#BA1A1A') : colors.outline} />
+                </View>
+                <TextInput
+                  style={[styles.inputMono, { color: colors.onSurface }]}
+                  placeholder="Örn: 1Z999999999999"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  value={trackingNumber}
+                  onChangeText={(val) => {
+                    setTrackingNumber(val);
+                    if (fieldErrors.trackingNumber) setFieldErrors(prev => ({ ...prev, trackingNumber: undefined }));
+                  }}
+                  autoCapitalize="characters"
+                />
+                <TouchableOpacity
+                  style={styles.qrButton}
+                  onPress={() => navigation.navigate('Scanner')}
+                >
+                  <MaterialIcons name="qr-code-scanner" size={22} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+              {!!fieldErrors.trackingNumber && (
+                <Text style={{ fontSize: 12, color: colors.error || '#BA1A1A', marginTop: 4, fontWeight: '500' }}>{fieldErrors.trackingNumber}</Text>
+              )}
+            </View>
+
+            {/* Carrier Selection */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: colors.onSurface }]}>
+                Kargo Firması <Text style={styles.requiredAsterisk}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={[styles.carrierSelectorBtn, { backgroundColor: colors.surface, borderColor: fieldErrors.selectedCarrier ? (colors.error || '#BA1A1A') : colors.outlineVariant }, fieldErrors.selectedCarrier ? { borderWidth: 1.5 } : null]}
+                onPress={() => {
+                  setSheetVisible(true);
+                  if (fieldErrors.selectedCarrier) setFieldErrors(prev => ({ ...prev, selectedCarrier: undefined }));
+                }}
+                activeOpacity={0.8}
+              >
+                {activeCarrier ? (
+                  <View style={styles.carrierSelectorContent}>
+                    <Image source={{ uri: activeCarrier.logo }} style={styles.carrierSelectorLogo} />
+                    <Text style={[styles.carrierSelectorText, { color: colors.onSurface }]}>{activeCarrier.name}</Text>
+                  </View>
+                ) : (
+                  <Text style={[styles.carrierSelectorPlaceholder, { color: colors.onSurfaceVariant }]}>Kargo Firması Seçin...</Text>
+                )}
+                <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
+              </TouchableOpacity>
+              {!!fieldErrors.selectedCarrier && (
+                <Text style={{ fontSize: 12, color: colors.error || '#BA1A1A', marginTop: 4, fontWeight: '500' }}>{fieldErrors.selectedCarrier}</Text>
+              )}
+            </View>
+
+            {/* Package Nickname */}
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Text style={[styles.inputLabel, { color: colors.onSurface }]}>Kargo Takma Adı</Text>
+                <Text style={[styles.optionalText, { color: colors.outline }]}>İsteğe Bağlı</Text>
+              </View>
+              <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+                <View style={styles.inputIconLeft}>
+                  <MaterialIcons name="inventory" size={22} color={colors.outline} />
+                </View>
+                <TextInput
+                  style={[styles.input, { color: colors.onSurface }]}
+                  placeholder="Örn: Yeni Ayakkabım, Kulaklık"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  value={nickname}
+                  onChangeText={setNickname}
+                />
+              </View>
+            </View>
+
+            {/* Submit Button */}
+            <View style={styles.submitContainer}>
+              <TouchableOpacity
+                style={[styles.submitButton, { backgroundColor: colors.primary }]}
+                activeOpacity={0.85}
+                onPress={handleSubmit}
+                disabled={addShipmentMutation.isPending}
+              >
+                {addShipmentMutation.isPending ? (
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
+                ) : (
+                  <>
+                    <MaterialIcons name="add-box" size={22} color={colors.onPrimary} />
+                    <Text style={[styles.submitButtonText, { color: colors.onPrimary }]}>Kargoyu Kaydet & Takip Et</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -341,22 +369,22 @@ export const AddPackageScreen = () => {
         animationType="slide"
         onRequestClose={() => setSheetVisible(false)}
       >
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFill} 
-            activeOpacity={1} 
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
             onPress={() => setSheetVisible(false)}
           />
 
           <View style={[
-            styles.bottomSheetContainer, 
+            styles.bottomSheetContainer,
             { paddingBottom: insets.bottom || 24 },
             isLargeScreen && styles.bottomSheetContainerLarge
           ]}>
-            
+
             {/* Drag Handle (Mobile) */}
             {!isLargeScreen && (
               <View style={styles.dragHandleContainer}>
@@ -395,7 +423,7 @@ export const AddPackageScreen = () => {
                   contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: 24, gap: 16 }}
                   columnWrapperStyle={{ gap: 16, justifyContent: 'space-between' }}
                   renderItem={({ item }) => (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.carrierGridCard}
                       onPress={() => {
                         setSelectedCarrier(item.id);
@@ -450,76 +478,66 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  header: {
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant + '40',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    zIndex: 40,
-  },
-  headerContent: {
+  appBarContent: {
     height: 64,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-  },
-  headerContentDesktop: {
     maxWidth: 1280,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: 32,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    flex: 1,
+  appBarTitle: {
+    fontFamily: 'Inter',
+    fontSize: 20,
+    fontWeight: '700',
   },
   iconButton: {
     padding: 8,
     borderRadius: 999,
   },
-  headerBrandText: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  headerTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.primary,
-    textAlign: 'center',
-  },
-  headerRightSpacer: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
+  mainContent: {
     paddingHorizontal: 16,
-    paddingTop: 24,
-    alignItems: 'center',
-  },
-  card: {
+    paddingTop: 16,
+    maxWidth: 1280,
+    alignSelf: 'center',
     width: '100%',
-    maxWidth: 768,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 12,
-    padding: 24,
+  },
+  headerSection: {
+    marginBottom: 16,
+    gap: 4,
+  },
+  pageTitle: {
+    fontFamily: 'Inter',
+    fontSize: 24,
+    fontWeight: '700',
+    lineHeight: 32,
+    letterSpacing: -0.24,
+  },
+  pageTitleLarge: {
+    fontFamily: 'Inter',
+    fontSize: 32,
+    fontWeight: '700',
+    lineHeight: 40,
+    letterSpacing: -0.64,
+  },
+  pageSubtitle: {
+    fontFamily: 'Inter',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  formBlock: {
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    padding: 20,
+    gap: 18,
+    marginTop: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
   decorativeBlur: {
     position: 'absolute',
@@ -538,8 +556,8 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   cardHeader: {
-    marginBottom: 20,
-    gap: 8,
+    marginBottom: 16,
+    gap: 6,
     zIndex: 10,
   },
   title: {
@@ -551,24 +569,24 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: 'Inter',
-    fontSize: 16,
+    fontSize: 15,
     color: colors.onSurfaceVariant,
   },
   clipboardBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     backgroundColor: '#eff6ff',
     borderWidth: 1,
     borderColor: '#bfdbfe',
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
     zIndex: 10,
   },
   clipboardText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#1e40af',
     flex: 1,
   },
@@ -585,28 +603,28 @@ const styles = StyleSheet.create({
     borderColor: '#bae6fd',
     borderRadius: 12,
     padding: 14,
-    marginBottom: 24,
+    marginBottom: 14,
     zIndex: 10,
   },
   emailSyncTextWrapper: {
     flex: 1,
   },
   emailSyncTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     color: '#0369a1',
   },
   emailSyncSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#0284c7',
     marginTop: 2,
   },
   form: {
-    gap: 24,
+    gap: 18,
     zIndex: 10,
   },
   inputGroup: {
-    gap: 8,
+    gap: 6,
   },
   labelRow: {
     flexDirection: 'row',
@@ -615,9 +633,9 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontFamily: 'Inter',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    letterSpacing: 0.6,
+    letterSpacing: 0.4,
     color: colors.onSurface,
   },
   requiredAsterisk: {
@@ -635,7 +653,7 @@ const styles = StyleSheet.create({
   },
   inputIconLeft: {
     position: 'absolute',
-    left: 12,
+    left: 14,
     zIndex: 10,
   },
   input: {
@@ -644,10 +662,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
     borderColor: colors.outlineVariant,
-    borderRadius: 8,
+    borderRadius: 12,
     color: colors.onSurface,
     height: 52,
-    paddingLeft: 40,
+    paddingLeft: 44,
     paddingRight: 16,
   },
   inputMono: {
@@ -656,10 +674,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
     borderColor: colors.outlineVariant,
-    borderRadius: 8,
+    borderRadius: 12,
     color: colors.onSurface,
     height: 52,
-    paddingLeft: 40,
+    paddingLeft: 44,
     paddingRight: 48,
   },
   qrButton: {
@@ -670,7 +688,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   submitContainer: {
-    paddingTop: 16,
+    paddingTop: 10,
   },
   submitButton: {
     flexDirection: 'row',
@@ -679,12 +697,12 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: colors.primary,
     borderRadius: 999,
-    height: 56,
+    height: 52,
     shadowColor: colors.primaryContainer,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 4,
+    shadowRadius: 12,
+    elevation: 3,
   },
   submitButtonText: {
     fontFamily: 'Inter',
@@ -701,12 +719,12 @@ const styles = StyleSheet.create({
     borderColor: colors.outlineVariant,
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    height: 52,
   },
   carrierSelectorContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   carrierSelectorLogo: {
     width: 24,
