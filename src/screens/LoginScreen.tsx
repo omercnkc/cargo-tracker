@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -11,13 +11,25 @@ import {
   Platform,
   ScrollView,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+
+import Constants from 'expo-constants';
+
 import colors from '../theme/colors';
 import { useAuthStore } from '../store/auth.store';
+import { GOOGLE_CONFIG } from '../config/google.config';
 import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
+import { GoogleLogo } from '../components/common/GoogleLogo';
+
+WebBrowser.maybeCompleteAuthSession();
+
+const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
 
 export const LoginScreen = ({ navigation }: any) => {
   const { width } = useWindowDimensions();
@@ -30,7 +42,28 @@ export const LoginScreen = ({ navigation }: any) => {
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
   const signIn = useAuthStore((state) => state.signIn);
+  const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
   const isLoading = useAuthStore((state) => state.isLoading);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: GOOGLE_CONFIG.androidClientId,
+    iosClientId: GOOGLE_CONFIG.iosClientId,
+    webClientId: GOOGLE_CONFIG.webClientId,
+    scopes: GOOGLE_CONFIG.scopes,
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const idToken = response.authentication?.idToken || response.params?.id_token;
+      if (idToken) {
+        signInWithGoogle(idToken).then((res) => {
+          if (res.error) setErrorMessage(res.error);
+        });
+      } else {
+        setErrorMessage('Google kimlik doğrulaması tamamlanamadı.');
+      }
+    }
+  }, [response]);
 
   // Basic breakpoint for tablet/desktop
   const isLargeScreen = width >= 1024;
@@ -212,7 +245,25 @@ export const LoginScreen = ({ navigation }: any) => {
                 </>
               )}
             </TouchableOpacity>
-            
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>veya</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Sign In Button */}
+            <TouchableOpacity
+              style={styles.googleButton}
+              activeOpacity={0.85}
+              onPress={() => promptAsync()}
+              disabled={isLoading || !request}
+            >
+              <GoogleLogo size={22} />
+              <Text style={styles.googleButtonText}>Google ile Giriş Yap</Text>
+            </TouchableOpacity>
+
           </View>
 
           {/* Registration Link */}
@@ -437,6 +488,40 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '500',
     color: colors.onPrimary,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.outlineVariant,
+  },
+  dividerText: {
+    fontFamily: 'Inter',
+    fontSize: 12,
+    color: colors.onSurfaceVariant,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  googleButtonText: {
+    fontFamily: 'Inter',
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.onSurface,
   },
   registerSection: {
     flexDirection: 'row',

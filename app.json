@@ -2,6 +2,7 @@
   "expo": {
     "name": "cargo-tracker",
     "slug": "cargo-tracker",
+    "scheme": "cargotracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,7 +26,8 @@
     "plugins": [
       "expo-secure-store",
       "expo-font",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-web-browser"
     ]
   }
 }

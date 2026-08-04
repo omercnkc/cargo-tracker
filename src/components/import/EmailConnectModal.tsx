@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
+
+import Constants from 'expo-constants';
+
 import { EmailSyncService, EmailScanResult } from '../../services/import/emailSyncService';
+import { GoogleAuthService, GoogleUserProfile } from '../../services/import/googleAuthService';
+import { GOOGLE_CONFIG } from '../../config/google.config';
 import { useTheme } from '../../theme/useTheme';
 import { useAuthStore } from '../../store/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
+import { GoogleLogo } from '../common/GoogleLogo';
+
+WebBrowser.maybeCompleteAuthSession();
+
+const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
 
 interface EmailConnectModalProps {
   visible: boolean;
@@ -20,8 +33,16 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
 
   const [emailInput, setEmailInput] = useState('');
   const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
+  const [googleProfile, setGoogleProfile] = useState<GoogleUserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: GOOGLE_CONFIG.androidClientId,
+    iosClientId: GOOGLE_CONFIG.iosClientId,
+    webClientId: GOOGLE_CONFIG.webClientId,
+    scopes: GOOGLE_CONFIG.scopes,
+  });
 
   const [feedback, setFeedback] = useState<{
     visible: boolean;
@@ -38,14 +59,70 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
 
   useEffect(() => {
     if (visible) {
-      EmailSyncService.getConnectedEmail().then((mail) => {
-        setConnectedEmail(mail);
-        if (mail) setEmailInput(mail);
-      });
+      loadConnectedProfile();
     }
   }, [visible]);
 
-  const handleConnect = async () => {
+  const loadConnectedProfile = async () => {
+    const profile = await GoogleAuthService.getUserProfile();
+    if (profile) {
+      setGoogleProfile(profile);
+      setConnectedEmail(profile.email);
+    } else {
+      const mail = await EmailSyncService.getConnectedEmail();
+      setConnectedEmail(mail);
+      if (mail) setEmailInput(mail);
+    }
+  };
+
+  useEffect(() => {
+    if (response?.type === 'success' && response.authentication?.accessToken) {
+      handleGoogleAuthSuccess(response.authentication.accessToken);
+    }
+  }, [response]);
+
+  const handleGoogleAuthSuccess = async (token: string) => {
+    setLoading(true);
+    await GoogleAuthService.saveAccessToken(token);
+    const profile = await GoogleAuthService.fetchUserProfileFromGoogle(token);
+
+    if (profile) {
+      await GoogleAuthService.saveUserProfile(profile);
+      await EmailSyncService.connectEmail(profile.email);
+      setGoogleProfile(profile);
+      setConnectedEmail(profile.email);
+
+      setFeedback({
+        visible: true,
+        type: 'success',
+        title: 'Google Hesabı Bağlandı 🟢',
+        message: `${profile.email} hesabı başarıyla doğrulandı. Gmail kutunuzdaki kargo mailleri otomatik taranacak.`,
+      });
+    } else {
+      setFeedback({
+        visible: true,
+        type: 'error',
+        title: 'Bağlantı Hatası',
+        message: 'Google profil bilgileri alınamadı. Lütfen tekrar deneyin.',
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleLoginPrompt = () => {
+    if (request) {
+      promptAsync();
+    } else {
+      setFeedback({
+        visible: true,
+        type: 'warning',
+        title: 'Google Servisi',
+        message: 'Google yetkilendirme servisi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyin.',
+      });
+    }
+  };
+
+  const handleManualConnect = async () => {
     if (!emailInput || !emailInput.includes('@')) {
       setFeedback({
         visible: true,
@@ -66,7 +143,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
         visible: true,
         type: 'success',
         title: 'E-Posta Bağlandı 📧',
-        message: `${emailInput} hesabı başarıyla bağlandı. Artık yeni kargolarınız otomatik taranacak.`,
+        message: `${emailInput} adresi kaydedildi.`,
       });
     }
   };
@@ -88,7 +165,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
         title: '🎉 Yeni Kargolar Bulundu!',
         message: `E-postanızda ${results.length} adet yeni kargo bildirimi tespit edildi ve kargo listenize eklendi:\n\n${shipmentSummary}`,
         onConfirm: () => {
-          setFeedback(prev => ({ ...prev, visible: false }));
+          setFeedback((prev) => ({ ...prev, visible: false }));
           if (onShipmentsImported) {
             onShipmentsImported(results);
           }
@@ -108,12 +185,13 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
   const handleDisconnect = async () => {
     await EmailSyncService.disconnectEmail();
     setConnectedEmail(null);
+    setGoogleProfile(null);
     setEmailInput('');
     setFeedback({
       visible: true,
       type: 'info',
       title: 'Bağlantı Kesildi',
-      message: 'E-posta hesabı bağlantısı kaldırıldı ve kayıtlar temizlendi.',
+      message: 'E-posta hesabı bağlantısı kaldırıldı.',
     });
   };
 
@@ -139,8 +217,22 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           {connectedEmail ? (
             <View style={styles.connectedCard}>
               <View style={styles.emailBadgeRow}>
-                <MaterialIcons name="check-circle" size={20} color="#10b981" />
-                <Text style={[styles.connectedEmailText, { color: colors.onBackground }]}>{connectedEmail}</Text>
+                {googleProfile?.picture ? (
+                  <Image source={{ uri: googleProfile.picture }} style={styles.profileAvatar} />
+                ) : (
+                  <MaterialIcons name="check-circle" size={20} color="#10b981" />
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.connectedEmailText, { color: colors.onBackground }]}>
+                    {googleProfile?.name || connectedEmail}
+                  </Text>
+                  <Text style={[styles.subEmailText, { color: colors.onSurfaceVariant }]}>{connectedEmail}</Text>
+                </View>
+                {googleProfile && (
+                  <View style={styles.verifiedBadge}>
+                    <Text style={styles.verifiedText}>Google Onaylı</Text>
+                  </View>
+                )}
               </View>
 
               <TouchableOpacity
@@ -154,7 +246,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
                 ) : (
                   <>
                     <MaterialIcons name="sync" size={20} color="#ffffff" />
-                    <Text style={styles.syncButtonText}>E-Postaları Şimdi Tara</Text>
+                    <Text style={styles.syncButtonText}>Gmail'i Şimdi Tara</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -165,28 +257,19 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
             </View>
           ) : (
             <View style={styles.inputForm}>
-              <TextInput
-                style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
-                placeholder="ornek@gmail.com"
-                placeholderTextColor={colors.onSurfaceVariant}
-                value={emailInput}
-                onChangeText={setEmailInput}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
+              {/* Google ile Bağlan Butonu */}
               <TouchableOpacity
-                style={[styles.connectButton, { backgroundColor: colors.primary }]}
-                onPress={handleConnect}
-                disabled={loading}
-                activeOpacity={0.8}
+                style={styles.googleButton}
+                onPress={handleGoogleLoginPrompt}
+                disabled={loading || !request}
+                activeOpacity={0.85}
               >
                 {loading ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
+                  <ActivityIndicator color="#374151" size="small" />
                 ) : (
                   <>
-                    <MaterialIcons name="link" size={20} color="#ffffff" />
-                    <Text style={styles.connectButtonText}>E-Posta Hesabını Bağla</Text>
+                    <GoogleLogo size={22} />
+                    <Text style={styles.googleButtonText}>Google ile Canlı Bağlan</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -212,10 +295,10 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           if (feedback.onConfirm) {
             feedback.onConfirm();
           } else {
-            setFeedback(prev => ({ ...prev, visible: false }));
+            setFeedback((prev) => ({ ...prev, visible: false }));
           }
         }}
-        onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
+        onClose={() => setFeedback((prev) => ({ ...prev, visible: false }))}
       />
     </Modal>
   );
@@ -270,16 +353,35 @@ const styles = StyleSheet.create({
   emailBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     backgroundColor: '#f0fdf4',
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#bbf7d0',
   },
+  profileAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
   connectedEmailText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  subEmailText: {
+    fontSize: 12,
+  },
+  verifiedBadge: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  verifiedText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#15803d',
   },
   syncButton: {
     flexDirection: 'row',
@@ -307,6 +409,40 @@ const styles = StyleSheet.create({
     gap: 12,
     marginVertical: 8,
   },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  googleButtonText: {
+    color: '#1f2937',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginVertical: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    fontSize: 11,
+  },
   input: {
     borderWidth: 1,
     borderRadius: 10,
@@ -318,12 +454,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 10,
     gap: 8,
   },
   connectButtonText: {
-    color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
   },

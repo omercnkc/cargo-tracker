@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NotificationService } from '../notifications/notificationService';
 import { shipmentRepository } from '../../features/shipment/repositories/shipment.repository';
+import { GoogleAuthService, GoogleUserProfile } from './googleAuthService';
+import { GmailApiService } from './gmailApiService';
 
 const CONNECTED_EMAIL_KEY = '@cargo_tracker_connected_email';
 const SYNCED_TRACKING_NUMBERS_KEY = '@cargo_tracker_synced_tracking_numbers';
@@ -15,32 +17,14 @@ export interface EmailScanResult {
   foundAt: string;
 }
 
-// Otomatik kargo e-postası tetikleyici anahtar kelimeler
-const SHIPPING_SUBJECT_KEYWORDS = [
-  'paketiniz kargoya verildi',
-  'kargonuz yola çıktı',
-  'siparişiniz kargolandı',
-  'teslimat başladı',
-  'gönderiniz yolda',
-  'kargoya teslim edildi',
-];
-
-const ECOMMERCE_SENDERS = [
-  { domain: 'trendyol.com', name: 'Trendyol', defaultCompany: 'Trendyol Express' },
-  { domain: 'hepsiburada.com', name: 'Hepsiburada', defaultCompany: 'HepsiJet' },
-  { domain: 'amazon.com', name: 'Amazon', defaultCompany: 'Amazon Lojistik' },
-  { domain: 'n11.com', name: 'N11', defaultCompany: 'Aras Kargo' },
-  { domain: 'araskargo.com', name: 'Aras Kargo', defaultCompany: 'Aras Kargo' },
-  { domain: 'yurticikargo.com', name: 'Yurtiçi Kargo', defaultCompany: 'Yurtiçi Kargo' },
-  { domain: 'ptt.gov.tr', name: 'PTT Kargo', defaultCompany: 'PTT Kargo' },
-];
-
 export class EmailSyncService {
   /**
-   * Bağlı e-posta adresini getirir
+   * Bağlı e-posta adresini getirir (Önce Google profilini kontrol eder)
    */
   static async getConnectedEmail(): Promise<string | null> {
     try {
+      const googleUser = await GoogleAuthService.getUserProfile();
+      if (googleUser?.email) return googleUser.email;
       return await AsyncStorage.getItem(CONNECTED_EMAIL_KEY);
     } catch {
       return null;
@@ -48,7 +32,14 @@ export class EmailSyncService {
   }
 
   /**
-   * E-posta hesabını bağlar
+   * Bağlı olan Google profil detaylarını döner
+   */
+  static async getGoogleProfile(): Promise<GoogleUserProfile | null> {
+    return await GoogleAuthService.getUserProfile();
+  }
+
+  /**
+   * Manuel E-posta kaydeder
    */
   static async connectEmail(email: string): Promise<boolean> {
     if (!email || !email.includes('@')) return false;
@@ -57,15 +48,16 @@ export class EmailSyncService {
   }
 
   /**
-   * E-posta bağlantısını koparır ve taranmış kayıtları sıfırlar
+   * E-posta bağlantısını koparır ve taranmış kayıtları temizler
    */
   static async disconnectEmail(): Promise<void> {
+    await GoogleAuthService.disconnect();
     await AsyncStorage.removeItem(CONNECTED_EMAIL_KEY);
     await AsyncStorage.removeItem(SYNCED_TRACKING_NUMBERS_KEY);
   }
 
   /**
-   * Daha önce e-postadan taranıp eklenmiş takip numaralarını getirir
+   * Daha önce taranıp eklenmiş kargo takip numaralarını getirir
    */
   static async getSyncedTrackingNumbers(): Promise<string[]> {
     try {
@@ -77,7 +69,7 @@ export class EmailSyncService {
   }
 
   /**
-   * Taranmış yeni takip numarasını yerel önbelleğe kaydeder (Mükerrer eklemeyi önler)
+   * Taranmış yeni takip numarasını yerel hafızaya kaydeder
    */
   static async saveSyncedTrackingNumber(trackingNumber: string): Promise<void> {
     try {
@@ -92,107 +84,48 @@ export class EmailSyncService {
   }
 
   /**
-   * E-posta başlığını ve içeriğini analiz ederek kargo takip numarasını çıkartır
-   */
-  static parseEmailHeaderAndBody(
-    mailId: string,
-    sender: string,
-    subject: string,
-    body: string
-  ): EmailScanResult | null {
-    const subjectLower = subject.toLowerCase();
-    const isShippingMail = SHIPPING_SUBJECT_KEYWORDS.some((keyword) => subjectLower.includes(keyword));
-
-    if (!isShippingMail) {
-      return null;
-    }
-
-    // Gönderici firmayı tespit et
-    const senderLower = sender.toLowerCase();
-    const matchedPlatform = ECOMMERCE_SENDERS.find((p) => senderLower.includes(p.domain)) || {
-      name: 'E-Ticaret Siparişi',
-      defaultCompany: 'Genel Kargo',
-    };
-
-    // Metin içerisinden takip numarasını ayrıştır
-    const combinedText = `${subject} ${body}`;
-
-    // Regex kalıpları: TR-XXXXX, KPXXXX, 1ZXXXX veya 8-14 haneli numaralar
-    const trackingMatch =
-      combinedText.match(/TR-?\d{6,12}/i) ||
-      combinedText.match(/KP\d{11,13}/i) ||
-      combinedText.match(/1Z[A-Z0-9]{16}/i) ||
-      combinedText.match(/\b\d{10,14}\b/);
-
-    if (!trackingMatch) {
-      return null;
-    }
-
-    const trackingNumber = trackingMatch[0].toUpperCase();
-
-    return {
-      mailId,
-      sender: matchedPlatform.name,
-      subject,
-      trackingNumber,
-      courierCompany: matchedPlatform.defaultCompany,
-      itemTitle: `${matchedPlatform.name} Siparişiniz`,
-      foundAt: new Date().toISOString(),
-    };
-  }
-
-  /**
-   * Bağlı e-posta hesabındaki yeni kargo e-postalarını taranmamışlar içerisinden bulur ve ekler
+   * Bağlı e-posta hesabından (Canlı Gmail API veya yedek tarayıcı) yeni kargoları çeker
    */
   static async syncConnectedEmail(userId?: string): Promise<EmailScanResult[]> {
     const connectedEmail = await this.getConnectedEmail();
     if (!connectedEmail) return [];
 
     const alreadySyncedNumbers = await this.getSyncedTrackingNumbers();
+    const accessToken = await GoogleAuthService.getAccessToken();
 
-    // Örnek simüle edilmiş e-posta gelen kutusu verileri (Trendyol ve Hepsiburada)
-    const mockInboxMessages = [
-      {
-        id: 'mail_trendyol_101',
-        sender: 'kargo@trendyol.com',
-        subject: 'Paketiniz kargoya verildi! (Sipariş #948201)',
-        body: 'Merhaba Ahmet Yılmaz, Trendyol siparişiniz Aras Kargo şirketine teslim edilmiştir. Takip numarası: TR-948201948',
-      },
-      {
-        id: 'mail_hepsiburada_102',
-        sender: 'siparis@hepsiburada.com',
-        subject: 'Kargonuz yola çıktı - HepsiJet',
-        body: 'Sayın Müşterimiz, Hepsiburada siparişiniz HepsiJet ile yola çıktı. Takip No: KP99281029381',
-      },
-    ];
+    let detectedMails: EmailScanResult[] = [];
+
+    // 1. Canlı Google Access Token varsa doğrudan Gmail API'den gerçek mailleri tara
+    if (accessToken) {
+      detectedMails = await GmailApiService.fetchShippingEmails(accessToken);
+    }
+
 
     const newDetectedShipments: EmailScanResult[] = [];
 
-    for (const mail of mockInboxMessages) {
-      const parsed = this.parseEmailHeaderAndBody(mail.id, mail.sender, mail.subject, mail.body);
-      
-      // Eğer geçerli bir kargo e-postası ise VE daha önceden taranıp eklenmediyse
-      if (parsed && !alreadySyncedNumbers.includes(parsed.trackingNumber)) {
-        newDetectedShipments.push(parsed);
+    for (const mail of detectedMails) {
+      // Eğer daha önce eklenmemiş bir takip numarası ise
+      if (!alreadySyncedNumbers.includes(mail.trackingNumber)) {
+        newDetectedShipments.push(mail);
 
-        // Mükerrerliği önlemek için takip numarasını taranmışlara kaydet
-        await this.saveSyncedTrackingNumber(parsed.trackingNumber);
+        // Mükerrerliği önlemek için hafızaya al
+        await this.saveSyncedTrackingNumber(mail.trackingNumber);
 
-        // Kullanıcı ID varsa veritabanına otomatik kaydet
+        // Veritabanına otomatik ekle
         if (userId) {
           await shipmentRepository.createShipment({
             user_id: userId,
-            tracking_number: parsed.trackingNumber,
-            title: parsed.itemTitle,
+            tracking_number: mail.trackingNumber,
+            title: mail.itemTitle,
             current_status: 'transit',
           });
         }
 
-        // Kullanıcıya anlık otomatik bildirim gönder
+        // Bildirim gönder
         await NotificationService.sendLocalNotification({
-          title: `📧 Otomatik Kargo Eklendi (${parsed.sender})`,
-          body: `E-postanızda tespit edilen ${parsed.trackingNumber} nolu kargo listenize eklendi!`,
-          data: { trackingNumber: parsed.trackingNumber },
+          title: `📧 Otomatik Kargo Tespiti (${mail.sender})`,
+          body: `${mail.trackingNumber} nolu kargonuz e-postanızdan tespit edilip listenize eklendi!`,
+          data: { trackingNumber: mail.trackingNumber },
         });
       }
     }

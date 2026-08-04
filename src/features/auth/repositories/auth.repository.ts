@@ -93,6 +93,36 @@ export class AuthRepository {
       return { error: err instanceof Error ? err : new Error('Password reset failed') };
     }
   }
+
+  async signInWithGoogle(idToken: string): Promise<{ session: Session | null; user: User | null; error: Error | null }> {
+    try {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      });
+
+      if (error) return { session: null, user: null, error };
+
+      if (data.user) {
+        const meta = data.user.user_metadata || {};
+        const fullName = meta.full_name || meta.name || data.user.email?.split('@')[0] || 'Kullanıcı';
+        const avatarUrl = meta.avatar_url || meta.picture || null;
+
+        const profileData: Partial<UserProfile> = {
+          id: data.user.id,
+          full_name: fullName,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString(),
+        };
+
+        await supabase.from('users').upsert(profileData as any);
+      }
+
+      return { session: data.session, user: data.user, error: null };
+    } catch (err) {
+      return { session: null, user: null, error: err instanceof Error ? err : new Error('Google ile giriş başarısız') };
+    }
+  }
 }
 
 export const authRepository = new AuthRepository();
