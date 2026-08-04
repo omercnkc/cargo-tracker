@@ -1,5 +1,5 @@
 import { useRoute } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -28,15 +28,8 @@ import { EmailConnectModal } from '../components/import/EmailConnectModal';
 import { OCRService } from '../services/ocr/ocrService';
 
 import { ModernFeedbackModal, FeedbackType } from '../components/common/ModernFeedbackModal';
-
-const FALLBACK_CARRIERS = [
-  { id: '1', name: 'Aras Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUixqteUkvVuCtTekD11ZPAYGfotm_0-u2d6PkWmTDbDsIy359BoMk_iaPb0dAuFIh76cxt7kOuh12kLFi0RsP6O9bKbRbKf_ZGzsymDu25kr9yQscZ-QysYc5X3rMpzBVQGPbcsfcN4r7oKpyzRS6y7FY-bJ-05KXIdZS75nVXD2JdUAsu2nDlOwLKxwlKeTWh9f7MnVYRp8REThNF7W1zBhAVkuC3laz3iYowXMXNZ9tJU1EipWmjpYhrQDSk6hB-c5WRxZapMU' },
-  { id: '2', name: 'Yurtiçi Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDuMcqEYYXnINPebCw47LFOwDAEMkaPK0wkeZYhHC-Y1LRo27vSXiwsZj-2POLuiDyVEddgFZANr12CozIOIyEof2JvxXsB1DjK2vioCTunxDqoJr4nzFx8w_-szhNS3pk3KzoXMbqeK2TFgx6r6y7Ff4PO8TWhLneY3AWgC_3KS8I__emL-zS8NOEYR3iqGhnPt8GcmFOMjETNhMD9anaVguTp1-0aROE6WKzmTrPlyoovRqgAh9kPS_J0s0kf5V7N-LOzaJW8xRs' },
-  { id: '3', name: 'DHL', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ-lbClVqkQAs-jbH9GKAu2C--Tt6IDgUGuGzYqpJgQCD2DiqGC-lp9ogphgApc1YNvrG5YVArJ3RucNPTLwCeIP2utImaocVA-VSGY2YFO-RommS_Fo6Chpnqzgi4Prgq9g-troPi1QTZV-ZZ7x0uN50EU748KUYmP6qYoTxQsZzCas8cZv2iGFDmYSHb-07iV2CHqu-JnU3aA3vuDxeQzMzB9ysqpz4268fSkd1plkGDY6G81BOxLOwl7zHoZzNnEzm-PEUxNE' },
-  { id: '4', name: 'UPS', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDzUc84pU9JioEWNY7eyGzLE7yMPU0RGWibx-pqU-f2gCePtRnXVDmNMdYMzsdRAreTC77UdAHXRCpnDAWgPmryLHMUhNpGemmuLE2HQb4Jtbm2B2vZfFztmZDnrubiSUb--R3VSzo-n8JjPE71IE0e1if2tK4YpS5S2zlVVJ5gp6HZnsqXITZjzEKEM7tRSHYEIEUZg1Axji3N7OcihvkVD3zwkakuak-vD_qUDDBb7Jca6S4XzIzdcTn9DNbNyKRyMo4H8at_cyQ' },
-  { id: '5', name: 'MNG Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAlVM6o4wKY4rCi1HKWhgfHSTuHuA1-ePAVsyz5wg8h94CAaW86Nt_x6YrP1U53DvsvkfP5SsrHeqnJk-5N7XjFDro4km2WKG-fihkk0ky71Px_wCJ1ViEL3Js2KBmieU-xmfIJ36BC21R7WtvbzjNnuui8JqVOGAuxjVHUJpLG4Cf4Rjb8_2Uzzl-WZFxk-3bfRD9QEjVrbVzrHhAuXE29hsesRrgEg1WPiqUScM2Ng_dQyNkiuSeRt1bkpZszloz31LSqBHNzRhI' },
-  { id: '6', name: 'PTT Kargo', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCB1zSf7kxmY8C_5-etb0sfPsXQb5pwjtQED4ORcd9zL4fLFvWwBk5o-ZtMFKOWLnnuBL9d5u8r13hSJhClaZ0mSFpTQ59Gq70-Jiq9upSGmh5UYZShhSyJNk_DXxw_r6Om53_2I4sVreetCk3gbt3c1k6GAjVHZsSqwkBO028upnqYqIEEqeID6wXrURWDd1sUmpLL1grFDo3ckXKY3W_u3DCM1YCRLT-ZDAE_5g__b1r0HK1tEJgiAzZ-xGV1djAzx--hzv74yPo' },
-];
+import { DEFAULT_CARRIERS, getCarrierByName, isCarrierAllowed } from '../constants/carriers';
+import { CarrierLogo } from '../components/common/CarrierLogo';
 
 export const AddPackageScreen = () => {
   const navigation = useNavigation<any>();
@@ -49,9 +42,23 @@ export const AddPackageScreen = () => {
   const { data: dbCouriers } = useCourierCompanies();
   const addShipmentMutation = useAddShipment();
 
-  const carriers = (dbCouriers && dbCouriers.length > 0)
-    ? dbCouriers.map(c => ({ id: c.id, name: c.name, logo: c.logo_url || '' }))
-    : FALLBACK_CARRIERS;
+  // Always use local DEFAULT_CARRIERS for UI (guaranteed icons)
+  const carriers = DEFAULT_CARRIERS;
+
+  // Map local carrier id -> DB company UUID for submission
+  const getDbCompanyId = useMemo(() => {
+    if (!dbCouriers || dbCouriers.length === 0) return (_localId: string) => null;
+    return (localId: string) => {
+      const localCarrier = DEFAULT_CARRIERS.find(c => c.id === localId);
+      if (!localCarrier) return null;
+      const dbMatch = dbCouriers.find(
+        (db) => db.name.toLowerCase().includes(localCarrier.code) ||
+                localCarrier.name.toLowerCase().includes(db.name.toLowerCase()) ||
+                db.name.toLowerCase().includes(localCarrier.name.toLowerCase())
+      );
+      return dbMatch?.id || null;
+    };
+  }, [dbCouriers]);
 
   const [trackingNumber, setTrackingNumber] = useState('');
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
@@ -143,11 +150,12 @@ export const AddPackageScreen = () => {
     }
 
     try {
+      const dbCompanyId = selectedCarrier ? getDbCompanyId(selectedCarrier) : null;
       await addShipmentMutation.mutateAsync({
         user_id: user.id,
         tracking_number: trackingNumber.trim(),
-        company_id: selectedCarrier && selectedCarrier.length > 5 ? selectedCarrier : null,
-        title: nickname.trim() || null,
+        company_id: dbCompanyId,
+        title: nickname.trim() || activeCarrier?.name || null,
         current_status: 'transit',
       });
 
@@ -295,7 +303,7 @@ export const AddPackageScreen = () => {
               >
                 {activeCarrier ? (
                   <View style={styles.carrierSelectorContent}>
-                    <Image source={{ uri: activeCarrier.logo }} style={styles.carrierSelectorLogo} />
+                    <CarrierLogo logo={activeCarrier.logo} size={24} />
                     <Text style={[styles.carrierSelectorText, { color: colors.onSurface }]}>{activeCarrier.name}</Text>
                   </View>
                 ) : (
@@ -393,7 +401,7 @@ export const AddPackageScreen = () => {
             )}
 
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Select Carrier</Text>
+              <Text style={styles.sheetTitle}>Kargo Firması Seç</Text>
               <TouchableOpacity style={styles.iconButton} onPress={() => setSheetVisible(false)}>
                 <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
@@ -405,7 +413,7 @@ export const AddPackageScreen = () => {
               </View>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search carriers..."
+                placeholder="Kargo firması ara..."
                 placeholderTextColor={colors.onSurfaceVariant}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -432,7 +440,7 @@ export const AddPackageScreen = () => {
                       }}
                     >
                       <View style={styles.carrierGridIconBox}>
-                        <Image source={{ uri: item.logo }} style={styles.carrierGridLogo} />
+                        <CarrierLogo logo={item.logo} size={36} />
                       </View>
                       <Text style={styles.carrierGridName}>{item.name}</Text>
                     </TouchableOpacity>
@@ -441,8 +449,8 @@ export const AddPackageScreen = () => {
               ) : (
                 <View style={styles.noResultsContainer}>
                   <MaterialIcons name="search-off" size={32} color={colors.outlineVariant} />
-                  <Text style={styles.noResultsText}>No carriers found</Text>
-                  <Text style={styles.noResultsSubtext}>Try searching for a different name.</Text>
+                  <Text style={styles.noResultsText}>Kargo firması bulunamadı</Text>
+                  <Text style={styles.noResultsSubtext}>Farklı bir arama yapmayı deneyin.</Text>
                 </View>
               )}
             </View>

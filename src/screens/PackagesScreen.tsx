@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   TextInput,
   Image,
   Modal,
@@ -19,6 +19,8 @@ import { useTheme } from '../theme/useTheme';
 import useResponsive from '../hooks/useResponsive';
 import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
+import { DEFAULT_CARRIERS, getCarrierByName } from '../constants/carriers';
+import { CarrierLogo } from '../components/common/CarrierLogo';
 
 interface PackageItem {
   id: string;
@@ -112,11 +114,7 @@ const INITIAL_PACKAGES: PackageItem[] = [
 
 const CARRIER_OPTIONS = [
   'Tümü',
-  'Global Express',
-  'Yurtiçi Kargo',
-  'Aras Kargo',
-  'DHL Express',
-  'PTT Kargo',
+  ...DEFAULT_CARRIERS.map(c => c.name)
 ];
 
 export const PackagesScreen = () => {
@@ -191,7 +189,7 @@ export const PackagesScreen = () => {
         id: s.id,
         trackingNumber: s.tracking_number,
         companyName: s.courier_companies?.name || s.title || 'Kargo',
-        companyLogo: s.courier_companies?.logo_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
+        companyLogo: s.courier_companies?.logo_url || getCarrierByName(s.courier_companies?.name || s.title, s.tracking_number)?.logo,
         status: (s.current_status === 'delivered' ? 'delivered' : s.current_status === 'pending' ? 'action_required' : 'transit') as any,
         statusText: s.current_status === 'delivered' ? 'Teslim Edildi' : s.current_status === 'pending' ? 'Beklemede' : 'Yolda',
         origin: s.sender ? s.sender.substring(0, 3).toUpperCase() : 'TR',
@@ -266,10 +264,10 @@ export const PackagesScreen = () => {
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
-          styles.mainContent, 
+          styles.mainContent,
           { paddingBottom: isLargeScreen ? 32 : insets.bottom + 96 }
         ]}
       >
@@ -278,10 +276,10 @@ export const PackagesScreen = () => {
           <Text style={[isLargeScreen ? styles.pageTitleLarge : styles.pageTitle, { color: colors.primary }]}>
             Aktif Kargolar
           </Text>
-          
+
           <View style={[styles.searchContainer, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
             <MaterialIcons name="search" size={20} color={colors.outline} style={styles.searchIconLeft} />
-            <TextInput 
+            <TextInput
               style={[styles.searchInput, { color: colors.onSurface }]}
               placeholder="Takip no veya firma ara..."
               placeholderTextColor={colors.onSurfaceVariant}
@@ -295,7 +293,7 @@ export const PackagesScreen = () => {
             ) : null}
 
             {/* Filter Trigger Button */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
                 styles.searchIconRight,
                 isFilterActive && { backgroundColor: colors.primaryContainer, borderRadius: 8, paddingVertical: 4, paddingHorizontal: 6 }
@@ -363,19 +361,18 @@ export const PackagesScreen = () => {
         ) : (
           <View style={styles.packageGrid}>
             {filteredPackages.map((pkg) => (
-              <TouchableOpacity 
-                key={pkg.id} 
-                style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]} 
+              <TouchableOpacity
+                key={pkg.id}
+                style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]}
                 onPress={() => navigation.navigate('PackageDetail', { shipmentId: pkg.id })}
                 activeOpacity={0.8}
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.cardHeaderLeft}>
                     <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-                      <Image 
-                        source={{ uri: pkg.companyLogo }}
-                        style={styles.companyLogo}
-                        resizeMode="contain"
+                      <CarrierLogo
+                        logo={pkg.companyLogo}
+                        size={28}
                       />
                     </View>
                     <View>
@@ -384,20 +381,20 @@ export const PackagesScreen = () => {
                     </View>
                   </View>
                   <View style={[
-                    styles.badge, 
-                    pkg.status === 'delivered' 
+                    styles.badge,
+                    pkg.status === 'delivered'
                       ? { backgroundColor: colors.tertiaryContainer, borderColor: colors.outlineVariant }
                       : pkg.status === 'action_required'
-                      ? { backgroundColor: colors.errorContainer, borderColor: colors.outlineVariant }
-                      : { backgroundColor: colors.secondaryContainer, borderColor: colors.outlineVariant }
+                        ? { backgroundColor: colors.errorContainer, borderColor: colors.outlineVariant }
+                        : { backgroundColor: colors.secondaryContainer, borderColor: colors.outlineVariant }
                   ]}>
                     <Text style={[
-                      styles.badgeText, 
-                      pkg.status === 'delivered' 
+                      styles.badgeText,
+                      pkg.status === 'delivered'
                         ? { color: colors.onTertiaryContainer }
                         : pkg.status === 'action_required'
-                        ? { color: colors.onErrorContainer }
-                        : { color: colors.onSurface }
+                          ? { color: colors.onErrorContainer }
+                          : { color: colors.onSurface }
                     ]}>{pkg.statusText}</Text>
                   </View>
                 </View>
@@ -418,10 +415,10 @@ export const PackagesScreen = () => {
                   </View>
                   <View style={[styles.progressBarBg, { backgroundColor: colors.surfaceContainer }]}>
                     <View style={[
-                      styles.progressBarFill, 
-                      { 
-                        width: `${pkg.progress}%`, 
-                        backgroundColor: pkg.status === 'delivered' ? colors.tertiary : pkg.status === 'action_required' ? colors.error : colors.primary 
+                      styles.progressBarFill,
+                      {
+                        width: `${pkg.progress}%`,
+                        backgroundColor: pkg.status === 'delivered' ? colors.tertiary : pkg.status === 'action_required' ? colors.error : colors.primary
                       }
                     ]} />
                   </View>
@@ -453,17 +450,17 @@ export const PackagesScreen = () => {
         onRequestClose={closeFilterModal}
       >
         <View style={styles.modalOverlay}>
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFill} 
-            activeOpacity={1} 
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
             onPress={closeFilterModal}
           />
 
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.modalSheet, 
+              styles.modalSheet,
               { backgroundColor: colors.surfaceContainerLowest, transform: [{ translateY: panY }] }
-            ]} 
+            ]}
           >
             {/* Sheet Handle with PanResponder Gesture */}
             <View style={styles.dragHandleArea} {...panResponder.panHandlers}>
@@ -482,7 +479,7 @@ export const PackagesScreen = () => {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalBody}>
-              
+
               {/* 1. Status Filter */}
               <View style={styles.filterGroup}>
                 <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>Kargo Durumu</Text>
@@ -571,7 +568,7 @@ export const PackagesScreen = () => {
               <TouchableOpacity style={styles.modalResetBtn} onPress={resetFilters}>
                 <Text style={{ fontSize: 14, fontWeight: '600', color: colors.error }}>Sıfırla</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalApplyBtn, { backgroundColor: colors.primary }]}
                 onPress={closeFilterModal}
               >

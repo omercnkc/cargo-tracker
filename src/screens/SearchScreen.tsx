@@ -55,7 +55,7 @@ export const SearchScreen = () => {
           
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('searchTitle')}</Text>
           
-          <HeaderRightActions />
+          <View style={{ width: 40 }} />
         </View>
       </View>
 

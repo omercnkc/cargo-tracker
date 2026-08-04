@@ -4,19 +4,25 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 
+import { CarrierLogo } from '../common/CarrierLogo';
+import { getCarrierByName } from '../../constants/carriers';
+
 interface PackageCardProps {
   id: string;
   name: string;
   code: string;
   status: 'transit' | 'delivered' | 'pending';
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon?: keyof typeof MaterialIcons.glyphMap;
+  logo?: any;
   isLargeScreen: boolean;
   onPress: () => void;
 }
 
-export const PackageCard = ({ name, code, status, icon, isLargeScreen, onPress }: PackageCardProps) => {
+export const PackageCard = ({ name, code, status, icon, logo, isLargeScreen, onPress }: PackageCardProps) => {
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
+
+  const carrierLogo = logo || getCarrierByName(name, code)?.logo;
 
   const statusConfig = {
     transit: {
@@ -57,7 +63,11 @@ export const PackageCard = ({ name, code, status, icon, isLargeScreen, onPress }
     >
       <View style={styles.packageInfoWrapper}>
         <View style={[styles.packageIconBg, { backgroundColor: colors.surfaceVariant }]}>
-          <MaterialIcons name={icon} size={24} color={colors.primary} />
+          {carrierLogo ? (
+            <CarrierLogo logo={carrierLogo} size={28} />
+          ) : (
+            <MaterialIcons name={icon || 'local-shipping'} size={24} color={colors.primary} />
+          )}
         </View>
         <View>
           <Text style={[styles.packageName, { color: colors.onBackground }]}>{name}</Text>

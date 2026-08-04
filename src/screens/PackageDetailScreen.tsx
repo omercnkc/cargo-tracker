@@ -21,6 +21,8 @@ import { ShipmentMapView } from '../components/map/ShipmentMapView';
 import { useShipmentRealtime } from '../hooks/useShipmentRealtime';
 import { useNotifications } from '../hooks/useNotifications';
 import { LocationPoint } from '../types/location';
+import { getCarrierByName } from '../constants/carriers';
+import { CarrierLogo } from '../components/common/CarrierLogo';
 
 export const PackageDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -100,7 +102,7 @@ export const PackageDetailScreen = () => {
           
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('shipmentDetail')}</Text>
           
-          <HeaderRightActions />
+          <View style={{ width: 40 }} />
         </View>
       </View>
 
@@ -118,9 +120,15 @@ export const PackageDetailScreen = () => {
         >
           {/* Summary Header */}
           <View style={[styles.summaryHeader, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-            <View>
-              <Text style={[styles.trackingLabel, { color: colors.onSurfaceVariant }]}>{t('trackingNumberLabel')}</Text>
-              <Text style={[styles.trackingNumber, { color: colors.primary }]}>{displayShipment.tracking_number}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              {(() => {
+                const cLogo = getCarrierByName(displayShipment.courier_companies?.name || displayShipment.title || '')?.logo;
+                return cLogo ? <CarrierLogo logo={cLogo} size={32} /> : null;
+              })()}
+              <View>
+                <Text style={[styles.trackingLabel, { color: colors.onSurfaceVariant }]}>{displayShipment.courier_companies?.name || displayShipment.title || t('trackingNumberLabel')}</Text>
+                <Text style={[styles.trackingNumber, { color: colors.primary }]}>{displayShipment.tracking_number}</Text>
+              </View>
             </View>
             <TouchableOpacity 
               style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}
