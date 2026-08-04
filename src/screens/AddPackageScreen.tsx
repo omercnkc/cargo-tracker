@@ -26,6 +26,7 @@ import { useAuthStore } from '../store/auth.store';
 import colors from '../theme/colors';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
 import { OCRService } from '../services/ocr/ocrService';
+import { useTranslation } from '../hooks/useTranslation';
 
 import { ModernFeedbackModal, FeedbackType } from '../components/common/ModernFeedbackModal';
 import { DEFAULT_CARRIERS, getCarrierByName, isCarrierAllowed } from '../constants/carriers';
@@ -38,6 +39,7 @@ export const AddPackageScreen = () => {
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
   const user = useAuthStore(state => state.user);
+  const { t } = useTranslation();
 
   const { data: dbCouriers } = useCourierCompanies();
   const addShipmentMutation = useAddShipment();
@@ -121,10 +123,10 @@ export const AddPackageScreen = () => {
   const handleSubmit = async () => {
     const errors: { trackingNumber?: string; selectedCarrier?: string } = {};
     if (!trackingNumber.trim()) {
-      errors.trackingNumber = 'Takip numarası girilmesi zorunludur.';
+      errors.trackingNumber = t('trackingNumberRequired');
     }
     if (!selectedCarrier) {
-      errors.selectedCarrier = 'Kargo firması seçilmesi zorunludur.';
+      errors.selectedCarrier = t('carrierRequired');
     }
 
     if (Object.keys(errors).length > 0) {
@@ -132,8 +134,8 @@ export const AddPackageScreen = () => {
       setFeedback({
         visible: true,
         type: 'warning',
-        title: 'Zorunlu Alanlar Eksik',
-        message: 'Lütfen kırmızı ile belirtilen zorunlu alanları doldurun.',
+        title: t('missingFieldsTitle'),
+        message: t('missingFieldsMsg'),
       });
       return;
     }
@@ -143,8 +145,8 @@ export const AddPackageScreen = () => {
       setFeedback({
         visible: true,
         type: 'error',
-        title: 'Oturum Bulunamadı',
-        message: 'Kargo eklemek için giriş yapmış olmanız gerekmektedir.',
+        title: t('authRequiredTitle'),
+        message: t('authRequiredMsg'),
       });
       return;
     }
@@ -163,8 +165,8 @@ export const AddPackageScreen = () => {
       setFeedback({
         visible: true,
         type: 'success',
-        title: 'Kargo Başarıyla Eklendi',
-        message: 'Kargonuz takibe alındı. Durum değişikliklerinden anında haberdar edileceksiniz.',
+        title: t('addSuccessTitle'),
+        message: t('addSuccessMsg'),
         trackingNumber: addedCode,
         onConfirm: () => {
           setFeedback(prev => ({ ...prev, visible: false }));
@@ -175,8 +177,8 @@ export const AddPackageScreen = () => {
       setFeedback({
         visible: true,
         type: 'error',
-        title: 'Kargo Eklenemedi',
-        message: err.message || 'Kargo eklenirken beklenmeyen bir hata oluştu.',
+        title: t('addErrorTitle'),
+        message: err.message || t('error'),
       });
     }
   };
@@ -226,10 +228,10 @@ export const AddPackageScreen = () => {
           {/* Header Section */}
           <View style={styles.headerSection}>
             <Text style={[isLargeScreen ? styles.pageTitleLarge : styles.pageTitle, { color: colors.primary }]}>
-              Yeni Kargo Ekle
+              {t('addPackageTitle')}
             </Text>
             <Text style={[styles.pageSubtitle, { color: colors.onSurfaceVariant }]}>
-              Gönderinizi anlık olarak izlemek için takip bilgilerini girin.
+              {t('addPackageSubtitle')}
             </Text>
           </View>
 
@@ -238,7 +240,7 @@ export const AddPackageScreen = () => {
             <TouchableOpacity style={styles.clipboardBadge} onPress={handleApplyClipboard} activeOpacity={0.8}>
               <MaterialIcons name="content-paste-go" size={22} color="#2563eb" />
               <Text style={styles.clipboardText}>
-                📋 Panoda tespit edildi: <Text style={styles.clipboardCode}>{clipboardDetected}</Text> (Aktarmak için dokunun)
+                {t('clipboardDetectedPrefix')}<Text style={styles.clipboardCode}>{clipboardDetected}</Text>{t('clipboardDetectedSuffix')}
               </Text>
             </TouchableOpacity>
           )}
@@ -247,8 +249,8 @@ export const AddPackageScreen = () => {
           <TouchableOpacity style={styles.emailSyncCard} onPress={() => setEmailModalVisible(true)} activeOpacity={0.85}>
             <MaterialIcons name="mark-email-unread" size={24} color="#00236f" />
             <View style={styles.emailSyncTextWrapper}>
-              <Text style={styles.emailSyncTitle}>E-Postadan Otomatik İçe Aktar</Text>
-              <Text style={styles.emailSyncSubtitle}>Trendyol, Hepsiburada ve Amazon maillerini otomatik tara</Text>
+              <Text style={styles.emailSyncTitle}>{t('autoImportEmail')}</Text>
+              <Text style={styles.emailSyncSubtitle}>{t('autoImportSubtitle')}</Text>
             </View>
             <MaterialIcons name="chevron-right" size={22} color="#00236f" />
           </TouchableOpacity>
@@ -259,7 +261,7 @@ export const AddPackageScreen = () => {
             {/* Tracking Number Input */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: colors.onSurface }]}>
-                Takip Numarası <Text style={styles.requiredAsterisk}>*</Text>
+                {t('trackingNumberLabel')} <Text style={styles.requiredAsterisk}>*</Text>
               </Text>
               <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: fieldErrors.trackingNumber ? (colors.error || '#BA1A1A') : colors.outlineVariant }, fieldErrors.trackingNumber ? { borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
@@ -291,7 +293,7 @@ export const AddPackageScreen = () => {
             {/* Carrier Selection */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: colors.onSurface }]}>
-                Kargo Firması <Text style={styles.requiredAsterisk}>*</Text>
+                {t('carrierLabel')} <Text style={styles.requiredAsterisk}>*</Text>
               </Text>
               <TouchableOpacity
                 style={[styles.carrierSelectorBtn, { backgroundColor: colors.surface, borderColor: fieldErrors.selectedCarrier ? (colors.error || '#BA1A1A') : colors.outlineVariant }, fieldErrors.selectedCarrier ? { borderWidth: 1.5 } : null]}
@@ -307,7 +309,7 @@ export const AddPackageScreen = () => {
                     <Text style={[styles.carrierSelectorText, { color: colors.onSurface }]}>{activeCarrier.name}</Text>
                   </View>
                 ) : (
-                  <Text style={[styles.carrierSelectorPlaceholder, { color: colors.onSurfaceVariant }]}>Kargo Firması Seçin...</Text>
+                  <Text style={[styles.carrierSelectorPlaceholder, { color: colors.onSurfaceVariant }]}>{t('selectCarrier')}</Text>
                 )}
                 <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
               </TouchableOpacity>
@@ -319,8 +321,8 @@ export const AddPackageScreen = () => {
             {/* Package Nickname */}
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
-                <Text style={[styles.inputLabel, { color: colors.onSurface }]}>Kargo Takma Adı</Text>
-                <Text style={[styles.optionalText, { color: colors.outline }]}>İsteğe Bağlı</Text>
+                <Text style={[styles.inputLabel, { color: colors.onSurface }]}>{t('packageNicknameLabel')}</Text>
+                <Text style={[styles.optionalText, { color: colors.outline }]}>{t('optional')}</Text>
               </View>
               <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
                 <View style={styles.inputIconLeft}>
@@ -349,7 +351,7 @@ export const AddPackageScreen = () => {
                 ) : (
                   <>
                     <MaterialIcons name="add-box" size={22} color={colors.onPrimary} />
-                    <Text style={[styles.submitButtonText, { color: colors.onPrimary }]}>Kargoyu Kaydet & Takip Et</Text>
+                    <Text style={[styles.submitButtonText, { color: colors.onPrimary }]}>{t('savePackage')}</Text>
                   </>
                 )}
               </TouchableOpacity>

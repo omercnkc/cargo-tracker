@@ -11,6 +11,7 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface NotificationItem {
   id: string;
@@ -78,6 +79,7 @@ export const NotificationsScreen = () => {
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
 
@@ -98,47 +100,44 @@ export const NotificationsScreen = () => {
           <View style={[styles.iconWrapper, { backgroundColor: '#E8F2FF' }]}>
             <MaterialCommunityIcons name="package-variant-closed" size={24} color="#2563EB" />
             <View style={[styles.miniCheckBadge, { backgroundColor: '#2563EB' }]}>
-              <MaterialIcons name="check" size={9} color="#FFFFFF" />
+              <MaterialIcons name="check" size={10} color="#FFFFFF" />
             </View>
           </View>
         );
       case 'in_transit':
         return (
-          <View style={[styles.iconWrapper, { backgroundColor: '#FFF5E5' }]}>
-            <MaterialCommunityIcons name="truck-delivery" size={24} color="#D97706" />
+          <View style={[styles.iconWrapper, { backgroundColor: '#FEF3C7' }]}>
+            <MaterialIcons name="local-shipping" size={24} color="#D97706" />
           </View>
         );
       case 'hub':
         return (
-          <View style={[styles.iconWrapper, { backgroundColor: '#F3E8FF' }]}>
-            <MaterialCommunityIcons name="map-marker" size={24} color="#7C3AED" />
+          <View style={[styles.iconWrapper, { backgroundColor: '#F1F5F9' }]}>
+            <MaterialIcons name="store-mall-directory" size={24} color="#475569" />
           </View>
         );
       case 'received':
         return (
-          <View style={[styles.iconWrapper, { backgroundColor: '#ECFDF5' }]}>
-            <MaterialCommunityIcons name="package-variant-closed" size={24} color="#10B981" />
-            <View style={[styles.miniCheckBadge, { backgroundColor: '#10B981' }]}>
-              <MaterialIcons name="check" size={9} color="#FFFFFF" />
-            </View>
+          <View style={[styles.iconWrapper, { backgroundColor: '#DCFCE7' }]}>
+            <MaterialIcons name="inventory" size={24} color="#16A34A" />
           </View>
         );
       case 'reminder':
         return (
-          <View style={[styles.iconWrapper, { backgroundColor: '#E0F2FE' }]}>
-            <MaterialCommunityIcons name="bell" size={24} color="#0284C7" />
+          <View style={[styles.iconWrapper, { backgroundColor: '#F3E8FF' }]}>
+            <MaterialIcons name="notifications-active" size={24} color="#9333EA" />
           </View>
         );
       case 'failed':
         return (
           <View style={[styles.iconWrapper, { backgroundColor: '#FEE2E2' }]}>
-            <MaterialCommunityIcons name="alert-circle" size={24} color="#EF4444" />
+            <MaterialIcons name="warning" size={24} color="#DC2626" />
           </View>
         );
       default:
         return (
           <View style={[styles.iconWrapper, { backgroundColor: '#F1F5F9' }]}>
-            <MaterialCommunityIcons name="bell-outline" size={24} color="#64748B" />
+            <MaterialIcons name="notifications" size={24} color="#475569" />
           </View>
         );
     }
@@ -152,7 +151,7 @@ export const NotificationsScreen = () => {
           <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
             <MaterialIcons name="arrow-back" size={24} color={colors.onSurfaceVariant} />
           </TouchableOpacity>
-          <Text style={[styles.appBarTitle, { color: colors.primary }]}>Bildirimler</Text>
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('notificationsTitle')}</Text>
           <View style={{ width: 40 }} />
         </View>
       </View>
@@ -165,9 +164,9 @@ export const NotificationsScreen = () => {
         ]}
       >
         <View style={styles.headerRow}>
-          <Text style={[styles.pageTitle, { color: colors.onSurface }]}>Bildirimler</Text>
+          <Text style={[styles.pageTitle, { color: colors.onSurface }]}>{t('notificationsTitle')}</Text>
           <TouchableOpacity onPress={markAllAsRead}>
-            <Text style={[styles.markReadText, { color: colors.primary }]}>Tümünü okundu işaretle</Text>
+            <Text style={[styles.markReadText, { color: colors.primary }]}>{t('markAllAsRead')}</Text>
           </TouchableOpacity>
         </View>
 

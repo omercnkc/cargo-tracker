@@ -22,7 +22,7 @@ export const tr = {
   pending: 'Bekleyen',
   inTransit: 'Dağıtımda',
 
-  // Actions
+  // Actions & Navigation
   addPackage: 'Paket Ekle',
   qrScan: 'QR Tara',
   seeAll: 'Tümünü Gör',
@@ -33,8 +33,79 @@ export const tr = {
   carrierLabel: 'KARGO FİRMASI',
   selectCarrier: 'Kargo Firması Seçin...',
   packageNicknameLabel: 'Paket Adı',
-  optional: 'Opsiyonel',
+  optional: 'İsteğe Bağlı',
   savePackage: 'Kargoyu Kaydet',
+
+  // Add Package Screen
+  addPackageTitle: 'Yeni Kargo Ekle',
+  addPackageSubtitle: 'Gönderinizi anlık olarak izlemek için takip bilgilerini girin.',
+  clipboardDetectedPrefix: '📋 Panoda tespit edildi: ',
+  clipboardDetectedSuffix: ' (Aktarmak için dokunun)',
+  autoImportEmail: 'E-Postadan Otomatik İçe Aktar',
+  autoImportSubtitle: 'Trendyol, Hepsiburada ve Amazon maillerini otomatik tara',
+  trackingNumberRequired: 'Takip numarası girilmesi zorunludur.',
+  carrierRequired: 'Kargo firması seçilmesi zorunludur.',
+  missingFieldsTitle: 'Zorunlu Alanlar Eksik',
+  missingFieldsMsg: 'Lütfen kırmızı ile belirtilen zorunlu alanları doldurun.',
+  authRequiredTitle: 'Oturum Bulunamadı',
+  authRequiredMsg: 'Kargo eklemek için giriş yapmış olmanız gerekmektedir.',
+  addSuccessTitle: 'Kargo Başarıyla Eklendi',
+  addSuccessMsg: 'Kargonuz takibe alındı. Durum değişikliklerinden anında haberdar edileceksiniz.',
+  addErrorTitle: 'Kargo Eklenemedi',
+
+  // Packages Screen
+  allPackagesTitle: 'Tüm Kargolarım',
+  searchPlaceholderPackage: 'Takip no, firma veya takma ad...',
+  allFilter: 'Tümü',
+  filterClear: 'Filtreleri Temizle',
+  noPackagesFound: 'Kargo Bulunamadı',
+  noPackagesFoundSub: 'Arama kriterlerinize uygun kargo kaydı bulunamadı.',
+  originLabel: 'Kaynak',
+  destinationLabel: 'Hedef',
+  detailsBtn: 'Detaylar',
+  deliveryDateLabel: 'Tahmini Teslimat',
+  deliveredDateLabel: 'Teslim Tarihi',
+
+  // Statistics Screen
+  statisticsTitle: 'İstatistikler',
+  totalCargo: 'Toplam Kargo',
+  avgDeliveryTime: 'Ort. Teslimat Süresi',
+  deliverySuccess: 'Teslimat Başarısı',
+  monthlyDistribution: 'Aylık Dağılım',
+  courierBreakdown: 'Kargo Şirketleri Dağılımı',
+  filterByMonth: 'Filtre',
+  clearFilter: 'Filtreyi Temizle',
+
+  // Notifications Screen
+  notificationsTitle: 'Bildirimler',
+  markAllAsRead: 'Tümünü Okundu İşaretle',
+  noNotifications: 'Henüz Bildirim Yok',
+  noNotificationsSub: 'Kargonuzun durumu değiştiğinde anlık bildirimler burada görünecektir.',
+
+  // Carrier Selection
+  carriersTitle: 'Kargo Firmaları',
+  noCarriersFound: 'Kargo firması bulunamadı',
+  tryDifferentSearch: 'Farklı bir arama yapmayı deneyin.',
+
+  // Scanner Screen
+  scannerTitle: 'Barkod / QR Scanner',
+  cameraPermissionTitle: 'Kamera İzni Gerekli',
+  cameraPermissionMsg: 'Barkod veya QR kod taramak için kamera iznine ihtiyaç duyulmaktadır.',
+  grantPermission: 'İzin Ver',
+
+  // Profile & Auth
+  profileTitle: 'Profil',
+  loginTitle: 'Giriş Yap',
+  registerTitle: 'Kayıt Ol',
+  forgotPasswordTitle: 'Şifremi Unuttum',
+  emailLabel: 'E-Posta Adresi',
+  passwordLabel: 'Şifre',
+  fullNameLabel: 'Ad Soyad',
+  loginBtn: 'Giriş Yap',
+  registerBtn: 'Kayıt Ol',
+  forgotPasswordLink: 'Şifrenizi mi unuttunuz?',
+  dontHaveAccount: 'Hesabınız yok mu?',
+  alreadyHaveAccount: 'Zaten hesabınız var mı?',
 
   // Settings
   settings: 'Ayarlar',

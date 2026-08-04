@@ -21,6 +21,7 @@ import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { DEFAULT_CARRIERS, getCarrierByName } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface PackageItem {
   id: string;
@@ -124,6 +125,7 @@ export const PackagesScreen = () => {
   const { theme: colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const { data: dbShipments } = useShipments(user?.id);
+  const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -274,14 +276,14 @@ export const PackagesScreen = () => {
         {/* Header & Search Area */}
         <View style={styles.headerSection}>
           <Text style={[isLargeScreen ? styles.pageTitleLarge : styles.pageTitle, { color: colors.primary }]}>
-            Aktif Kargolar
+            {t('allPackagesTitle')}
           </Text>
 
           <View style={[styles.searchContainer, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
             <MaterialIcons name="search" size={20} color={colors.outline} style={styles.searchIconLeft} />
             <TextInput
               style={[styles.searchInput, { color: colors.onSurface }]}
-              placeholder="Takip no veya firma ara..."
+              placeholder={t('searchPlaceholderPackage')}
               placeholderTextColor={colors.onSurfaceVariant}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -314,7 +316,7 @@ export const PackagesScreen = () => {
               {statusFilter !== 'all' && (
                 <View style={[styles.filterChip, { backgroundColor: colors.primaryContainer }]}>
                   <Text style={[styles.filterChipText, { color: colors.primary }]}>
-                    {statusFilter === 'transit' ? '🚚 Yolda' : statusFilter === 'delivered' ? '✅ Teslim Edildi' : '⚠️ İşlem Gerekli'}
+                    {statusFilter === 'transit' ? `🚚 ${t('statusInTransit')}` : statusFilter === 'delivered' ? `✅ ${t('statusDelivered')}` : `⚠️ ${t('statusPending')}`}
                   </Text>
                   <TouchableOpacity onPress={() => setStatusFilter('all')}>
                     <MaterialIcons name="close" size={14} color={colors.primary} />
@@ -332,7 +334,7 @@ export const PackagesScreen = () => {
               {sortBy !== 'newest' && (
                 <View style={[styles.filterChip, { backgroundColor: colors.tertiaryContainer }]}>
                   <Text style={[styles.filterChipText, { color: colors.tertiary }]}>
-                    {sortBy === 'oldest' ? 'En Eski' : 'A-Z'}
+                    {sortBy === 'oldest' ? 'Oldest' : 'A-Z'}
                   </Text>
                   <TouchableOpacity onPress={() => setSortBy('newest')}>
                     <MaterialIcons name="close" size={14} color={colors.tertiary} />
@@ -340,7 +342,7 @@ export const PackagesScreen = () => {
                 </View>
               )}
               <TouchableOpacity onPress={resetFilters} style={styles.resetFiltersBtn}>
-                <Text style={{ fontSize: 12, color: colors.error, fontWeight: '600' }}>Tümünü Sıfırla</Text>
+                <Text style={{ fontSize: 12, color: colors.error, fontWeight: '600' }}>{t('filterClear')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -350,12 +352,12 @@ export const PackagesScreen = () => {
         {filteredPackages.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MaterialIcons name="search-off" size={48} color={colors.outline} />
-            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>Kargo Bulunamadı</Text>
+            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>{t('noPackagesFound')}</Text>
             <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>
-              Arama kriterlerinize uygun kargo kaydı bulunmuyor.
+              {t('noPackagesFoundSub')}
             </Text>
             <TouchableOpacity style={[styles.resetButton, { backgroundColor: colors.primary }]} onPress={resetFilters}>
-              <Text style={styles.resetButtonText}>Filtreleri Temizle</Text>
+              <Text style={styles.resetButtonText}>{t('filterClear')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

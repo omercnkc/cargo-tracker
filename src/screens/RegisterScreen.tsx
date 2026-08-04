@@ -25,6 +25,7 @@ import { useAuthStore } from '../store/auth.store';
 import { GOOGLE_CONFIG } from '../config/google.config';
 import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
 import { GoogleLogo } from '../components/common/GoogleLogo';
+import { useTranslation } from '../hooks/useTranslation';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -33,6 +34,7 @@ const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnviron
 export const RegisterScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { t } = useTranslation();
   
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -285,7 +287,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                   <ActivityIndicator color={colors.onPrimary} />
                 ) : (
                   <>
-                    <Text style={styles.submitButtonText}>Hesap Oluştur</Text>
+                    <Text style={styles.submitButtonText}>{t('registerBtn')}</Text>
                     <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
                   </>
                 )}
@@ -294,7 +296,7 @@ export const RegisterScreen = ({ navigation }: any) => {
               {/* Divider */}
               <View style={styles.dividerContainer}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>veya</Text>
+                <Text style={styles.dividerText}>or</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -306,13 +308,13 @@ export const RegisterScreen = ({ navigation }: any) => {
                 disabled={isLoading || !request}
               >
                 <GoogleLogo size={22} />
-                <Text style={styles.googleButtonText}>Google ile Kaydol</Text>
+                <Text style={styles.googleButtonText}>Google {t('registerBtn')}</Text>
               </TouchableOpacity>
               
               <View style={styles.loginLinkContainer}>
-                <Text style={styles.loginLinkText}>Zaten hesabınız var mı? </Text>
+                <Text style={styles.loginLinkText}>{t('alreadyHaveAccount')} </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                  <Text style={styles.loginLinkHighlight}>Giriş Yap</Text>
+                  <Text style={styles.loginLinkHighlight}>{t('loginBtn')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

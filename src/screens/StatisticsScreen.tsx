@@ -14,12 +14,14 @@ import useResponsive from '../hooks/useResponsive';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
+import { useTranslation } from '../hooks/useTranslation';
 
 export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const { isOnline, pendingCount } = useNetworkStatus();
   const { theme: colors, isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   const user = useAuthStore((state) => state.user);
   const { data: dbShipments, isLoading } = useShipments(user?.id);
@@ -222,16 +224,16 @@ export const StatisticsScreen = () => {
               {/* Total Packages */}
               <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
                 <View style={styles.statCardHeader}>
-                  <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>TOPLAM KARGO</Text>
+                  <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>{t('totalCargo').toUpperCase()}</Text>
                   <View style={[styles.iconBox, { backgroundColor: colors.primaryContainer }]}>
                     <MaterialIcons name="inventory" size={16} color={colors.onPrimaryContainer} />
                   </View>
                 </View>
                 <View>
-                  <Text style={[styles.statValue, { color: colors.primary }]}>{totalCount.toLocaleString('tr-TR')}</Text>
+                  <Text style={[styles.statValue, { color: colors.primary }]}>{totalCount.toLocaleString()}</Text>
                   <View style={styles.trendRow}>
                     <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>
-                      {selectedMonthLabel ? `${selectedMonthLabel} ayı kargo sayısı` : 'Kaydedilen toplam kargo'}
+                      {selectedMonthLabel ? `${selectedMonthLabel}` : t('totalCargo')}
                     </Text>
                   </View>
                 </View>
@@ -240,7 +242,7 @@ export const StatisticsScreen = () => {
               {/* Average Delivery Time */}
               <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
                 <View style={styles.statCardHeader}>
-                  <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>ORT. TESLİMAT SÜRESİ</Text>
+                  <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>{t('avgDeliveryTime').toUpperCase()}</Text>
                   <View style={[styles.iconBox, { backgroundColor: colors.surfaceVariant }]}>
                     <MaterialIcons name="timer" size={16} color={colors.primary} />
                   </View>
@@ -248,7 +250,7 @@ export const StatisticsScreen = () => {
                 <View>
                   <Text style={[styles.statValue, { color: colors.primary }]}>{avgDeliveryDaysFormatted} <Text style={[styles.statValueUnit, { color: colors.onSurfaceVariant }]}>Gün</Text></Text>
                   <View style={styles.trendRow}>
-                    <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>{deliveredShipments.length} teslimat verisine göre</Text>
+                    <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>{deliveredShipments.length} {t('statusDelivered').toLowerCase()}</Text>
                   </View>
                 </View>
               </View>
@@ -256,7 +258,7 @@ export const StatisticsScreen = () => {
               {/* Success Rate */}
               <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
                 <View style={styles.statCardHeader}>
-                  <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>TESLİMAT BAŞARISI</Text>
+                  <Text style={[styles.statCardLabel, { color: colors.onSurfaceVariant }]}>{t('deliverySuccess').toUpperCase()}</Text>
                   <View style={[styles.iconBox, { backgroundColor: colors.tertiaryContainer }]}>
                     <MaterialIcons name="check-circle" size={16} color={colors.onTertiaryContainer} />
                   </View>
@@ -264,7 +266,7 @@ export const StatisticsScreen = () => {
                 <View>
                   <Text style={[styles.statValue, { color: colors.primary }]}>%{successRate}</Text>
                   <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>
-                    {deliveredShipments.length} / {totalCount} teslim edildi
+                    {deliveredShipments.length} / {totalCount} {t('statusDelivered').toLowerCase()}
                   </Text>
                 </View>
               </View>
@@ -276,7 +278,7 @@ export const StatisticsScreen = () => {
               <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.barChartCardDesktop]}>
                 <View style={styles.chartHeader}>
                   <View>
-                    <Text style={[styles.chartTitle, { color: colors.onSurface }]}>Aylık Gönderi Dağılımı</Text>
+                    <Text style={[styles.chartTitle, { color: colors.onSurface }]}>{t('monthlyDistribution')}</Text>
                     <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>Ay seçmek için sütunlara dokunun</Text>
                   </View>
                   {selectedMonthKey ? (

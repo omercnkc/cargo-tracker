@@ -24,7 +24,7 @@ export const en: TranslationKeys = {
   pending: 'Pending',
   inTransit: 'In Transit',
 
-  // Actions
+  // Actions & Navigation
   addPackage: 'Add Package',
   qrScan: 'QR Scan',
   seeAll: 'See All',
@@ -37,6 +37,77 @@ export const en: TranslationKeys = {
   packageNicknameLabel: 'Package Nickname',
   optional: 'Optional',
   savePackage: 'Save Package',
+
+  // Add Package Screen
+  addPackageTitle: 'Add New Package',
+  addPackageSubtitle: 'Enter tracking details to monitor your shipment in real-time.',
+  clipboardDetectedPrefix: '📋 Detected in clipboard: ',
+  clipboardDetectedSuffix: ' (Tap to apply)',
+  autoImportEmail: 'Auto Import from Email',
+  autoImportSubtitle: 'Automatically scan Trendyol, Hepsiburada, and Amazon emails',
+  trackingNumberRequired: 'Tracking number is required.',
+  carrierRequired: 'Carrier selection is required.',
+  missingFieldsTitle: 'Required Fields Missing',
+  missingFieldsMsg: 'Please fill in the required fields highlighted in red.',
+  authRequiredTitle: 'Session Not Found',
+  authRequiredMsg: 'You must be signed in to add a package.',
+  addSuccessTitle: 'Shipment Added Successfully',
+  addSuccessMsg: 'Your shipment is now tracked. You will be notified of status changes.',
+  addErrorTitle: 'Failed to Add Shipment',
+
+  // Packages Screen
+  allPackagesTitle: 'All My Packages',
+  searchPlaceholderPackage: 'Tracking no, carrier, or nickname...',
+  allFilter: 'All',
+  filterClear: 'Clear Filters',
+  noPackagesFound: 'No Packages Found',
+  noPackagesFoundSub: 'No shipment records match your search criteria.',
+  originLabel: 'Origin',
+  destinationLabel: 'Destination',
+  detailsBtn: 'Details',
+  deliveryDateLabel: 'Est. Delivery',
+  deliveredDateLabel: 'Delivered Date',
+
+  // Statistics Screen
+  statisticsTitle: 'Statistics',
+  totalCargo: 'Total Packages',
+  avgDeliveryTime: 'Avg. Delivery Time',
+  deliverySuccess: 'Delivery Success',
+  monthlyDistribution: 'Monthly Distribution',
+  courierBreakdown: 'Courier Distribution',
+  filterByMonth: 'Filter',
+  clearFilter: 'Clear Filter',
+
+  // Notifications Screen
+  notificationsTitle: 'Notifications',
+  markAllAsRead: 'Mark All as Read',
+  noNotifications: 'No Notifications Yet',
+  noNotificationsSub: 'Real-time updates will appear here when your shipment status changes.',
+
+  // Carrier Selection
+  carriersTitle: 'Courier Companies',
+  noCarriersFound: 'No carrier found',
+  tryDifferentSearch: 'Try searching for a different name.',
+
+  // Scanner Screen
+  scannerTitle: 'Barcode / QR Scanner',
+  cameraPermissionTitle: 'Camera Permission Required',
+  cameraPermissionMsg: 'Camera permission is required to scan barcodes or QR codes.',
+  grantPermission: 'Grant Permission',
+
+  // Profile & Auth
+  profileTitle: 'Profile',
+  loginTitle: 'Sign In',
+  registerTitle: 'Sign Up',
+  forgotPasswordTitle: 'Forgot Password',
+  emailLabel: 'Email Address',
+  passwordLabel: 'Password',
+  fullNameLabel: 'Full Name',
+  loginBtn: 'Sign In',
+  registerBtn: 'Sign Up',
+  forgotPasswordLink: 'Forgot your password?',
+  dontHaveAccount: 'Don\'t have an account?',
+  alreadyHaveAccount: 'Already have an account?',
 
   // Settings
   settings: 'Settings',

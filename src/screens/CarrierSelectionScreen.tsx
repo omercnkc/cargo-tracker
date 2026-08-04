@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { DEFAULT_CARRIERS, isCarrierAllowed } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
+import { useTranslation } from '../hooks/useTranslation';
 
 const CARRIERS = DEFAULT_CARRIERS;
 
@@ -27,6 +28,7 @@ export const CarrierSelectionScreen = () => {
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 640;
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const [sheetVisible, setSheetVisible] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,13 +48,13 @@ export const CarrierSelectionScreen = () => {
           <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
             <MaterialIcons name="arrow-back" size={24} color={colors.onSurfaceVariant} />
           </TouchableOpacity>
-          <Text style={[styles.appBarTitle, { color: colors.primary }]}>Kargo Firmaları</Text>
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('carriersTitle')}</Text>
           <View style={{ width: 40 }} />
         </View>
       </View>
 
       <View style={[styles.mockMainContent, { backgroundColor: colors.background }]}>
-        <Text style={[styles.mockTitle, { color: colors.onSurface }]}>Kargo Firması Seç</Text>
+        <Text style={[styles.mockTitle, { color: colors.onSurface }]}>{t('selectCarrier')}</Text>
         <Text style={[styles.mockSubtitle, { color: colors.onSurfaceVariant }]}>Takip etmek istediğiniz kargonun firmasını seçin.</Text>
         <TouchableOpacity
           style={[styles.openButton, { backgroundColor: colors.primary }]}
