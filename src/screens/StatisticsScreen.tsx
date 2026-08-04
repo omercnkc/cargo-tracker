@@ -170,13 +170,13 @@ export const StatisticsScreen = () => {
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.outlineVariant }]}>
         <View style={styles.appBarContent}>
-          <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>Analiz & Raporlama</Text>
+          <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>{t('analyticsAndReporting')}</Text>
           
           {/* Network Status Badge */}
           <View style={[styles.networkBadge, { backgroundColor: isOnline ? (isDarkMode ? '#064e3b' : '#dcfce7') : (isDarkMode ? '#7f1d1d' : '#fee2e2') }]}>
             <MaterialIcons name={isOnline ? "wifi" : "wifi-off"} size={14} color={isOnline ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b')} />
             <Text style={[styles.networkBadgeText, { color: isOnline ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b') }]}>
-              {isOnline ? 'Çevrimiçi' : `Çevrimdışı (${pendingCount} Bekleyen)`}
+              {isOnline ? t('online') : `${t('offline')} (${pendingCount})`}
             </Text>
           </View>
         </View>
@@ -191,9 +191,9 @@ export const StatisticsScreen = () => {
       >
         <View style={styles.pageHeaderRow}>
           <View style={styles.pageHeaderLeft}>
-            <Text style={[styles.pageTitle, { color: colors.onSurface }]}>Performans Özeti</Text>
+            <Text style={[styles.pageTitle, { color: colors.onSurface }]}>{t('performanceSummary')}</Text>
             <Text style={[styles.pageSubtitle, { color: colors.onSurfaceVariant }]}>
-              {selectedMonthLabel ? `${selectedMonthLabel} verileri gösteriliyor` : 'Kargo teslimat ve istatistik raporlarınız'}
+              {selectedMonthLabel ? `${selectedMonthLabel}` : t('statsOverviewSubtitle')}
             </Text>
           </View>
 
@@ -279,19 +279,19 @@ export const StatisticsScreen = () => {
                 <View style={styles.chartHeader}>
                   <View>
                     <Text style={[styles.chartTitle, { color: colors.onSurface }]}>{t('monthlyDistribution')}</Text>
-                    <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>Ay seçmek için sütunlara dokunun</Text>
+                    <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>{t('tapBarToFilter')}</Text>
                   </View>
                   {selectedMonthKey ? (
                     <TouchableOpacity
                       style={[styles.dropdownPicker, { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.primary }]}
                       onPress={() => setSelectedMonthKey(null)}
                     >
-                      <Text style={[styles.dropdownText, { color: colors.primary, fontWeight: '600' }]}>Tümünü Göster</Text>
+                      <Text style={[styles.dropdownText, { color: colors.primary, fontWeight: '600' }]}>{t('showAll')}</Text>
                       <MaterialIcons name="close" size={16} color={colors.primary} />
                     </TouchableOpacity>
                   ) : (
                     <View style={[styles.dropdownPicker, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-                      <Text style={[styles.dropdownText, { color: colors.onSurface }]}>Son 6 Ay</Text>
+                      <Text style={[styles.dropdownText, { color: colors.onSurface }]}>{t('last6Months')}</Text>
                     </View>
                   )}
                 </View>
@@ -356,7 +356,7 @@ export const StatisticsScreen = () => {
 
               {/* Pie Chart (Simulated Donut) */}
               <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.pieChartCardDesktop]}>
-                <Text style={[styles.chartTitle, { color: colors.onSurface }]}>Kargo Firması Oranları</Text>
+                <Text style={[styles.chartTitle, { color: colors.onSurface }]}>{t('courierBreakdown')}</Text>
                 {selectedMonthLabel && (
                   <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>{selectedMonthLabel}</Text>
                 )}
@@ -365,7 +365,7 @@ export const StatisticsScreen = () => {
                   <View style={[styles.donutOuter, { backgroundColor: colors.primaryContainer, borderColor: colors.primary, borderTopColor: colors.primaryFixed, borderRightColor: colors.surfaceTint }]}>
                     <View style={[styles.donutInner, { backgroundColor: colors.surfaceContainerLowest }]}>
                       <Text style={[styles.donutCenterText, { color: colors.onSurface }]}>{courierStats.totalCompanies}</Text>
-                      <Text style={[styles.donutCenterSubtext, { color: colors.onSurfaceVariant }]}>Firma</Text>
+                      <Text style={[styles.donutCenterSubtext, { color: colors.onSurfaceVariant }]}>{t('companyUnit')}</Text>
                     </View>
                   </View>
                 </View>

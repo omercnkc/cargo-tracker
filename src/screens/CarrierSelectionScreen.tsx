@@ -55,12 +55,12 @@ export const CarrierSelectionScreen = () => {
 
       <View style={[styles.mockMainContent, { backgroundColor: colors.background }]}>
         <Text style={[styles.mockTitle, { color: colors.onSurface }]}>{t('selectCarrier')}</Text>
-        <Text style={[styles.mockSubtitle, { color: colors.onSurfaceVariant }]}>Takip etmek istediğiniz kargonun firmasını seçin.</Text>
+        <Text style={[styles.mockSubtitle, { color: colors.onSurfaceVariant }]}>{t('selectCarrierSubtitle')}</Text>
         <TouchableOpacity
           style={[styles.openButton, { backgroundColor: colors.primary }]}
           onPress={() => setSheetVisible(true)}
         >
-          <Text style={[styles.openButtonText, { color: colors.onPrimary }]}>Kargo Firması Seç</Text>
+          <Text style={[styles.openButtonText, { color: colors.onPrimary }]}>{t('selectCarrier')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -96,7 +96,7 @@ export const CarrierSelectionScreen = () => {
 
             {/* Sheet Header */}
             <View style={[styles.sheetHeader, { borderBottomColor: colors.surfaceContainer }]}>
-              <Text style={[styles.sheetTitle, { color: colors.onSurface }]}>Kargo Firması Seç</Text>
+              <Text style={[styles.sheetTitle, { color: colors.onSurface }]}>{t('selectCarrier')}</Text>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setSheetVisible(false)}
@@ -111,7 +111,7 @@ export const CarrierSelectionScreen = () => {
                 <MaterialIcons name="search" size={20} color={colors.outline} style={styles.searchIcon} />
                 <TextInput
                   style={[styles.searchInput, { color: colors.onSurface }]}
-                  placeholder="Kargo firması ara..."
+                  placeholder={t('searchCarriers')}
                   placeholderTextColor={colors.onSurfaceVariant}
                   value={searchQuery}
                   onChangeText={setSearchQuery}

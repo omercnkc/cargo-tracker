@@ -77,6 +77,18 @@ export const en: TranslationKeys = {
   courierBreakdown: 'Courier Distribution',
   filterByMonth: 'Filter',
   clearFilter: 'Clear Filter',
+  analyticsAndReporting: 'Analytics & Reporting',
+  performanceSummary: 'Performance Summary',
+  statsOverviewSubtitle: 'Your shipment delivery and statistics reports',
+  online: 'Online',
+  offline: 'Offline',
+  tapBarToFilter: 'Tap columns to filter by month',
+  showAll: 'Show All',
+  last6Months: 'Last 6 Months',
+  companyUnit: 'Couriers',
+  total: 'Total',
+  issues: 'Issues',
+  actionRequired: 'Action Required',
 
   // Notifications Screen
   notificationsTitle: 'Notifications',
@@ -84,10 +96,27 @@ export const en: TranslationKeys = {
   noNotifications: 'No Notifications Yet',
   noNotificationsSub: 'Real-time updates will appear here when your shipment status changes.',
 
+  // Profile Screen
+  editProfile: 'Edit Profile',
+
   // Carrier Selection
   carriersTitle: 'Courier Companies',
   noCarriersFound: 'No carrier found',
   tryDifferentSearch: 'Try searching for a different name.',
+  selectCarrierSubtitle: 'Select the courier company for the package you want to track.',
+
+  // Hamburger Drawer Menu
+  accountHeader: 'ACCOUNT',
+  personalInfo: 'Personal Information',
+  changePassword: 'Change Password',
+  notificationSettings: 'Notification Settings',
+  defaultCarriersMenu: 'Default Courier Companies',
+  supportHeader: 'SUPPORT',
+  helpCenter: 'Help Center',
+  rateApp: 'Rate App',
+  sendFeedback: 'Send Feedback',
+  privacyPolicy: 'Privacy Policy',
+  termsOfUse: 'Terms of Use',
 
   // Scanner Screen
   scannerTitle: 'Barcode / QR Scanner',

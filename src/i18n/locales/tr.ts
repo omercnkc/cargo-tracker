@@ -75,6 +75,18 @@ export const tr = {
   courierBreakdown: 'Kargo Şirketleri Dağılımı',
   filterByMonth: 'Filtre',
   clearFilter: 'Filtreyi Temizle',
+  analyticsAndReporting: 'Analiz & Raporlama',
+  performanceSummary: 'Performans Özeti',
+  statsOverviewSubtitle: 'Kargo teslimat ve istatistik raporlarınız',
+  online: 'Çevrimiçi',
+  offline: 'Çevrimdışı',
+  tapBarToFilter: 'Ay seçmek için sütunlara dokunun',
+  showAll: 'Tümünü Göster',
+  last6Months: 'Son 6 Ay',
+  companyUnit: 'Firma',
+  total: 'Toplam',
+  issues: 'Sorunlu',
+  actionRequired: 'İşlem Gerekli',
 
   // Notifications Screen
   notificationsTitle: 'Bildirimler',
@@ -82,10 +94,27 @@ export const tr = {
   noNotifications: 'Henüz Bildirim Yok',
   noNotificationsSub: 'Kargonuzun durumu değiştiğinde anlık bildirimler burada görünecektir.',
 
+  // Profile Screen
+  editProfile: 'Profili Düzenle',
+
   // Carrier Selection
   carriersTitle: 'Kargo Firmaları',
   noCarriersFound: 'Kargo firması bulunamadı',
   tryDifferentSearch: 'Farklı bir arama yapmayı deneyin.',
+  selectCarrierSubtitle: 'Takip etmek istediğiniz kargonun firmasını seçin.',
+
+  // Hamburger Drawer Menu
+  accountHeader: 'HESAP',
+  personalInfo: 'Kişisel Bilgiler',
+  changePassword: 'Şifre Değiştir',
+  notificationSettings: 'Bildirim Ayarları',
+  defaultCarriersMenu: 'Varsayılan Kargo Firmaları',
+  supportHeader: 'DESTEK',
+  helpCenter: 'Yardım Merkezi',
+  rateApp: 'Uygulamayı Puanla',
+  sendFeedback: 'Geri Bildirim Gönder',
+  privacyPolicy: 'Gizlilik Politikası',
+  termsOfUse: 'Kullanım Koşulları',
 
   // Scanner Screen
   scannerTitle: 'Barkod / QR Scanner',

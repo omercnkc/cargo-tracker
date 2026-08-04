@@ -120,7 +120,7 @@ export const DrawerMenuModal = () => {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuScrollContent}>
             
             {/* HESAP SECTION */}
-            <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>HESAP</Text>
+            <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>{t('accountHeader')}</Text>
             
             {/* 1. Kişisel Bilgiler */}
             <TouchableOpacity 
@@ -129,7 +129,7 @@ export const DrawerMenuModal = () => {
               onPress={() => handleNavigate('Settings')}
             >
               <MaterialIcons name="person-outline" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kişisel Bilgiler</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('personalInfo')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -140,7 +140,7 @@ export const DrawerMenuModal = () => {
               onPress={handleOpenAddressModal}
             >
               <MaterialIcons name="location-on" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Adreslerim</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('myAddresses')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -151,7 +151,7 @@ export const DrawerMenuModal = () => {
               onPress={handleOpenChangePasswordModal}
             >
               <MaterialIcons name="lock-outline" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Şifre Değiştir</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('changePassword')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -162,7 +162,7 @@ export const DrawerMenuModal = () => {
               onPress={() => handleNavigate('Notifications')}
             >
               <MaterialIcons name="notifications-none" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Bildirim Ayarları</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('notificationSettings')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -173,14 +173,14 @@ export const DrawerMenuModal = () => {
               onPress={() => handleNavigate('CarrierSelection')}
             >
               <MaterialIcons name="local-shipping" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Varsayılan Kargo Firmaları</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('defaultCarriersMenu')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
             <View style={[styles.menuDivider, { backgroundColor: colors.outlineVariant }]} />
 
             {/* DESTEK SECTION */}
-            <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>DESTEK</Text>
+            <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>{t('supportHeader')}</Text>
 
             {/* 6. Yardım Merkezi */}
             <TouchableOpacity 
@@ -189,7 +189,7 @@ export const DrawerMenuModal = () => {
               onPress={() => handleOpenSupportModal('help')}
             >
               <MaterialIcons name="help-outline" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Yardım Merkezi</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('helpCenter')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -200,7 +200,7 @@ export const DrawerMenuModal = () => {
               onPress={() => handleOpenSupportModal('rate')}
             >
               <MaterialIcons name="star-outline" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Uygulamayı Puanla</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('rateApp')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -211,7 +211,7 @@ export const DrawerMenuModal = () => {
               onPress={() => handleOpenSupportModal('feedback')}
             >
               <MaterialIcons name="chat-bubble-outline" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Geri Bildirim Gönder</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('sendFeedback')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -222,7 +222,7 @@ export const DrawerMenuModal = () => {
               onPress={() => handleOpenSupportModal('privacy')}
             >
               <MaterialIcons name="shield" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Gizlilik Politikası</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('privacyPolicy')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -233,7 +233,7 @@ export const DrawerMenuModal = () => {
               onPress={() => handleOpenSupportModal('terms')}
             >
               <MaterialIcons name="description" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>Kullanım Koşulları</Text>
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('termsOfUse')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 

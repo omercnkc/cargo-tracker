@@ -91,7 +91,7 @@ export const ProfileScreen = () => {
             onPress={() => navigation.navigate('Settings')}
           >
             <MaterialIcons name="edit" size={16} color={colors.onPrimary} />
-            <Text style={[styles.editPillButtonText, { color: colors.onPrimary }]}>Profili Düzenle</Text>
+            <Text style={[styles.editPillButtonText, { color: colors.onPrimary }]}>{t('editProfile')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -103,7 +103,7 @@ export const ProfileScreen = () => {
             <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff' }]}>
               <MaterialIcons name="inventory-2" size={18} color={isDarkMode ? '#93c5fd' : '#2563eb'} />
             </View>
-            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Toplam</Text>
+            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('total')}</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{totalCount}</Text>
           </View>
 
@@ -112,7 +112,7 @@ export const ProfileScreen = () => {
             <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff' }]}>
               <MaterialIcons name="local-shipping" size={18} color={isDarkMode ? '#93c5fd' : '#2563eb'} />
             </View>
-            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Yolda</Text>
+            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('inTransit')}</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{inTransitCount}</Text>
           </View>
 
@@ -121,7 +121,7 @@ export const ProfileScreen = () => {
             <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#064e3b' : '#f0fdf4' }]}>
               <MaterialIcons name="check-circle" size={18} color={isDarkMode ? '#6ee7b7' : '#16a34a'} />
             </View>
-            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Teslim Edildi</Text>
+            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('statusDelivered')}</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{deliveredCount}</Text>
           </View>
 
@@ -130,7 +130,7 @@ export const ProfileScreen = () => {
             <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#7f1d1d' : '#fef2f2' }]}>
               <MaterialIcons name="error" size={18} color={isDarkMode ? '#fca5a5' : '#dc2626'} />
             </View>
-            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>Sorunlu</Text>
+            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('issues')}</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{errorCount}</Text>
           </View>
 
