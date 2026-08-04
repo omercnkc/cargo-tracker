@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityInd
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export interface UserAddress {
   id: string;
@@ -23,6 +24,7 @@ interface AddAddressModalProps {
 
 export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressModalProps) {
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const [title, setTitle] = useState('');
   const [fullName, setFullName] = useState('');
@@ -122,7 +124,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
         <View style={[styles.modalContent, { backgroundColor: colors.surfaceContainerLowest }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.modalTitle, { color: colors.primary }]}>Yeni Adres Ekle</Text>
+            <Text style={[styles.modalTitle, { color: colors.primary }]}>{t('addNewAddress')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
             </TouchableOpacity>
@@ -141,7 +143,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
               ) : (
                 <>
                   <MaterialIcons name="my-location" size={20} color="#00236f" />
-                  <Text style={styles.gpsButtonText}>📍 Anlık GPS Konumumu Kullan</Text>
+                  <Text style={styles.gpsButtonText}>{t('useGpsLocation')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -149,7 +151,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
             {/* Address Title */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.onSurface }]}>
-                Adres Başlığı <Text style={{ color: colors.error }}>*</Text>
+                {t('addressTitleLabel')} <Text style={{ color: colors.error }}>*</Text>
               </Text>
               <TextInput
                 style={[
@@ -173,7 +175,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
             {/* Name & Phone Row */}
             <View style={styles.row}>
               <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.onSurface }]}>Alıcı Adı Soyadı</Text>
+                <Text style={[styles.label, { color: colors.onSurface }]}>{t('receiverFullNameLabel')}</Text>
                 <TextInput
                   style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
                   placeholder="Ahmet Yılmaz"
@@ -184,7 +186,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
               </View>
 
               <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.onSurface }]}>Telefon</Text>
+                <Text style={[styles.label, { color: colors.onSurface }]}>{t('phoneLabel')}</Text>
                 <TextInput
                   style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
                   placeholder="05xx xxx xx xx"
@@ -199,7 +201,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
             {/* City & District */}
             <View style={styles.row}>
               <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.onSurface }]}>İl</Text>
+                <Text style={[styles.label, { color: colors.onSurface }]}>{t('cityLabel')}</Text>
                 <TextInput
                   style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
                   placeholder="İstanbul"
@@ -210,7 +212,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
               </View>
 
               <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.onSurface }]}>İlçe</Text>
+                <Text style={[styles.label, { color: colors.onSurface }]}>{t('districtLabel')}</Text>
                 <TextInput
                   style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
                   placeholder="Beşiktaş"
@@ -224,7 +226,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
             {/* Full Address */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.onSurface }]}>
-                Açık Adres <Text style={{ color: colors.error }}>*</Text>
+                {t('fullAddressLabel')} <Text style={{ color: colors.error }}>*</Text>
               </Text>
               <TextInput
                 style={[
@@ -254,7 +256,7 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
               activeOpacity={0.8}
             >
               <MaterialIcons name="save" size={20} color="#ffffff" />
-              <Text style={styles.saveButtonText}>Adresi Kaydet</Text>
+              <Text style={styles.saveButtonText}>{t('saveAddressBtn')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

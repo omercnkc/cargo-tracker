@@ -123,11 +123,11 @@ export const HomeScreen = () => {
         imageStyle={{ opacity: 0.3 }}
       >
         <Text style={[styles.decorativeText, { color: colors.onPrimary }]}>
-          Tüm kargolarınız tek bir yerde, güvenle takipte.
+          {t('footerTagline')}
         </Text>
       </ImageBackground>
     </View>
-  ), [colors]);
+  ), [colors, t]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>

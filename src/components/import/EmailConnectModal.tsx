@@ -15,6 +15,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
 import { GoogleLogo } from '../common/GoogleLogo';
+import { useTranslation } from '../../hooks/useTranslation';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -30,6 +31,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
   const { theme: colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [emailInput, setEmailInput] = useState('');
   const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
@@ -190,8 +192,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
     setFeedback({
       visible: true,
       type: 'info',
-      title: 'Bağlantı Kesildi',
-      message: 'E-posta hesabı bağlantısı kaldırıldı.',
+      title: t('removeEmailLink'),
+      message: t('success'),
     });
   };
 
@@ -203,7 +205,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <MaterialIcons name="email" size={24} color={colors.primary} />
-              <Text style={[styles.title, { color: colors.primary }]}>E-Posta Kargo Taraması</Text>
+              <Text style={[styles.title, { color: colors.primary }]}>{t('emailScanModalTitle')}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
@@ -211,7 +213,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           </View>
 
           <Text style={[styles.description, { color: colors.onSurfaceVariant }]}>
-            Trendyol, Hepsiburada, Amazon gibi mağazalardan gelen *"Paketiniz kargoya verildi"* e-postaları otomatik taranır ve listenize eklenir.
+            {t('autoImportSubtitle')}
           </Text>
 
           {connectedEmail ? (
@@ -230,7 +232,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
                 </View>
                 {googleProfile && (
                   <View style={styles.verifiedBadge}>
-                    <Text style={styles.verifiedText}>Google Onaylı</Text>
+                    <Text style={styles.verifiedText}>{t('googleVerified')}</Text>
                   </View>
                 )}
               </View>
@@ -246,13 +248,13 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
                 ) : (
                   <>
                     <MaterialIcons name="sync" size={20} color="#ffffff" />
-                    <Text style={styles.syncButtonText}>Gmail'i Şimdi Tara</Text>
+                    <Text style={styles.syncButtonText}>{t('scanGmailNow')}</Text>
                   </>
                 )}
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.disconnectBtn} onPress={handleDisconnect}>
-                <Text style={styles.disconnectText}>E-Posta Bağlantısını Kaldır</Text>
+                <Text style={styles.disconnectText}>{t('removeEmailLink')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -269,7 +271,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
                 ) : (
                   <>
                     <GoogleLogo size={22} />
-                    <Text style={styles.googleButtonText}>Google ile Canlı Bağlan</Text>
+                    <Text style={styles.googleButtonText}>{t('connectGoogleLive')}</Text>
                   </>
                 )}
               </TouchableOpacity>

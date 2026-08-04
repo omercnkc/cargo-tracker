@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert } fr
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import { AddAddressModal, UserAddress } from './AddAddressModal';
 
 const ADDRESSES_STORAGE_KEY = '@cargo_tracker_user_addresses';
@@ -36,6 +37,7 @@ interface AddressManagementModalProps {
 
 export function AddressManagementModal({ visible, onClose }: AddressManagementModalProps) {
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const [addresses, setAddresses] = useState<UserAddress[]>(DEFAULT_ADDRESSES);
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -65,19 +67,14 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
   };
 
   const handleDeleteAddress = (id: string) => {
-    Alert.alert('Adresi Sil', 'Bu adresi silmek istediğinize emin misiniz?', [
-      { text: 'İptal', style: 'cancel' },
-      {
-        text: 'Sil',
-        style: 'destructive',
-        onPress: async () => {
-          const updated = addresses.filter((a) => a.id !== id);
-          setAddresses(updated);
-          await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
-        },
-      },
-    ]);
+    setAddresses(prev => prev.filter(a => a.id !== id));
   };
+
+  const handleSetDefault = (id: string) => {
+    setAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
+  };
+
+  if (!visible) return null;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -87,7 +84,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <MaterialIcons name="location-on" size={24} color={colors.primary} />
-              <Text style={[styles.title, { color: colors.primary }]}>Adreslerim</Text>
+              <Text style={[styles.title, { color: colors.primary }]}>{t('myAddresses')}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
@@ -101,7 +98,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
             activeOpacity={0.8}
           >
             <MaterialIcons name="add-location-alt" size={20} color="#ffffff" />
-            <Text style={styles.addAddressBtnText}>Yeni Adres Ekle (GPS Destekli)</Text>
+            <Text style={styles.addAddressBtnText}>{t('addNewAddressGps')}</Text>
           </TouchableOpacity>
 
           {/* Addresses List */}
@@ -109,7 +106,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
             {addresses.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <MaterialIcons name="location-off" size={48} color={colors.onSurfaceVariant} />
-                <Text style={[styles.emptyText, { color: colors.onSurface }]}>Kayıtlı adresiniz bulunmuyor</Text>
+                <Text style={[styles.emptyText, { color: colors.onSurface }]}>{t('noSavedAddresses')}</Text>
               </View>
             ) : (
               addresses.map((item) => (
@@ -119,7 +116,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
                       <Text style={[styles.cardTitle, { color: colors.primary }]}>{item.title}</Text>
                       {item.isDefault && (
                         <View style={styles.defaultBadge}>
-                          <Text style={styles.defaultBadgeText}>Varsayılan</Text>
+                          <Text style={styles.defaultBadgeText}>{t('defaultBadge')}</Text>
                         </View>
                       )}
                     </View>

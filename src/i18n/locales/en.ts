@@ -132,9 +132,43 @@ export const en: TranslationKeys = {
   lastLocation: 'Last Location',
   timeline: 'Tracking Timeline',
   noEvents: 'No tracking events found yet.',
+  sendTestNotification: 'Send Test Notification (Status Update)',
 
   // Search
   searchTitle: 'Search Cargo',
   recentSearches: 'Recent Searches',
   noResults: 'No shipments found',
+
+  // Bottom Navigation
+  navHome: 'Home',
+  navPackages: 'Packages',
+  navAdd: 'Add',
+  navStats: 'Stats',
+  navProfile: 'Profile',
+
+  // Buttons, Theme & Modals
+  themeTitle: 'Theme',
+  themeLight: 'Light',
+  themeDark: 'Dark',
+  footerTagline: 'All your packages in one place, safely tracked.',
+  myAddresses: 'My Addresses',
+  addNewAddress: 'Add New Address',
+  addNewAddressGps: 'Add New Address (GPS Supported)',
+  useGpsLocation: '📍 Use Current GPS Location',
+  noSavedAddresses: 'No saved address found',
+  defaultBadge: 'Default',
+  addressTitleLabel: 'Address Title',
+  receiverFullNameLabel: 'Recipient Full Name',
+  phoneLabel: 'Phone',
+  cityLabel: 'City',
+  districtLabel: 'District',
+  fullAddressLabel: 'Full Address',
+  saveAddressBtn: 'Save Address',
+  qrCodeModalTitle: 'Parcel QR Code & Label',
+  downloadPdfBadge: 'Download / Share PDF Label',
+  emailScanModalTitle: 'Email Shipment Scan',
+  googleVerified: 'Google Verified',
+  scanGmailNow: 'Scan Gmail Now',
+  removeEmailLink: 'Disconnect Email',
+  connectGoogleLive: 'Connect Live with Google',
 };

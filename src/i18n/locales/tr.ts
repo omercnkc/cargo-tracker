@@ -130,11 +130,45 @@ export const tr = {
   lastLocation: 'Son Konum',
   timeline: 'Hareket Geçmişi',
   noEvents: 'Henüz hareket kaydı bulunamadı.',
+  sendTestNotification: 'Test Bildirimi Gönder (Durum Güncellemesi)',
 
   // Search
   searchTitle: 'Kargo Ara',
   recentSearches: 'Son Aramalar',
   noResults: 'Kargo bulunamadı',
+
+  // Bottom Navigation
+  navHome: 'Ana Sayfa',
+  navPackages: 'Kargolarım',
+  navAdd: 'Ekle',
+  navStats: 'İstatistik',
+  navProfile: 'Profil',
+
+  // Buttons, Theme & Modals
+  themeTitle: 'Tema',
+  themeLight: 'Açık',
+  themeDark: 'Koyu',
+  footerTagline: 'Tüm kargolarınız tek bir yerde, güvenle takipte.',
+  myAddresses: 'Adreslerim',
+  addNewAddress: 'Yeni Adres Ekle',
+  addNewAddressGps: 'Yeni Adres Ekle (GPS Destekli)',
+  useGpsLocation: '📍 Anlık GPS Konumumu Kullan',
+  noSavedAddresses: 'Kayıtlı adresiniz bulunmuyor',
+  defaultBadge: 'Varsayılan',
+  addressTitleLabel: 'Adres Başlığı',
+  receiverFullNameLabel: 'Alıcı Adı Soyadı',
+  phoneLabel: 'Telefon',
+  cityLabel: 'İl',
+  districtLabel: 'İlçe',
+  fullAddressLabel: 'Açık Adres',
+  saveAddressBtn: 'Adresi Kaydet',
+  qrCodeModalTitle: 'Kargo QR Kodu & Etiketi',
+  downloadPdfBadge: 'PDF Etiketi İndir / Paylaş',
+  emailScanModalTitle: 'E-Posta Kargo Taraması',
+  googleVerified: 'Google Onaylı',
+  scanGmailNow: 'Gmail\'i Şimdi Tara',
+  removeEmailLink: 'E-Posta Bağlantısını Kaldır',
+  connectGoogleLive: 'Google ile Canlı Bağlan',
 };
 
 export type TranslationKeys = typeof tr;

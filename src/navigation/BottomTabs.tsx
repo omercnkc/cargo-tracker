@@ -113,6 +113,7 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
 export const BottomTabs = () => {
   const { isLargeScreen } = useResponsive();
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -125,7 +126,7 @@ export const BottomTabs = () => {
         name="Home" 
         component={HomeScreenWithSwipe} 
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: t('navHome'),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="home" size={24} color={color} />
           )
@@ -135,7 +136,7 @@ export const BottomTabs = () => {
         name="Packages" 
         component={PackagesScreenWithSwipe} 
         options={{
-          tabBarLabel: 'Packages',
+          tabBarLabel: t('navPackages'),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="inventory" size={24} color={color} />
           )
@@ -145,7 +146,7 @@ export const BottomTabs = () => {
         name="AddPackage" 
         component={AddPackageScreenWithSwipe} 
         options={{
-          tabBarLabel: 'Add',
+          tabBarLabel: t('navAdd'),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="add" size={24} color={color} />
           )
@@ -155,7 +156,7 @@ export const BottomTabs = () => {
         name="Statistics" 
         component={StatisticsScreenWithSwipe} 
         options={{
-          tabBarLabel: 'Stats',
+          tabBarLabel: t('navStats'),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="leaderboard" size={24} color={color} />
           )
@@ -165,7 +166,7 @@ export const BottomTabs = () => {
         name="Profile" 
         component={ProfileScreenWithSwipe} 
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: t('navProfile'),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="person" size={24} color={color} />
           )

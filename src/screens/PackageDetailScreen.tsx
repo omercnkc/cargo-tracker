@@ -191,7 +191,7 @@ export const PackageDetailScreen = () => {
               >
                 <MaterialIcons name="notifications-active" size={22} color={colors.onPrimaryContainer} />
                 <Text style={[styles.notificationTriggerText, { color: colors.onPrimaryContainer }]}>
-                  Test Bildirimi Gönder (Durum Güncellemesi)
+                  {t('sendTestNotification')}
                 </Text>
               </TouchableOpacity>
 

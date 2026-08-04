@@ -6,7 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 
 export const ProfileThemeLangSwitchCard = () => {
   const { theme: colors, isDarkMode, toggleTheme } = useTheme();
-  const { language, setLanguage } = useTranslation();
+  const { language, setLanguage, t } = useTranslation();
 
   return (
     <View style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
@@ -15,7 +15,7 @@ export const ProfileThemeLangSwitchCard = () => {
       <View style={styles.settingRow}>
         <View style={styles.labelGroup}>
           <MaterialIcons name="palette" size={22} color={colors.onSurface} />
-          <Text style={[styles.labelTitle, { color: colors.onSurface }]}>Tema</Text>
+          <Text style={[styles.labelTitle, { color: colors.onSurface }]}>{t('themeTitle')}</Text>
         </View>
 
         <View style={[styles.switchTrack, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : '#f1f5f9', borderColor: colors.outlineVariant }]}>
@@ -28,7 +28,7 @@ export const ProfileThemeLangSwitchCard = () => {
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 13 }}>☀️</Text>
-            <Text style={[styles.pillText, { color: !isDarkMode ? colors.primary : colors.onSurfaceVariant }]}>Açık</Text>
+            <Text style={[styles.pillText, { color: !isDarkMode ? colors.primary : colors.onSurfaceVariant }]}>{t('themeLight')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -40,7 +40,7 @@ export const ProfileThemeLangSwitchCard = () => {
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 13 }}>🌙</Text>
-            <Text style={[styles.pillText, { color: isDarkMode ? colors.onPrimary : colors.onSurfaceVariant }]}>Koyu</Text>
+            <Text style={[styles.pillText, { color: isDarkMode ? colors.onPrimary : colors.onSurfaceVariant }]}>{t('themeDark')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -49,7 +49,7 @@ export const ProfileThemeLangSwitchCard = () => {
       <View style={styles.settingRow}>
         <View style={styles.labelGroup}>
           <MaterialIcons name="language" size={22} color={colors.onSurface} />
-          <Text style={[styles.labelTitle, { color: colors.onSurface }]}>Dil</Text>
+          <Text style={[styles.labelTitle, { color: colors.onSurface }]}>{t('language')}</Text>
         </View>
 
         <View style={[styles.switchTrack, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : '#f1f5f9', borderColor: colors.outlineVariant }]}>
