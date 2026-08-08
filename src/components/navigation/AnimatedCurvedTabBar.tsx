@@ -11,6 +11,7 @@ import Svg, { Path } from 'react-native-svg';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface AnimatedCurvedTabBarProps {
   state: any;
@@ -26,14 +27,6 @@ const TAB_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   Profile: 'person',
 };
 
-const TAB_LABELS: Record<string, string> = {
-  Home: 'Ana Sayfa',
-  Packages: 'Kargolarım',
-  AddPackage: 'Ekle',
-  Statistics: 'İstatistik',
-  Profile: 'Profil',
-};
-
 export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
   state,
   descriptors,
@@ -42,6 +35,18 @@ export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
+
+  const getTabLabel = (routeName: string) => {
+    switch (routeName) {
+      case 'Home': return t('navHome');
+      case 'Packages': return t('navPackages');
+      case 'AddPackage': return t('navAdd');
+      case 'Statistics': return t('navStats');
+      case 'Profile': return t('navProfile');
+      default: return routeName;
+    }
+  };
 
   const bottomInset = Math.max(insets.bottom, 12);
   const barHeight = 64 + bottomInset;
@@ -105,7 +110,7 @@ export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
           };
 
           const iconName = TAB_ICONS[route.name] || 'circle';
-          const label = TAB_LABELS[route.name] || route.name;
+          const label = getTabLabel(route.name);
 
           const translateY = scaleAnimValues[index].interpolate({
             inputRange: [1, 1.15],

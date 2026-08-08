@@ -16,7 +16,7 @@ interface AuthState {
   // Actions
   initializeAuth: () => Promise<void>;
   signIn: (email: string, pass: string) => Promise<{ error?: string }>;
-  signInWithGoogle: (idToken: string) => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<{ error?: string }>;
   signUp: (email: string, pass: string, fullName: string) => Promise<{ error?: string }>;
   signOut: () => Promise<{ error?: string }>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
@@ -106,9 +106,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signInWithGoogle: async (idToken: string) => {
+  signInWithGoogle: async () => {
     set({ isLoading: true, error: null });
-    const { session, user, error } = await authRepository.signInWithGoogle(idToken);
+    const { session, user, error } = await authRepository.signInWithGoogle();
 
     if (error) {
       set({ isLoading: false, error: error.message });
@@ -126,8 +126,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return {};
     }
 
-    set({ isLoading: false, error: 'Google oturumu açılamadı.' });
-    return { error: 'Google oturumu açılamadı.' };
+    set({ isLoading: false });
+    return {};
   },
 
   signUp: async (email: string, pass: string, fullName: string) => {

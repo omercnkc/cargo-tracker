@@ -4,7 +4,6 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  ImageBackground,
   FlatList,
   ActivityIndicator
 } from 'react-native';
@@ -115,20 +114,6 @@ export const HomeScreen = () => {
     </View>
   ), [isLargeScreen, navigation, profile, stats, colors, t]);
 
-  const renderFooter = useMemo(() => (
-    <View style={[styles.decorativeSection, { backgroundColor: colors.inverseSurface }]}>
-      <ImageBackground
-        source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDv6yaTJh2Sqew9azrpGm2OODE1IgDdZZwCsE3iZZmidEGeMeLlqs710l8lRCvbp1s_Ys3LJR0waYCn9PKCnGtvQoLNsCNC6NPaqxyVrHKHbY1Fk0sJ2LcVBqh3E9ceWMsAWdjBGm4Ofjbjey5QIx04hlnvAhz8q6puM6up4-9Sz6ag09ig1LMiM863isjpsr-e8AkPBJpwb1zpjyFZxzzig7IoeGQiAPLhtbzQfDVCwin2Hm4s3EhZatnPTk7g478uIv8yFJ836JQ' }}
-        style={styles.decorativeImage}
-        imageStyle={{ opacity: 0.3 }}
-      >
-        <Text style={[styles.decorativeText, { color: colors.onPrimary }]}>
-          {t('footerTagline')}
-        </Text>
-      </ImageBackground>
-    </View>
-  ), [colors, t]);
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
       {/* TopAppBar */}
@@ -156,7 +141,6 @@ export const HomeScreen = () => {
             { paddingBottom: isLargeScreen ? 24 : insets.bottom + 80 }
           ]}
           ListHeaderComponent={renderHeader}
-          ListFooterComponent={renderFooter}
           renderItem={({ item }) => (
             <PackageCard 
               id={item.id}
@@ -298,25 +282,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '600',
-  },
-  decorativeSection: {
-    marginTop: 32,
-    height: 128,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  decorativeImage: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  decorativeText: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
-    maxWidth: '90%',
   },
 });
 

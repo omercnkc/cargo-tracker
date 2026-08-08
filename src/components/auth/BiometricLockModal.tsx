@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface BiometricLockModalProps {
   visible: boolean;
@@ -9,8 +10,10 @@ interface BiometricLockModalProps {
   biometricType?: string;
 }
 
-export function BiometricLockModal({ visible, onAuthenticate, biometricType = 'Face ID / Parmak İzi' }: BiometricLockModalProps) {
+export function BiometricLockModal({ visible, onAuthenticate, biometricType }: BiometricLockModalProps) {
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
+  const activeType = biometricType || t('biometricTypeDefault');
 
   // Kilit ekranı göründüğünde otomatik biyometrik istemciyi başlat
   useEffect(() => {
@@ -30,9 +33,9 @@ export function BiometricLockModal({ visible, onAuthenticate, biometricType = 'F
             <MaterialIcons name="fingerprint" size={56} color={colors.primary} />
           </View>
 
-          <Text style={[styles.title, { color: colors.onBackground }]}>KargoTakip Kilitli</Text>
+          <Text style={[styles.title, { color: colors.onBackground }]}>{t('appLockedTitle')}</Text>
           <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
-            Uygulamaya erişmek için {biometricType} doğrulaması gereklidir.
+            {t('appLockedSubtitle').replace('{{type}}', activeType)}
           </Text>
 
           <TouchableOpacity
@@ -41,7 +44,7 @@ export function BiometricLockModal({ visible, onAuthenticate, biometricType = 'F
             activeOpacity={0.8}
           >
             <MaterialIcons name="lock-open" size={20} color="#ffffff" />
-            <Text style={styles.authButtonText}>Kilidi Aç ({biometricType})</Text>
+            <Text style={styles.authButtonText}>{t('unlockBtn').replace('{{type}}', activeType)}</Text>
           </TouchableOpacity>
         </View>
       </View>

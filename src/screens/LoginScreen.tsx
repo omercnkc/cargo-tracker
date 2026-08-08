@@ -16,21 +16,12 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-
-import Constants from 'expo-constants';
-
 import colors from '../theme/colors';
 import { useAuthStore } from '../store/auth.store';
-import { GOOGLE_CONFIG } from '../config/google.config';
 import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
 import { GoogleLogo } from '../components/common/GoogleLogo';
 import { useTranslation } from '../hooks/useTranslation';
-
-WebBrowser.maybeCompleteAuthSession();
-
-const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
+import { PasswordInput } from '../components/ui';
 
 export const LoginScreen = ({ navigation }: any) => {
   const { width } = useWindowDimensions();
@@ -39,7 +30,6 @@ export const LoginScreen = ({ navigation }: any) => {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -47,25 +37,13 @@ export const LoginScreen = ({ navigation }: any) => {
   const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
   const isLoading = useAuthStore((state) => state.isLoading);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GOOGLE_CONFIG.androidClientId,
-    iosClientId: GOOGLE_CONFIG.iosClientId,
-    webClientId: GOOGLE_CONFIG.webClientId,
-    scopes: GOOGLE_CONFIG.scopes,
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const idToken = response.authentication?.idToken || response.params?.id_token;
-      if (idToken) {
-        signInWithGoogle(idToken).then((res) => {
-          if (res.error) setErrorMessage(res.error);
-        });
-      } else {
-        setErrorMessage('Google kimlik doğrulaması tamamlanamadı.');
-      }
+  const handleGoogleSignIn = async () => {
+    setErrorMessage('');
+    const res = await signInWithGoogle();
+    if (res?.error) {
+      setErrorMessage(res.error);
     }
-  }, [response]);
+  };
 
   // Basic breakpoint for tablet/desktop
   const isLargeScreen = width >= 1024;
@@ -148,8 +126,8 @@ export const LoginScreen = ({ navigation }: any) => {
 
           {/* Welcome Text */}
           <View style={[styles.welcomeSection, !isLargeScreen && styles.welcomeSectionMobile]}>
-            <Text style={styles.welcomeTitle}>Tekrar Hoş Geldiniz</Text>
-            <Text style={styles.welcomeSubtitle}>Devam etmek için hesap bilgilerinizi girin.</Text>
+            <Text style={styles.welcomeTitle}>{t('loginWelcomeTitle')}</Text>
+            <Text style={styles.welcomeSubtitle}>{t('loginWelcomeSubtitle')}</Text>
           </View>
 
           {/* Error Message Box */}
@@ -166,7 +144,7 @@ export const LoginScreen = ({ navigation }: any) => {
             {/* Email Input Group */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
-                E-Posta Adresi <Text style={{ color: colors.error }}>*</Text>
+                {t('emailLabel')} <Text style={{ color: colors.error }}>*</Text>
               </Text>
               <View style={[styles.inputWrapper, fieldErrors.email ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
@@ -174,7 +152,7 @@ export const LoginScreen = ({ navigation }: any) => {
                 </View>
                 <TextInput
                   style={styles.input}
-                  placeholder="ornek@sirket.com"
+                  placeholder={t('emailPlaceholder')}
                   placeholderTextColor={colors.outlineVariant}
                   value={email}
                   onChangeText={(val) => {
@@ -191,45 +169,21 @@ export const LoginScreen = ({ navigation }: any) => {
             </View>
 
             {/* Password Input Group */}
-            <View style={styles.inputGroup}>
-              <View style={styles.passwordHeader}>
-                <Text style={styles.inputLabel}>
-                  Şifre <Text style={{ color: colors.error }}>*</Text>
-                </Text>
+            <PasswordInput
+              label={t('passwordLabel')}
+              required
+              value={password}
+              onChangeText={(val) => {
+                setPassword(val);
+                if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+              }}
+              error={fieldErrors.password}
+              rightHeaderAction={
                 <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-                  <Text style={styles.forgotPassword}>Şifremi Unuttum</Text>
+                  <Text style={styles.forgotPassword}>{t('forgotPasswordTitle')}</Text>
                 </TouchableOpacity>
-              </View>
-              <View style={[styles.inputWrapper, fieldErrors.password ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
-                <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="lock" size={20} color={fieldErrors.password ? colors.error : colors.outline} />
-                </View>
-                <TextInput
-                  style={[styles.input, styles.inputWithRightIcon]}
-                  placeholder="••••••••"
-                  placeholderTextColor={colors.outlineVariant}
-                  value={password}
-                  onChangeText={(val) => {
-                    setPassword(val);
-                    if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
-                  }}
-                  secureTextEntry={!isPasswordVisible}
-                />
-                <TouchableOpacity 
-                  style={styles.inputIconRight}
-                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                >
-                  <MaterialIcons 
-                    name={isPasswordVisible ? 'visibility' : 'visibility-off'} 
-                    size={20} 
-                    color={colors.outline} 
-                  />
-                </TouchableOpacity>
-              </View>
-              {!!fieldErrors.password && (
-                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.password}</Text>
-              )}
-            </View>
+              }
+            />
 
             {/* Submit Button */}
             <TouchableOpacity 
@@ -259,8 +213,8 @@ export const LoginScreen = ({ navigation }: any) => {
             <TouchableOpacity
               style={styles.googleButton}
               activeOpacity={0.85}
-              onPress={() => promptAsync()}
-              disabled={isLoading || !request}
+              onPress={handleGoogleSignIn}
+              disabled={isLoading}
             >
               <GoogleLogo size={22} />
               <Text style={styles.googleButtonText}>Google {t('loginBtn')}</Text>

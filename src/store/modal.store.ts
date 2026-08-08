@@ -6,6 +6,7 @@ interface ModalState {
   changePasswordModalOpen: boolean;
   supportModalOpen: boolean;
   supportModalType: SupportModalType;
+  carrierModalOpen: boolean;
 
   openAddressModal: () => void;
   closeAddressModal: () => void;
@@ -15,6 +16,9 @@ interface ModalState {
 
   openSupportModal: (type: SupportModalType) => void;
   closeSupportModal: () => void;
+
+  openCarrierModal: () => void;
+  closeCarrierModal: () => void;
 }
 
 export const useModalStore = create<ModalState>((set) => ({
@@ -22,6 +26,7 @@ export const useModalStore = create<ModalState>((set) => ({
   changePasswordModalOpen: false,
   supportModalOpen: false,
   supportModalType: 'help',
+  carrierModalOpen: false,
 
   openAddressModal: () => set({ addressModalOpen: true }),
   closeAddressModal: () => set({ addressModalOpen: false }),
@@ -31,4 +36,7 @@ export const useModalStore = create<ModalState>((set) => ({
 
   openSupportModal: (type: SupportModalType) => set({ supportModalOpen: true, supportModalType: type }),
   closeSupportModal: () => set({ supportModalOpen: false }),
+
+  openCarrierModal: () => set({ carrierModalOpen: true }),
+  closeCarrierModal: () => set({ carrierModalOpen: false }),
 }));

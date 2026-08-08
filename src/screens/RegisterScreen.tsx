@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,34 +15,24 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-
-import Constants from 'expo-constants';
-
 import colors from '../theme/colors';
 import { useAuthStore } from '../store/auth.store';
-import { GOOGLE_CONFIG } from '../config/google.config';
 import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
 import { GoogleLogo } from '../components/common/GoogleLogo';
 import { useTranslation } from '../hooks/useTranslation';
-
-WebBrowser.maybeCompleteAuthSession();
-
-const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
+import { PasswordInput, PasswordStrengthMeter } from '../components/ui';
+import { validatePassword } from '../utils/validators';
 
 export const RegisterScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { t } = useTranslation();
-  
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+
   const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ fullName?: string; email?: string; password?: string; confirmPassword?: string }>({});
 
@@ -50,54 +40,43 @@ export const RegisterScreen = ({ navigation }: any) => {
   const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
   const isLoading = useAuthStore((state) => state.isLoading);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GOOGLE_CONFIG.androidClientId,
-    iosClientId: GOOGLE_CONFIG.iosClientId,
-    webClientId: GOOGLE_CONFIG.webClientId,
-    scopes: GOOGLE_CONFIG.scopes,
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const idToken = response.authentication?.idToken || response.params?.id_token;
-      if (idToken) {
-        signInWithGoogle(idToken).then((res) => {
-          if (res.error) setErrorMessage(res.error);
-        });
-      } else {
-        setErrorMessage('Google kimlik doğrulaması tamamlanamadı.');
-      }
+  const handleGoogleSignIn = async () => {
+    setErrorMessage('');
+    const res = await signInWithGoogle();
+    if (res?.error) {
+      setErrorMessage(res.error);
     }
-  }, [response]);
+  };
 
   const handleRegister = async () => {
     const errors: { fullName?: string; email?: string; password?: string; confirmPassword?: string } = {};
 
     if (!fullName.trim()) {
-      errors.fullName = 'Ad Soyad girilmesi zorunludur.';
+      errors.fullName = t('fullNameRequired');
     }
 
     if (!email.trim()) {
-      errors.email = 'E-posta adresi girilmesi zorunludur.';
+      errors.email = t('emailRequired');
     } else if (!email.includes('@') || !email.includes('.')) {
-      errors.email = 'Lütfen geçerli bir e-posta adresi girin.';
+      errors.email = t('validEmailRequired');
     }
 
+    const passValidation = validatePassword(password);
     if (!password) {
-      errors.password = 'Şifre girilmesi zorunludur.';
-    } else if (password.length < 6) {
-      errors.password = 'Şifre en az 6 karakter olmalıdır.';
+      errors.password = t('passwordRequired');
+    } else if (!passValidation.isValid) {
+      errors.password = passValidation.errors[0];
     }
 
     if (!confirmPassword) {
-      errors.confirmPassword = 'Şifre tekrarı girilmesi zorunludur.';
+      errors.confirmPassword = t('confirmPasswordRequired');
     } else if (password !== confirmPassword) {
-      errors.confirmPassword = 'Şifreler birbiriyle eşleşmiyor.';
+      errors.confirmPassword = t('passwordsDontMatch');
     }
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setErrorMessage('Lütfen kırmızı ile belirtilen tüm zorunlu alanları düzeltin.');
+      setErrorMessage(t('fixRequiredFieldsMsg'));
       return;
     }
 
@@ -108,23 +87,16 @@ export const RegisterScreen = ({ navigation }: any) => {
       setErrorMessage(res.error);
     } else {
       Alert.alert(
-        'Kayıt Başarılı',
-        'Hesabınız oluşturuldu! Şimdi giriş yapabilirsiniz.',
-        [{ text: 'Giriş Yap', onPress: () => navigation.navigate('Login') }]
+        t('registerSuccessTitle'),
+        t('registerSuccessMsg'),
+        [{ text: t('loginBtn'), onPress: () => navigation.navigate('Login') }]
       );
     }
   };
 
   return (
     <View style={styles.container}>
-      
-      {/* Decorative ambient background */}
-      <View style={styles.ambientBackground} pointerEvents="none">
-        <View style={styles.ambientCircleTopLeft} />
-        <View style={styles.ambientCircleBottomRight} />
-      </View>
-
-      <KeyboardAwareContainer 
+      <KeyboardAwareContainer
         style={styles.keyboardView}
         contentContainerStyle={[
           styles.scrollViewContent,
@@ -132,12 +104,12 @@ export const RegisterScreen = ({ navigation }: any) => {
         ]}
       >
         {/* Registration Container */}
-        <View style={styles.card}>
-          
+        <View style={styles.formContainer}>
+
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>KargoTakip</Text>
-            <Text style={styles.subtitle}>Kargo takibine başlamak için hesap oluşturun.</Text>
+            <Text style={styles.subtitle}>{t('registerSubtitle')}</Text>
           </View>
 
           {/* Error Message Box */}
@@ -150,11 +122,11 @@ export const RegisterScreen = ({ navigation }: any) => {
 
           {/* Form */}
           <View style={styles.form}>
-            
+
             {/* Full Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
-                Ad Soyad <Text style={{ color: colors.error }}>*</Text>
+                {t('fullNameLabel')} <Text style={{ color: colors.error }}>*</Text>
               </Text>
               <View style={[styles.inputWrapper, fieldErrors.fullName ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
@@ -162,7 +134,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                 </View>
                 <TextInput
                   style={styles.input}
-                  placeholder="Adınız Soyadınız"
+                  placeholder={t('fullNamePlaceholder')}
                   placeholderTextColor={colors.outline}
                   value={fullName}
                   onChangeText={(val) => {
@@ -179,7 +151,7 @@ export const RegisterScreen = ({ navigation }: any) => {
             {/* Email */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
-                E-Posta Adresi <Text style={{ color: colors.error }}>*</Text>
+                {t('emailLabel')} <Text style={{ color: colors.error }}>*</Text>
               </Text>
               <View style={[styles.inputWrapper, fieldErrors.email ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
                 <View style={styles.inputIconLeft}>
@@ -187,7 +159,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                 </View>
                 <TextInput
                   style={styles.input}
-                  placeholder="ornek@sirket.com"
+                  placeholder={t('emailPlaceholder')}
                   placeholderTextColor={colors.outline}
                   value={email}
                   onChangeText={(val) => {
@@ -204,81 +176,39 @@ export const RegisterScreen = ({ navigation }: any) => {
             </View>
 
             {/* Password */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                Şifre <Text style={{ color: colors.error }}>*</Text>
-              </Text>
-              <View style={[styles.inputWrapper, fieldErrors.password ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
-                <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="lock" size={20} color={fieldErrors.password ? colors.error : colors.outline} />
-                </View>
-                <TextInput
-                  style={[styles.input, styles.inputWithRightIcon]}
-                  placeholder="Güçlü bir şifre girin"
-                  placeholderTextColor={colors.outline}
-                  value={password}
-                  onChangeText={(val) => {
-                    setPassword(val);
-                    if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
-                  }}
-                  secureTextEntry={!isPasswordVisible}
-                />
-                <TouchableOpacity 
-                  style={styles.inputIconRight}
-                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                >
-                  <MaterialIcons 
-                    name={isPasswordVisible ? 'visibility' : 'visibility-off'} 
-                    size={20} 
-                    color={colors.outline} 
-                  />
-                </TouchableOpacity>
-              </View>
-              {!!fieldErrors.password && (
-                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.password}</Text>
-              )}
-            </View>
+            <PasswordInput
+              label={t('passwordLabel')}
+              placeholder={t('passwordPlaceholder')}
+              required
+              value={password}
+              onChangeText={(val) => {
+                setPassword(val);
+                if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+              }}
+              error={fieldErrors.password}
+            />
+
+            {/* Password Strength Meter */}
+            <PasswordStrengthMeter password={password} />
 
             {/* Confirm Password */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                Şifre Tekrarı <Text style={{ color: colors.error }}>*</Text>
-              </Text>
-              <View style={[styles.inputWrapper, fieldErrors.confirmPassword ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
-                <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="lock-reset" size={20} color={fieldErrors.confirmPassword ? colors.error : colors.outline} />
-                </View>
-                <TextInput
-                  style={[styles.input, styles.inputWithRightIcon]}
-                  placeholder="Şifrenizi tekrar girin"
-                  placeholderTextColor={colors.outline}
-                  value={confirmPassword}
-                  onChangeText={(val) => {
-                    setConfirmPassword(val);
-                    if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: undefined }));
-                  }}
-                  secureTextEntry={!isConfirmPasswordVisible}
-                />
-                <TouchableOpacity 
-                  style={styles.inputIconRight}
-                  onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
-                >
-                  <MaterialIcons 
-                    name={isConfirmPasswordVisible ? 'visibility' : 'visibility-off'} 
-                    size={20} 
-                    color={colors.outline} 
-                  />
-                </TouchableOpacity>
-              </View>
-              {!!fieldErrors.confirmPassword && (
-                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.confirmPassword}</Text>
-              )}
-            </View>
+            <PasswordInput
+              label={t('confirmPasswordLabel')}
+              placeholder={t('confirmPasswordPlaceholder')}
+              required
+              leftIconName="lock-reset"
+              value={confirmPassword}
+              onChangeText={(val) => {
+                setConfirmPassword(val);
+                if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: undefined }));
+              }}
+              error={fieldErrors.confirmPassword}
+            />
 
             {/* Actions */}
             <View style={styles.actionsContainer}>
-              <TouchableOpacity 
-                style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+              <TouchableOpacity
+                style={[styles.submitButton, isLoading && { opacity: 0.7 }]}
                 activeOpacity={0.8}
                 onPress={handleRegister}
                 disabled={isLoading}
@@ -304,13 +234,13 @@ export const RegisterScreen = ({ navigation }: any) => {
               <TouchableOpacity
                 style={styles.googleButton}
                 activeOpacity={0.85}
-                onPress={() => promptAsync()}
-                disabled={isLoading || !request}
+                onPress={handleGoogleSignIn}
+                disabled={isLoading}
               >
                 <GoogleLogo size={22} />
                 <Text style={styles.googleButtonText}>Google {t('registerBtn')}</Text>
               </TouchableOpacity>
-              
+
               <View style={styles.loginLinkContainer}>
                 <Text style={styles.loginLinkText}>{t('alreadyHaveAccount')} </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -322,7 +252,7 @@ export const RegisterScreen = ({ navigation }: any) => {
             {/* Terms */}
             <View style={styles.termsContainer}>
               <Text style={styles.termsText}>
-                Hesap oluşturarak <Text style={styles.termsLink}>Kullanım Koşulları</Text> ve <Text style={styles.termsLink}>Gizlilik Politikası</Text>'nı kabul etmiş olursunuz.
+                {t('termsAgreementText')}
               </Text>
             </View>
 
@@ -339,66 +269,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  ambientBackground: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
-    zIndex: 0,
-  },
-  ambientCircleTopLeft: {
-    position: 'absolute',
-    top: -100,
-    left: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: colors.surfaceContainerHigh,
-    opacity: 0.6,
-    // Add simple blur effect approximation for native
-    shadowColor: colors.surfaceContainerHigh,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 100,
-    elevation: 20,
-  },
-  ambientCircleBottomRight: {
-    position: 'absolute',
-    bottom: -100,
-    right: -100,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: colors.surfaceVariant,
-    opacity: 0.6,
-    shadowColor: colors.surfaceVariant,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 100,
-    elevation: 20,
-  },
   keyboardView: {
     flex: 1,
-    zIndex: 10,
   },
   scrollViewContent: {
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16, // margin-mobile
+    paddingHorizontal: 20,
   },
-  card: {
+  formContainer: {
     width: '100%',
-    maxWidth: 448, // max-w-md
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: 12,
-    padding: 24, // container-padding
-    borderWidth: 1,
-    borderColor: colors.surfaceVariant,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    gap: 32,
+    maxWidth: 448,
+    gap: 24,
+    paddingVertical: 12,
   },
   header: {
     alignItems: 'center',

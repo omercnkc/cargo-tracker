@@ -31,7 +31,7 @@ export const DrawerMenuModal = () => {
   const profile = useAuthStore((state) => state.profile);
   const signOut = useAuthStore((state) => state.signOut);
 
-  const { openAddressModal, openChangePasswordModal, openSupportModal } = useModalStore();
+  const { openAddressModal, openChangePasswordModal, openSupportModal, openCarrierModal } = useModalStore();
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
   const displayEmail = user?.email || 'omercnkc123@gmail.com';
@@ -55,6 +55,11 @@ export const DrawerMenuModal = () => {
   const handleOpenSupportModal = (type: any) => {
     closeDrawer();
     openSupportModal(type);
+  };
+
+  const handleOpenCarrierModal = () => {
+    closeDrawer();
+    openCarrierModal();
   };
 
   const handleLogout = () => {
@@ -170,7 +175,7 @@ export const DrawerMenuModal = () => {
             <TouchableOpacity 
               style={styles.menuItem} 
               activeOpacity={0.7}
-              onPress={() => handleNavigate('CarrierSelection')}
+              onPress={handleOpenCarrierModal}
             >
               <MaterialIcons name="local-shipping" size={22} color={colors.onSurface} />
               <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('defaultCarriersMenu')}</Text>

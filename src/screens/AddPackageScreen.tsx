@@ -269,7 +269,7 @@ export const AddPackageScreen = () => {
                 </View>
                 <TextInput
                   style={[styles.inputMono, { color: colors.onSurface }]}
-                  placeholder="Örn: 1Z999999999999"
+                  placeholder={t('trackingPlaceholder')}
                   placeholderTextColor={colors.onSurfaceVariant}
                   value={trackingNumber}
                   onChangeText={(val) => {
@@ -330,7 +330,7 @@ export const AddPackageScreen = () => {
                 </View>
                 <TextInput
                   style={[styles.input, { color: colors.onSurface }]}
-                  placeholder="Örn: Yeni Ayakkabım, Kulaklık"
+                  placeholder={t('nicknamePlaceholder')}
                   placeholderTextColor={colors.onSurfaceVariant}
                   value={nickname}
                   onChangeText={setNickname}
@@ -403,7 +403,7 @@ export const AddPackageScreen = () => {
             )}
 
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Kargo Firması Seç</Text>
+              <Text style={styles.sheetTitle}>{t('selectCarrier')}</Text>
               <TouchableOpacity style={styles.iconButton} onPress={() => setSheetVisible(false)}>
                 <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
@@ -415,7 +415,7 @@ export const AddPackageScreen = () => {
               </View>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Kargo firması ara..."
+                placeholder={t('searchCarriers')}
                 placeholderTextColor={colors.onSurfaceVariant}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -451,8 +451,8 @@ export const AddPackageScreen = () => {
               ) : (
                 <View style={styles.noResultsContainer}>
                   <MaterialIcons name="search-off" size={32} color={colors.outlineVariant} />
-                  <Text style={styles.noResultsText}>Kargo firması bulunamadı</Text>
-                  <Text style={styles.noResultsSubtext}>Farklı bir arama yapmayı deneyin.</Text>
+                  <Text style={styles.noResultsText}>{t('noCarriersFound')}</Text>
+                  <Text style={styles.noResultsSubtext}>{t('tryDifferentSearch')}</Text>
                 </View>
               )}
             </View>

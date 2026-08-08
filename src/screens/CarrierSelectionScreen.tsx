@@ -146,8 +146,8 @@ export const CarrierSelectionScreen = () => {
               ) : (
                 <View style={styles.emptyState}>
                   <MaterialIcons name="search-off" size={48} color={colors.outlineVariant} />
-                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>Kargo firması bulunamadı</Text>
-                  <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>Farklı bir isim deneyin.</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>{t('noCarriersFound')}</Text>
+                  <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>{t('tryDifferentSearch')}</Text>
                 </View>
               )}
             </ScrollView>

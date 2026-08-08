@@ -22,53 +22,53 @@ interface NotificationItem {
   unread: boolean;
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+const getInitialNotifications = (t: any): NotificationItem[] => [
   {
     id: '1',
     type: 'delivered',
-    title: 'Kargonuz teslim edildi',
-    description: '5738 2901 2345 takip numaralı kargonuz teslim edildi.',
+    title: t('notifDeliveredTitle'),
+    description: t('notifDeliveredDesc'),
     time: '10:30',
     unread: true,
   },
   {
     id: '2',
     type: 'in_transit',
-    title: 'Kargonuz yola çıktı',
-    description: '5738 2901 2345 takip numaralı kargonuz dağıtıma çıktı.',
+    title: t('notifInTransitTitle'),
+    description: t('notifInTransitDesc'),
     time: '09:15',
     unread: true,
   },
   {
     id: '3',
     type: 'hub',
-    title: 'Kargonuz dağıtım merkezinde',
-    description: 'Kargonuz bulunduğunuz şehre ulaştı ve dağıtım merkezinde.',
-    time: 'Dün, 16:45',
+    title: t('notifHubTitle'),
+    description: t('notifHubDesc'),
+    time: t('timeYesterday'),
     unread: true,
   },
   {
     id: '4',
     type: 'received',
-    title: 'Kargonuz teslim alındı',
-    description: 'Kargonuz gönderici tarafından kargo firmasına teslim edildi.',
-    time: 'Dün, 11:20',
+    title: t('notifReceivedTitle'),
+    description: t('notifReceivedDesc'),
+    time: t('timeYesterday'),
     unread: false,
   },
   {
     id: '5',
     type: 'reminder',
-    title: 'Hatırlatma',
-    description: 'Bekleyen 2 kargonuz var. Takip etmek için hemen kontrol edin.',
-    time: '2 gün önce',
+    title: t('notifReminderTitle'),
+    description: t('notifReminderDesc'),
+    time: t('timeDaysAgo'),
     unread: false,
   },
   {
     id: '6',
     type: 'failed',
-    title: 'Teslimat başarısız',
-    description: 'Kargonuz teslim edilemedi. Lütfen adres bilgilerinizi kontrol edin.',
-    time: '3 gün önce',
+    title: t('notifFailedTitle'),
+    description: t('notifFailedDesc'),
+    time: t('timeDaysAgo'),
     unread: false,
   },
 ];
@@ -81,7 +81,7 @@ export const NotificationsScreen = () => {
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => getInitialNotifications(t));
 
   const toggleUnread = (id: string) => {
     setNotifications(prev => 

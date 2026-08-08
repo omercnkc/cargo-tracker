@@ -39,18 +39,18 @@ interface PackageItem {
   createdAt: string;
 }
 
-const INITIAL_PACKAGES: PackageItem[] = [
+const getInitialPackages = (t: any): PackageItem[] => [
   {
     id: '1',
     trackingNumber: 'KP8943271105',
     companyName: 'Global Express',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
     status: 'transit',
-    statusText: 'Yolda',
+    statusText: t('statusInTransit'),
     origin: 'SHZ',
     destination: 'BER',
     progress: 65,
-    deliveryDateLabel: 'Tahmini Teslimat',
+    deliveryDateLabel: t('deliveryDateLabel'),
     deliveryDateValue: 'Eki 24, 2023',
     createdAt: '2023-10-20',
   },
@@ -60,11 +60,11 @@ const INITIAL_PACKAGES: PackageItem[] = [
     companyName: 'Yurtiçi Kargo',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDndS9Xc59oX3WY735_crAmXQ57-GM1fOr2dpm7X82EOQi_wrJYw-pezBidOWHCa5k2Jy1QwtHqXyIABwy5DXMNneud1hVTvgLgVAXu0tIpyFM5yXixn4oLdsd9Tx8vvrITOEE58KWT8S-4-o6DUn-AZC0lkllVys5M0fxjZ5uZ5Ua6NrZA9PNoMvaOzlJcX2YxYivdZlnA8-We-T7hLcjvmmqA9xl7THZHNToHPMHiUGTg-sN5OTNsTIi5wCXOW9ahAtLQ_qb-4rk',
     status: 'delivered',
-    statusText: 'Teslim Edildi',
+    statusText: t('statusDelivered'),
     origin: 'IST',
     destination: 'ANK',
     progress: 100,
-    deliveryDateLabel: 'Teslim Tarihi',
+    deliveryDateLabel: t('deliveredDateLabel'),
     deliveryDateValue: 'Eki 21, 2023',
     createdAt: '2023-10-18',
   },
@@ -74,11 +74,11 @@ const INITIAL_PACKAGES: PackageItem[] = [
     companyName: 'DHL Express',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjM3WGmIKGRLjMW6IRU1kYHLqZV247A1R0k-tu002NXpTR9eBvCgJzSinfaCiyYFOL64rFF1bMhhEwZaJJxSkhUQPMWtaYISoFfhJliBKil7ol02FyEnBl2oBWRcxIwHPIpon6aPVYhSD6r7A3WpnmCQ3zsHhjl_muE97mWCTx9X9PyZ7C6jrUdCAkKaLg2jZ5e2XeWi3tgRJVO0bOJzm2jxXY9i2clZORqFEiiPJGldegt9z6hfKr4wZjrwqxlMY8QQev542fsWA',
     status: 'action_required',
-    statusText: 'İşlem Gerekli',
+    statusText: t('actionRequired'),
     origin: 'FRA',
     destination: 'IST',
     progress: 40,
-    deliveryDateLabel: 'Güncellenen Teslimat',
+    deliveryDateLabel: t('deliveryDateLabel'),
     deliveryDateValue: 'Beklemede',
     warningText: 'Gümrük onayı bekleniyor',
     createdAt: '2023-10-15',
@@ -89,11 +89,11 @@ const INITIAL_PACKAGES: PackageItem[] = [
     companyName: 'Aras Kargo',
     companyLogo: 'https://www.araskargo.com.tr/assets/images/aras-logo.svg',
     status: 'transit',
-    statusText: 'Dağıtımda',
+    statusText: t('statusInTransit'),
     origin: 'IZM',
-    destination: 'Bursa',
+    destination: 'BUR',
     progress: 85,
-    deliveryDateLabel: 'Tahmini Teslimat',
+    deliveryDateLabel: t('deliveryDateLabel'),
     deliveryDateValue: 'Bugün',
     createdAt: '2023-10-22',
   },
@@ -103,19 +103,14 @@ const INITIAL_PACKAGES: PackageItem[] = [
     companyName: 'PTT Kargo',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCB1zSf7kxmY8C_5-etb0sfPsXQb5pwjtQED4ORcd9zL4fLFvWwBk5o-ZtMFKOWLnnuBL9d5u8r13hSJhClaZ0mSFpTQ59Gq70-Jiq9upSGmh5UYZShhSyJNk_DXxw_r6Om53_2I4sVreetCk3gbt3c1k6GAjVHZsSqwkBO028upnqYqIEEqeID6wXrURWDd1sUmpLL1grFDo3ckXKY3W_u3DCM1YCRLT-ZDAE_5g__b1r0HK1tEJgiAzZ-xGV1djAzx--hzv74yPo',
     status: 'delivered',
-    statusText: 'Teslim Edildi',
+    statusText: t('statusDelivered'),
     origin: 'ANK',
     destination: 'TRB',
     progress: 100,
-    deliveryDateLabel: 'Teslim Tarihi',
+    deliveryDateLabel: t('deliveredDateLabel'),
     deliveryDateValue: 'Eki 19, 2023',
     createdAt: '2023-10-14',
   },
-];
-
-const CARRIER_OPTIONS = [
-  'Tümü',
-  ...DEFAULT_CARRIERS.map(c => c.name)
 ];
 
 export const PackagesScreen = () => {
@@ -179,9 +174,14 @@ export const PackagesScreen = () => {
     })
   ).current;
 
+  const CARRIER_OPTIONS = useMemo(() => [
+    t('allFilter'),
+    ...DEFAULT_CARRIERS.map(c => c.name)
+  ], [t]);
+
   // Filter States
   const [statusFilter, setStatusFilter] = useState<'all' | 'transit' | 'delivered' | 'action_required'>('all');
-  const [carrierFilter, setCarrierFilter] = useState<string>('Tümü');
+  const [carrierFilter, setCarrierFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
 
   // Combined packages list (from DB or fallback)
@@ -193,17 +193,17 @@ export const PackagesScreen = () => {
         companyName: s.courier_companies?.name || s.title || 'Kargo',
         companyLogo: s.courier_companies?.logo_url || getCarrierByName(s.courier_companies?.name || s.title, s.tracking_number)?.logo,
         status: (s.current_status === 'delivered' ? 'delivered' : s.current_status === 'pending' ? 'action_required' : 'transit') as any,
-        statusText: s.current_status === 'delivered' ? 'Teslim Edildi' : s.current_status === 'pending' ? 'Beklemede' : 'Yolda',
+        statusText: s.current_status === 'delivered' ? t('statusDelivered') : s.current_status === 'pending' ? t('statusPending') : t('statusInTransit'),
         origin: s.sender ? s.sender.substring(0, 3).toUpperCase() : 'TR',
         destination: s.receiver ? s.receiver.substring(0, 3).toUpperCase() : 'TR',
         progress: s.current_status === 'delivered' ? 100 : 65,
-        deliveryDateLabel: s.current_status === 'delivered' ? 'Teslim Tarihi' : 'Tahmini Teslimat',
+        deliveryDateLabel: s.current_status === 'delivered' ? t('deliveredDateLabel') : t('deliveryDateLabel'),
         deliveryDateValue: s.estimated_delivery || 'Yakında',
         createdAt: s.created_at || new Date().toISOString(),
       }));
     }
-    return INITIAL_PACKAGES;
-  }, [dbShipments]);
+    return getInitialPackages(t);
+  }, [dbShipments, t]);
 
   // Check if any filter is active
   const isFilterActive = statusFilter !== 'all' || carrierFilter !== 'Tümü' || sortBy !== 'newest';
@@ -410,8 +410,8 @@ export const PackagesScreen = () => {
                       </View>
                     ) : (
                       <>
-                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Kaynak: {pkg.origin}</Text>
-                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>Hedef: {pkg.destination}</Text>
+                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('originLabel')}: {pkg.origin}</Text>
+                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('destinationLabel')}: {pkg.destination}</Text>
                       </>
                     )}
                   </View>
@@ -434,7 +434,7 @@ export const PackagesScreen = () => {
                     </Text>
                   </View>
                   <View style={styles.footerAction}>
-                    <Text style={[styles.footerActionText, { color: colors.primary }]}>Detaylar</Text>
+                    <Text style={[styles.footerActionText, { color: colors.primary }]}>{t('detailsBtn')}</Text>
                     <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
                   </View>
                 </View>
@@ -473,7 +473,7 @@ export const PackagesScreen = () => {
             <View style={styles.modalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <MaterialIcons name="tune" size={22} color={colors.primary} />
-                <Text style={[styles.modalTitle, { color: colors.primary }]}>Filtrele & Sırala</Text>
+                <Text style={[styles.modalTitle, { color: colors.primary }]}>{t('filterAndSortTitle')}</Text>
               </View>
               <TouchableOpacity onPress={closeFilterModal}>
                 <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
@@ -484,13 +484,13 @@ export const PackagesScreen = () => {
 
               {/* 1. Status Filter */}
               <View style={styles.filterGroup}>
-                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>Kargo Durumu</Text>
+                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>{t('packageStatusFilterTitle')}</Text>
                 <View style={styles.chipOptionsRow}>
                   {[
-                    { id: 'all', label: 'Tümü' },
-                    { id: 'transit', label: '🚚 Yolda' },
-                    { id: 'delivered', label: '✅ Teslim Edildi' },
-                    { id: 'action_required', label: '⚠️ İşlem Gerekli' },
+                    { id: 'all', label: t('allFilter') },
+                    { id: 'transit', label: `🚚 ${t('statusInTransit')}` },
+                    { id: 'delivered', label: `✅ ${t('statusDelivered')}` },
+                    { id: 'action_required', label: `⚠️ ${t('actionRequired')}` },
                   ].map((item) => (
                     <TouchableOpacity
                       key={item.id}
@@ -513,7 +513,7 @@ export const PackagesScreen = () => {
 
               {/* 2. Carrier Filter */}
               <View style={styles.filterGroup}>
-                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>Kargo Firması</Text>
+                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>{t('carrierLabel')}</Text>
                 <View style={styles.chipOptionsRow}>
                   {CARRIER_OPTIONS.map((carrier) => (
                     <TouchableOpacity
@@ -537,12 +537,12 @@ export const PackagesScreen = () => {
 
               {/* 3. Sorting Criteria */}
               <View style={styles.filterGroup}>
-                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>Sıralama Ölçütü</Text>
+                <Text style={[styles.filterGroupTitle, { color: colors.onSurface }]}>{t('sortingTitle')}</Text>
                 <View style={styles.chipOptionsRow}>
                   {[
-                    { id: 'newest', label: '📅 En Yeni İlk' },
-                    { id: 'oldest', label: '📅 En Eski İlk' },
-                    { id: 'name', label: '🔤 Firma Adına Göre' },
+                    { id: 'newest', label: `📅 ${t('sortNewest')}` },
+                    { id: 'oldest', label: `📅 ${t('sortOldest')}` },
+                    { id: 'name', label: `🔤 ${t('sortByName')}` },
                   ].map((item) => (
                     <TouchableOpacity
                       key={item.id}
@@ -568,13 +568,13 @@ export const PackagesScreen = () => {
             {/* Modal Actions Footer */}
             <View style={[styles.modalFooter, { borderTopColor: colors.outlineVariant }]}>
               <TouchableOpacity style={styles.modalResetBtn} onPress={resetFilters}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.error }}>Sıfırla</Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.error }}>{t('filterClear')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalApplyBtn, { backgroundColor: colors.primary }]}
                 onPress={closeFilterModal}
               >
-                <Text style={styles.modalApplyBtnText}>Filtreleri Uygula ({filteredPackages.length})</Text>
+                <Text style={styles.modalApplyBtnText}>{t('applyFilters')} ({filteredPackages.length})</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>

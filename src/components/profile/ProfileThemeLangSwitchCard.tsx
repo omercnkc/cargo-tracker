@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -14,7 +14,7 @@ export const ProfileThemeLangSwitchCard = () => {
       {/* Row 1: Tema */}
       <View style={styles.settingRow}>
         <View style={styles.labelGroup}>
-          <MaterialIcons name="palette" size={22} color={colors.onSurface} />
+          <MaterialIcons name="palette" size={20} color={colors.onSurface} />
           <Text style={[styles.labelTitle, { color: colors.onSurface }]}>{t('themeTitle')}</Text>
         </View>
 
@@ -27,7 +27,7 @@ export const ProfileThemeLangSwitchCard = () => {
             onPress={() => isDarkMode && toggleTheme()}
             activeOpacity={0.8}
           >
-            <Text style={{ fontSize: 13 }}>☀️</Text>
+            <Text style={{ fontSize: 12 }}>☀️</Text>
             <Text style={[styles.pillText, { color: !isDarkMode ? colors.primary : colors.onSurfaceVariant }]}>{t('themeLight')}</Text>
           </TouchableOpacity>
 
@@ -39,7 +39,7 @@ export const ProfileThemeLangSwitchCard = () => {
             onPress={() => !isDarkMode && toggleTheme()}
             activeOpacity={0.8}
           >
-            <Text style={{ fontSize: 13 }}>🌙</Text>
+            <Text style={{ fontSize: 12 }}>🌙</Text>
             <Text style={[styles.pillText, { color: isDarkMode ? colors.onPrimary : colors.onSurfaceVariant }]}>{t('themeDark')}</Text>
           </TouchableOpacity>
         </View>
@@ -48,7 +48,7 @@ export const ProfileThemeLangSwitchCard = () => {
       {/* Row 2: Dil */}
       <View style={styles.settingRow}>
         <View style={styles.labelGroup}>
-          <MaterialIcons name="language" size={22} color={colors.onSurface} />
+          <MaterialIcons name="language" size={20} color={colors.onSurface} />
           <Text style={[styles.labelTitle, { color: colors.onSurface }]}>{t('language')}</Text>
         </View>
 
@@ -61,9 +61,9 @@ export const ProfileThemeLangSwitchCard = () => {
             onPress={() => setLanguage('tr')}
             activeOpacity={0.8}
           >
-            <Text style={{ fontSize: 12 }}>🇹🇷</Text>
+            <Text style={{ fontSize: 13 }}>🇹🇷</Text>
             <Text style={[styles.pillText, { color: language === 'tr' ? colors.onPrimary : colors.onSurfaceVariant }]}>
-              Türkçe (TR)
+              TR
             </Text>
           </TouchableOpacity>
 
@@ -75,8 +75,13 @@ export const ProfileThemeLangSwitchCard = () => {
             onPress={() => setLanguage('en')}
             activeOpacity={0.8}
           >
+            <Image 
+              source={require('../../assets/eng-icon.png')} 
+              style={styles.flagIcon} 
+              resizeMode="cover"
+            />
             <Text style={[styles.pillText, { color: language === 'en' ? colors.onPrimary : colors.onSurfaceVariant }]}>
-              English (EN)
+              EN
             </Text>
           </TouchableOpacity>
         </View>
@@ -90,9 +95,9 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     borderWidth: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -103,33 +108,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
   },
   labelGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flexShrink: 1,
   },
   labelTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     fontFamily: 'Inter',
   },
   switchTrack: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 40,
-    borderRadius: 20,
-    padding: 3,
+    height: 36,
+    borderRadius: 18,
+    padding: 2,
     borderWidth: 1,
   },
   switchPill: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
+    gap: 5,
+    paddingHorizontal: 10,
     height: '100%',
-    borderRadius: 17,
+    borderRadius: 15,
   },
   switchPillActiveLight: {
     backgroundColor: '#ffffff',
@@ -156,5 +163,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     fontFamily: 'Inter',
+  },
+  flagIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
   },
 });

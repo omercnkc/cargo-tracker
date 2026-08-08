@@ -36,7 +36,7 @@ export const SettingsScreen = () => {
   const handleBiometricToggle = async (value: boolean) => {
     const success = await toggleBiometric(value);
     if (value && !success) {
-      Alert.alert('Doğrulama Başarısız', 'Biyometrik giriş aktifleştirilemedi.');
+      Alert.alert(t('authFailedTitle'), t('biometricEnableFailed'));
     }
   };
 
@@ -89,19 +89,19 @@ export const SettingsScreen = () => {
             <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
               <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
                 <MaterialIcons name="security" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Güvenlik & Biyometrik</Text>
+                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>{t('securityAndBiometrics')}</Text>
               </View>
 
               <View style={styles.sectionBody}>
                 <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
                   <View style={styles.settingTextContent}>
                     <Text style={[styles.settingLabel, { color: colors.onSurface }]}>
-                      {biometricTypes[0] || 'Face ID / Touch ID'} İle Giriş
+                      {biometricTypes[0] ? `${t('biometricLoginTitle')} ${biometricTypes[0]}` : `${t('biometricLoginTitle')} Face ID / Touch ID`}
                     </Text>
                     <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>
                       {isSupported
-                        ? 'Uygulama açılışında biyometrik kimlik doğrulaması iste'
-                        : 'Bu cihazda biyometrik kimlik desteği bulunmuyor'}
+                        ? t('biometricRequireAppOpen')
+                        : t('biometricNotSupported')}
                     </Text>
                   </View>
                   <Switch

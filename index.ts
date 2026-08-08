@@ -1,5 +1,8 @@
 import { registerRootComponent } from 'expo';
 import { LogBox } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 // Expo Go SDK 53+ Android push notification uyarısını bastırır (Expo Go kısıtlaması)
 LogBox.ignoreLogs([

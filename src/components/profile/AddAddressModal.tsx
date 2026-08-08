@@ -4,6 +4,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
+import { PhoneInput } from '../ui';
+import { validatePhone } from '../../utils/validators';
 
 export interface UserAddress {
   id: string;
@@ -172,31 +174,24 @@ export function AddAddressModal({ visible, onClose, onSaveAddress }: AddAddressM
               )}
             </View>
 
-            {/* Name & Phone Row */}
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.onSurface }]}>{t('receiverFullNameLabel')}</Text>
-                <TextInput
-                  style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
-                  placeholder="Ahmet Yılmaz"
-                  placeholderTextColor={colors.onSurfaceVariant}
-                  value={fullName}
-                  onChangeText={setFullName}
-                />
-              </View>
-
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.onSurface }]}>{t('phoneLabel')}</Text>
-                <TextInput
-                  style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
-                  placeholder="05xx xxx xx xx"
-                  placeholderTextColor={colors.onSurfaceVariant}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                />
-              </View>
+            {/* Receiver Full Name */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: colors.onSurface }]}>{t('receiverFullNameLabel')}</Text>
+              <TextInput
+                style={[styles.input, { borderColor: colors.outlineVariant, color: colors.onBackground }]}
+                placeholder="Ahmet Yılmaz"
+                placeholderTextColor={colors.onSurfaceVariant}
+                value={fullName}
+                onChangeText={setFullName}
+              />
             </View>
+
+            {/* Phone Input */}
+            <PhoneInput
+              label={t('phoneLabel')}
+              value={phone}
+              onChangeText={(formatted) => setPhone(formatted)}
+            />
 
             {/* City & District */}
             <View style={styles.row}>

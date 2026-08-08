@@ -22,6 +22,7 @@ import { BiometricLockModal } from '../components/auth/BiometricLockModal';
 import { AddressManagementModal } from '../components/profile/AddressManagementModal';
 import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
 import { SupportHelpModal } from '../components/common/SupportHelpModal';
+import { CarrierSelectionModal } from '../components/common/CarrierSelectionModal';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,6 +39,8 @@ export const RootNavigator = () => {
     supportModalOpen,
     supportModalType,
     closeSupportModal,
+    carrierModalOpen,
+    closeCarrierModal,
   } = useModalStore();
 
   if (isLoading) {
@@ -94,6 +97,11 @@ export const RootNavigator = () => {
             visible={supportModalOpen}
             type={supportModalType}
             onClose={closeSupportModal}
+          />
+
+          <CarrierSelectionModal
+            visible={carrierModalOpen}
+            onClose={closeCarrierModal}
           />
 
           <BiometricLockModal

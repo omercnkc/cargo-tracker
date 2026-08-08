@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase/supabase';
 import { useTheme } from '../../theme/useTheme';
 import { ModernFeedbackModal, FeedbackType } from './ModernFeedbackModal';
+import { PasswordInput, PasswordStrengthMeter } from '../ui';
+import { validatePassword } from '../../utils/validators';
 
 interface ChangePasswordModalProps {
   visible: boolean;
@@ -34,10 +36,11 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
   const handleChangePassword = async () => {
     const errors: { newPassword?: string; confirmPassword?: string } = {};
 
+    const passValidation = validatePassword(newPassword);
     if (!newPassword) {
       errors.newPassword = 'Yeni şifre girilmesi zorunludur.';
-    } else if (newPassword.length < 6) {
-      errors.newPassword = 'Şifre en az 6 karakterden oluşmalıdır.';
+    } else if (!passValidation.isValid) {
+      errors.newPassword = passValidation.errors[0];
     }
 
     if (!confirmPassword) {
@@ -115,53 +118,32 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
             Hesabınızın güvenliği için yeni güçlü bir şifre belirleyin.
           </Text>
 
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: colors.onSurface }]}>
-              Yeni Şifre <Text style={{ color: colors.error }}>*</Text>
-            </Text>
-            <TextInput
-              style={[
-                styles.input, 
-                { borderColor: fieldErrors.newPassword ? colors.error : colors.outlineVariant, color: colors.onBackground },
-                fieldErrors.newPassword ? { borderWidth: 1.5 } : null
-              ]}
-              placeholder="••••••••"
-              placeholderTextColor={colors.onSurfaceVariant}
-              secureTextEntry
-              value={newPassword}
-              onChangeText={(val) => {
-                setNewPassword(val);
-                if (fieldErrors.newPassword) setFieldErrors(prev => ({ ...prev, newPassword: undefined }));
-              }}
-            />
-            {!!fieldErrors.newPassword && (
-              <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.newPassword}</Text>
-            )}
-          </View>
+          {/* New Password */}
+          <PasswordInput
+            label="Yeni Şifre"
+            required
+            value={newPassword}
+            onChangeText={(val) => {
+              setNewPassword(val);
+              if (fieldErrors.newPassword) setFieldErrors(prev => ({ ...prev, newPassword: undefined }));
+            }}
+            error={fieldErrors.newPassword}
+          />
 
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: colors.onSurface }]}>
-              Yeni Şifre (Tekrar) <Text style={{ color: colors.error }}>*</Text>
-            </Text>
-            <TextInput
-              style={[
-                styles.input, 
-                { borderColor: fieldErrors.confirmPassword ? colors.error : colors.outlineVariant, color: colors.onBackground },
-                fieldErrors.confirmPassword ? { borderWidth: 1.5 } : null
-              ]}
-              placeholder="••••••••"
-              placeholderTextColor={colors.onSurfaceVariant}
-              secureTextEntry
-              value={confirmPassword}
-              onChangeText={(val) => {
-                setConfirmPassword(val);
-                if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: undefined }));
-              }}
-            />
-            {!!fieldErrors.confirmPassword && (
-              <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.confirmPassword}</Text>
-            )}
-          </View>
+          {/* Password Strength Meter */}
+          <PasswordStrengthMeter password={newPassword} />
+
+          {/* Confirm Password */}
+          <PasswordInput
+            label="Yeni Şifre (Tekrar)"
+            required
+            leftIconName="lock-reset"
+            value={confirmPassword}
+            onChangeText={(val) => {
+              setConfirmPassword(val);
+              if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: undefined }));
+            }}
+          />
 
           <TouchableOpacity
             style={[styles.submitButton, { backgroundColor: colors.primary }]}
