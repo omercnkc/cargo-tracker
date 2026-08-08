@@ -18,6 +18,7 @@ import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useNotificationStore } from '../store/notification.store';
+import { ProfileThemeLangSwitchCard } from '../components/profile/ProfileThemeLangSwitchCard';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
@@ -142,6 +143,9 @@ export const ProfileScreen = () => {
           </View>
 
         </View>
+
+        {/* Theme & Language Switch Card */}
+        <ProfileThemeLangSwitchCard />
 
       </ScrollView>
     </View>
