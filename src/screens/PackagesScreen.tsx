@@ -200,6 +200,10 @@ export const PackagesScreen = () => {
   const [carrierFilter, setCarrierFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
 
+  // Pagination State (5 items per page)
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   // Combined packages list (from DB or fallback)
   const allPackages = useMemo<PackageItem[]>(() => {
     const isTestUser = user?.email?.toLowerCase() === 'omercnkc123@gmail.com';
@@ -243,6 +247,7 @@ export const PackagesScreen = () => {
     setCarrierFilter('all');
     setSortBy('newest');
     setSearchQuery('');
+    setCurrentPage(1);
   };
 
   // Filtered & Sorted Packages
@@ -279,6 +284,16 @@ export const PackagesScreen = () => {
         }
       });
   }, [allPackages, searchQuery, statusFilter, carrierFilter, isCarrierFiltered, sortBy]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredPackages.length / ITEMS_PER_PAGE) || 1;
+  }, [filteredPackages.length]);
+
+  // Latency Methodology / Lazy Slicing: Only render items for the active page
+  const paginatedPackages = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredPackages.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredPackages, currentPage]);
 
   return (
     <View style={[{ flex: 1, backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
@@ -395,91 +410,169 @@ export const PackagesScreen = () => {
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.packageGrid}>
-            {filteredPackages.map((pkg) => (
-              <TouchableOpacity
-                key={pkg.id}
-                style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]}
-                onPress={() => navigation.navigate('PackageDetail', { shipmentId: pkg.id })}
-                activeOpacity={0.8}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardHeaderLeft}>
-                    <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-                      <CarrierLogo
-                        logo={pkg.companyLogo}
-                        size={28}
-                      />
+          <View style={{ width: '100%' }}>
+            <View style={styles.packageGrid}>
+              {paginatedPackages.map((pkg) => (
+                <TouchableOpacity
+                  key={pkg.id}
+                  style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]}
+                  onPress={() => navigation.navigate('PackageDetail', { shipmentId: pkg.id })}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.cardHeader}>
+                    <View style={styles.cardHeaderLeft}>
+                      <View style={[styles.companyLogoBg, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+                        <CarrierLogo
+                          logo={pkg.companyLogo}
+                          size={24}
+                        />
+                      </View>
+                      <View>
+                        <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>{pkg.trackingNumber}</Text>
+                        <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>{pkg.companyName}</Text>
+                      </View>
                     </View>
+                    {(() => {
+                      const isDelivered = pkg.status === 'delivered' || pkg.status === 'teslim_edildi';
+                      const isActionReq = pkg.status === 'action_required' || pkg.status === 'failed';
+                      const isPending = pkg.status === 'created' || pkg.status === 'pending';
+
+                      const badgeBg = isDelivered
+                        ? (colors.status?.delivered?.background || '#DCFCE7')
+                        : isActionReq
+                        ? (colors.status?.alert?.background || '#FEE2E2')
+                        : isPending
+                        ? (colors.status?.pending?.background || '#EFF4FF')
+                        : (colors.status?.inTransit?.background || '#FFEDD5');
+
+                      const badgeColor = isDelivered
+                        ? (colors.status?.delivered?.text || '#166534')
+                        : isActionReq
+                        ? (colors.status?.alert?.text || '#991B1B')
+                        : isPending
+                        ? (colors.status?.pending?.text || '#1E3A8A')
+                        : (colors.status?.inTransit?.text || '#9A3412');
+
+                      return (
+                        <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+                          <Text style={[styles.badgeText, { color: badgeColor }]}>{pkg.statusText}</Text>
+                        </View>
+                      );
+                    })()}
+                  </View>
+
+                  <View style={styles.progressSection}>
+                    <View style={styles.routeTextContainer}>
+                      {pkg.warningText ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <MaterialIcons name="warning" size={16} color={colors.error} />
+                          <Text style={[styles.routeText, { color: colors.error }]}>{pkg.warningText}</Text>
+                        </View>
+                      ) : (
+                        <>
+                          <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('originLabel')}: {pkg.origin}</Text>
+                          <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('destinationLabel')}: {pkg.destination}</Text>
+                        </>
+                      )}
+                    </View>
+                    <CargoStatusTracker
+                      status={pkg.status}
+                      compact={!isLargeScreen}
+                      showLabels={isLargeScreen}
+                    />
+                  </View>
+
+                  <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
                     <View>
-                      <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>{pkg.trackingNumber}</Text>
-                      <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>{pkg.companyName}</Text>
+                      <Text style={[styles.footerLabel, { color: colors.outline }]}>{pkg.deliveryDateLabel}</Text>
+                      <Text style={[styles.footerValuePrimary, { color: pkg.status === 'delivered' ? colors.onSurface : colors.primary }]}>
+                        {pkg.deliveryDateValue}
+                      </Text>
+                    </View>
+                    <View style={styles.footerAction}>
+                      <Text style={[styles.footerActionText, { color: colors.primary }]}>{t('detailsBtn')}</Text>
+                      <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
                     </View>
                   </View>
-                  {(() => {
-                    const isDelivered = pkg.status === 'delivered' || pkg.status === 'teslim_edildi';
-                    const isActionReq = pkg.status === 'action_required' || pkg.status === 'failed';
-                    const isPending = pkg.status === 'created' || pkg.status === 'pending';
+                </TouchableOpacity>
+              ))}
+            </View>
 
-                    const badgeBg = isDelivered
-                      ? (colors.status?.delivered?.background || '#DCFCE7')
-                      : isActionReq
-                      ? (colors.status?.alert?.background || '#FEE2E2')
-                      : isPending
-                      ? (colors.status?.pending?.background || '#EFF4FF')
-                      : (colors.status?.inTransit?.background || '#FFEDD5');
-
-                    const badgeColor = isDelivered
-                      ? (colors.status?.delivered?.text || '#166534')
-                      : isActionReq
-                      ? (colors.status?.alert?.text || '#991B1B')
-                      : isPending
-                      ? (colors.status?.pending?.text || '#1E3A8A')
-                      : (colors.status?.inTransit?.text || '#9A3412');
-
-                    return (
-                      <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-                        <Text style={[styles.badgeText, { color: badgeColor }]}>{pkg.statusText}</Text>
-                      </View>
-                    );
-                  })()}
-                </View>
-
-                <View style={styles.progressSection}>
-                  <View style={styles.routeTextContainer}>
-                    {pkg.warningText ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <MaterialIcons name="warning" size={16} color={colors.error} />
-                        <Text style={[styles.routeText, { color: colors.error }]}>{pkg.warningText}</Text>
-                      </View>
-                    ) : (
-                      <>
-                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('originLabel')}: {pkg.origin}</Text>
-                        <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('destinationLabel')}: {pkg.destination}</Text>
-                      </>
-                    )}
-                  </View>
-                  <CargoStatusTracker
-                    status={pkg.status}
-                    compact={!isLargeScreen}
-                    showLabels={isLargeScreen}
-                  />
-                </View>
-
-                <View style={[styles.cardFooter, { borderTopColor: colors.outlineVariant }]}>
-                  <View>
-                    <Text style={[styles.footerLabel, { color: colors.outline }]}>{pkg.deliveryDateLabel}</Text>
-                    <Text style={[styles.footerValuePrimary, { color: pkg.status === 'delivered' ? colors.onSurface : colors.primary }]}>
-                      {pkg.deliveryDateValue}
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <View>
+                <View style={[styles.paginationWrapper, { borderTopColor: colors.outlineVariant }]}>
+                  {/* Previous Page Button */}
+                  <TouchableOpacity
+                    style={[
+                      styles.paginationBtn,
+                      { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant },
+                      currentPage === 1 && styles.paginationBtnDisabled,
+                    ]}
+                    disabled={currentPage === 1}
+                    onPress={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    activeOpacity={0.7}
+                  >
+                    <MaterialIcons name="chevron-left" size={20} color={currentPage === 1 ? colors.outline : colors.primary} />
+                    <Text style={[styles.paginationBtnText, { color: currentPage === 1 ? colors.outline : colors.primary }]}>
+                      {t('previous') || 'Önceki'}
                     </Text>
+                  </TouchableOpacity>
+
+                  {/* Page Numbers */}
+                  <View style={styles.paginationPagesRow}>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                      const isActive = pageNum === currentPage;
+                      return (
+                        <TouchableOpacity
+                          key={pageNum}
+                          style={[
+                            styles.paginationPagePill,
+                            {
+                              backgroundColor: isActive ? colors.primary : colors.surfaceContainerLowest,
+                              borderColor: isActive ? colors.primary : colors.outlineVariant,
+                            },
+                          ]}
+                          onPress={() => setCurrentPage(pageNum)}
+                          activeOpacity={0.8}
+                        >
+                          <Text
+                            style={[
+                              styles.paginationPagePillText,
+                              { color: isActive ? colors.onPrimary : colors.onSurface },
+                            ]}
+                          >
+                            {pageNum}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  <View style={styles.footerAction}>
-                    <Text style={[styles.footerActionText, { color: colors.primary }]}>{t('detailsBtn')}</Text>
-                    <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
-                  </View>
+
+                  {/* Next Page Button */}
+                  <TouchableOpacity
+                    style={[
+                      styles.paginationBtn,
+                      { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant },
+                      currentPage === totalPages && styles.paginationBtnDisabled,
+                    ]}
+                    disabled={currentPage === totalPages}
+                    onPress={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.paginationBtnText, { color: currentPage === totalPages ? colors.outline : colors.primary }]}>
+                      {t('next') || 'Sonraki'}
+                    </Text>
+                    <MaterialIcons name="chevron-right" size={20} color={currentPage === totalPages ? colors.outline : colors.primary} />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
-            ))}
+
+                {/* Sub-info text */}
+                <Text style={[styles.paginationInfoText, { color: colors.onSurfaceVariant }]}>
+                  {`${(currentPage - 1) * ITEMS_PER_PAGE + 1} - ${Math.min(currentPage * ITEMS_PER_PAGE, filteredPackages.length)} / ${filteredPackages.length} kargo gösteriliyor`}
+                </Text>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>

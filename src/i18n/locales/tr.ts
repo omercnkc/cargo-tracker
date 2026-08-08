@@ -11,6 +11,8 @@ export const tr = {
   error: 'Hata',
   success: 'Başarılı',
   loading: 'Yükleniyor...',
+  previous: 'Önceki',
+  next: 'Sonraki',
 
   // Statuses
   statusInTransit: 'Dağıtımda',

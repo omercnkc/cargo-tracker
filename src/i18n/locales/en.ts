@@ -13,6 +13,8 @@ export const en: TranslationKeys = {
   error: 'Error',
   success: 'Success',
   loading: 'Loading...',
+  previous: 'Previous',
+  next: 'Next',
 
   // Statuses
   statusInTransit: 'In Transit',
