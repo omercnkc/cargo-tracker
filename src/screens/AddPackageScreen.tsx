@@ -23,7 +23,7 @@ import * as Clipboard from 'expo-clipboard';
 
 import { useCourierCompanies, useAddShipment } from '../features/shipment/hooks/useShipments';
 import { useAuthStore } from '../store/auth.store';
-import colors from '../theme/colors';
+import { useTheme } from '../theme/useTheme';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
 import { OCRService } from '../services/ocr/ocrService';
 import { useTranslation } from '../hooks/useTranslation';
@@ -39,6 +39,7 @@ export const AddPackageScreen = () => {
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
   const user = useAuthStore(state => state.user);
+  const { theme: colors, isDarkMode } = useTheme();
   const { t } = useTranslation();
 
   const { data: dbCouriers } = useCourierCompanies();
@@ -192,7 +193,7 @@ export const AddPackageScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -237,22 +238,42 @@ export const AddPackageScreen = () => {
 
           {/* Panodan Algılanan Kargo Bildirim Rozeti */}
           {clipboardDetected && (
-            <TouchableOpacity style={styles.clipboardBadge} onPress={handleApplyClipboard} activeOpacity={0.8}>
-              <MaterialIcons name="content-paste-go" size={22} color="#2563eb" />
-              <Text style={styles.clipboardText}>
+            <TouchableOpacity
+              style={[
+                styles.clipboardBadge,
+                {
+                  backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff',
+                  borderColor: isDarkMode ? '#3b82f6' : '#bfdbfe',
+                },
+              ]}
+              onPress={handleApplyClipboard}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="content-paste-go" size={22} color={isDarkMode ? '#93c5fd' : '#2563eb'} />
+              <Text style={[styles.clipboardText, { color: isDarkMode ? '#93c5fd' : '#1e40af' }]}>
                 {t('clipboardDetectedPrefix')}<Text style={styles.clipboardCode}>{clipboardDetected}</Text>{t('clipboardDetectedSuffix')}
               </Text>
             </TouchableOpacity>
           )}
 
           {/* E-Posta Bağlama Hızlı Butonu */}
-          <TouchableOpacity style={styles.emailSyncCard} onPress={() => setEmailModalVisible(true)} activeOpacity={0.85}>
-            <MaterialIcons name="mark-email-unread" size={24} color="#00236f" />
+          <TouchableOpacity
+            style={[
+              styles.emailSyncCard,
+              {
+                backgroundColor: isDarkMode ? '#0c4a6e' : '#f0f9ff',
+                borderColor: isDarkMode ? '#0284c7' : '#bae6fd',
+              },
+            ]}
+            onPress={() => setEmailModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <MaterialIcons name="mark-email-unread" size={24} color={isDarkMode ? '#38bdf8' : '#00236f'} />
             <View style={styles.emailSyncTextWrapper}>
-              <Text style={styles.emailSyncTitle}>{t('autoImportEmail')}</Text>
-              <Text style={styles.emailSyncSubtitle}>{t('autoImportSubtitle')}</Text>
+              <Text style={[styles.emailSyncTitle, { color: isDarkMode ? '#7dd3fc' : '#0369a1' }]}>{t('autoImportEmail')}</Text>
+              <Text style={[styles.emailSyncSubtitle, { color: isDarkMode ? '#38bdf8' : '#0284c7' }]}>{t('autoImportSubtitle')}</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={22} color="#00236f" />
+            <MaterialIcons name="chevron-right" size={22} color={isDarkMode ? '#38bdf8' : '#00236f'} />
           </TouchableOpacity>
 
           {/* Main Form Block */}
@@ -391,6 +412,7 @@ export const AddPackageScreen = () => {
 
           <View style={[
             styles.bottomSheetContainer,
+            { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant },
             { paddingBottom: insets.bottom || 24 },
             isLargeScreen && styles.bottomSheetContainerLarge
           ]}>
@@ -398,12 +420,12 @@ export const AddPackageScreen = () => {
             {/* Drag Handle (Mobile) */}
             {!isLargeScreen && (
               <View style={styles.dragHandleContainer}>
-                <View style={styles.dragHandle} />
+                <View style={[styles.dragHandle, { backgroundColor: colors.outlineVariant }]} />
               </View>
             )}
 
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>{t('selectCarrier')}</Text>
+            <View style={[styles.sheetHeader, { borderBottomColor: colors.surfaceContainer }]}>
+              <Text style={[styles.sheetTitle, { color: colors.onSurface }]}>{t('selectCarrier')}</Text>
               <TouchableOpacity style={styles.iconButton} onPress={() => setSheetVisible(false)}>
                 <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
@@ -414,7 +436,7 @@ export const AddPackageScreen = () => {
                 <MaterialIcons name="search" size={20} color={colors.outline} />
               </View>
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { backgroundColor: colors.surface, color: colors.onSurface, borderColor: colors.outlineVariant }]}
                 placeholder={t('searchCarriers')}
                 placeholderTextColor={colors.onSurfaceVariant}
                 value={searchQuery}
@@ -434,25 +456,25 @@ export const AddPackageScreen = () => {
                   columnWrapperStyle={{ gap: 16, justifyContent: 'space-between' }}
                   renderItem={({ item }) => (
                     <TouchableOpacity
-                      style={styles.carrierGridCard}
+                      style={[styles.carrierGridCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}
                       onPress={() => {
                         setSelectedCarrier(item.id);
                         setSheetVisible(false);
                         setSearchQuery('');
                       }}
                     >
-                      <View style={styles.carrierGridIconBox}>
+                      <View style={[styles.carrierGridIconBox, { backgroundColor: colors.surfaceContainer }]}>
                         <CarrierLogo logo={item.logo} size={36} />
                       </View>
-                      <Text style={styles.carrierGridName}>{item.name}</Text>
+                      <Text style={[styles.carrierGridName, { color: colors.onSurface }]}>{item.name}</Text>
                     </TouchableOpacity>
                   )}
                 />
               ) : (
                 <View style={styles.noResultsContainer}>
                   <MaterialIcons name="search-off" size={32} color={colors.outlineVariant} />
-                  <Text style={styles.noResultsText}>{t('noCarriersFound')}</Text>
-                  <Text style={styles.noResultsSubtext}>{t('tryDifferentSearch')}</Text>
+                  <Text style={[styles.noResultsText, { color: colors.onSurface }]}>{t('noCarriersFound')}</Text>
+                  <Text style={[styles.noResultsSubtext, { color: colors.onSurfaceVariant }]}>{t('tryDifferentSearch')}</Text>
                 </View>
               )}
             </View>
@@ -483,7 +505,6 @@ export const AddPackageScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -549,22 +570,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 1,
   },
-  decorativeBlur: {
-    position: 'absolute',
-    top: -96,
-    right: -96,
-    width: 256,
-    height: 256,
-    borderRadius: 128,
-    backgroundColor: colors.primaryFixed,
-    opacity: 0.4,
-    shadowColor: colors.primaryFixed,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 100,
-    elevation: 20,
-    zIndex: 0,
-  },
   cardHeader: {
     marginBottom: 16,
     gap: 6,
@@ -575,20 +580,16 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     letterSpacing: -0.24,
-    color: colors.primary,
   },
   subtitle: {
     fontFamily: 'Inter',
     fontSize: 15,
-    color: colors.onSurfaceVariant,
   },
   clipboardBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#eff6ff',
     borderWidth: 1,
-    borderColor: '#bfdbfe',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -597,7 +598,6 @@ const styles = StyleSheet.create({
   },
   clipboardText: {
     fontSize: 14,
-    color: '#1e40af',
     flex: 1,
   },
   clipboardCode: {
@@ -608,9 +608,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#f0f9ff',
     borderWidth: 1,
-    borderColor: '#bae6fd',
     borderRadius: 12,
     padding: 14,
     marginBottom: 14,
@@ -622,11 +620,9 @@ const styles = StyleSheet.create({
   emailSyncTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0369a1',
   },
   emailSyncSubtitle: {
     fontSize: 13,
-    color: '#0284c7',
     marginTop: 2,
   },
   form: {
@@ -646,16 +642,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.4,
-    color: colors.onSurface,
   },
-  requiredAsterisk: {
-    color: colors.error,
-  },
+  requiredAsterisk: {},
   optionalText: {
     fontFamily: 'Inter',
     fontSize: 12,
     fontWeight: '400',
-    color: colors.outline,
   },
   inputWrapper: {
     position: 'relative',
@@ -669,11 +661,8 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: 'Inter',
     fontSize: 16,
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 12,
-    color: colors.onSurface,
     height: 52,
     paddingLeft: 44,
     paddingRight: 16,
@@ -681,11 +670,8 @@ const styles = StyleSheet.create({
   inputMono: {
     fontFamily: 'Courier Prime',
     fontSize: 16,
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 12,
-    color: colors.onSurface,
     height: 52,
     paddingLeft: 44,
     paddingRight: 48,
@@ -705,10 +691,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: colors.primary,
     borderRadius: 999,
     height: 52,
-    shadowColor: colors.primaryContainer,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 12,
@@ -718,15 +702,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 16,
     fontWeight: '600',
-    color: colors.onPrimary,
   },
   carrierSelectorBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 52,
@@ -744,13 +725,11 @@ const styles = StyleSheet.create({
   carrierSelectorText: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: colors.onSurface,
     fontWeight: '600',
   },
   carrierSelectorPlaceholder: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: colors.onSurfaceVariant,
   },
   modalOverlay: {
     flex: 1,
@@ -759,10 +738,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bottomSheetContainer: {
-    backgroundColor: colors.surfaceContainerLowest,
     width: '100%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.25,
@@ -786,7 +765,6 @@ const styles = StyleSheet.create({
   dragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: colors.outlineVariant,
     borderRadius: 999,
   },
   sheetHeader: {
@@ -796,13 +774,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceContainer,
   },
   sheetTitle: {
     fontFamily: 'Inter',
     fontSize: 20,
     fontWeight: '600',
-    color: colors.onSurface,
   },
   searchContainer: {
     paddingHorizontal: 24,
@@ -817,15 +793,12 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 48,
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 8,
     paddingLeft: 40,
     paddingRight: 12,
     fontFamily: 'Inter',
     fontSize: 16,
-    color: colors.onSurface,
   },
   sheetScroll: {
     flex: 1,
@@ -833,9 +806,7 @@ const styles = StyleSheet.create({
   carrierGridCard: {
     width: '47%',
     aspectRatio: 1,
-    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -845,7 +816,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.surfaceContainer,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -859,7 +829,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '600',
-    color: colors.onSurface,
     textAlign: 'center',
   },
   noResultsContainer: {
@@ -870,13 +839,11 @@ const styles = StyleSheet.create({
   noResultsText: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: colors.onSurface,
     marginTop: 12,
   },
   noResultsSubtext: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.onSurfaceVariant,
     marginTop: 4,
   }
 });
