@@ -100,7 +100,7 @@ export const SearchScreen = () => {
               id={item.id}
               name={item.courier_companies?.name || item.title || 'Kargo'}
               code={item.tracking_number}
-              status={(item.current_status === 'delivered' ? 'delivered' : item.current_status === 'pending' ? 'pending' : 'transit') as any}
+              status={item.current_status || 'transit'}
               icon="local-shipping"
               isLargeScreen={isLargeScreen}
               onPress={() => navigation.navigate('PackageDetail', { id: item.id })}

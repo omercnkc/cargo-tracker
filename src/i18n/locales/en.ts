@@ -18,6 +18,12 @@ export const en: TranslationKeys = {
   statusInTransit: 'In Transit',
   statusDelivered: 'Delivered',
   statusPending: 'Pending',
+  stepCreated: 'Created',
+  stepReceived: 'Received',
+  stepTransit: 'In Transit',
+  stepDestination: 'At Destination Branch',
+  stepOutForDelivery: 'Out for Delivery',
+  stepDelivered: 'Delivered',
 
   // Stats
   delivered: 'Delivered',
@@ -102,8 +108,15 @@ export const en: TranslationKeys = {
   // Notifications Screen
   notificationsTitle: 'Notifications',
   markAllAsRead: 'Mark All as Read',
+  clearAll: 'Clear All',
+  clearAllNotifsTitle: 'Clear Notifications',
+  clearAllNotifsConfirm: 'Are you sure you want to clear all notifications?',
+  unreadFilter: 'Unread',
   noNotifications: 'No Notifications Yet',
   noNotificationsSub: 'Real-time updates will appear here when your shipment status changes.',
+  unreadEmptyTitle: 'No Unread Notifications',
+  unreadEmptySubtitle: 'You have read all your notifications.',
+  delete: 'Delete',
   notifDeliveredTitle: 'Your package was delivered',
   notifDeliveredDesc: 'Package with tracking number 5738 2901 2345 has been delivered.',
   notifInTransitTitle: 'Your package is in transit',
@@ -190,7 +203,7 @@ export const en: TranslationKeys = {
   // Biometrics & Security
   securityAndBiometrics: 'Security & Biometrics',
   biometricLoginTitle: 'Sign In with',
-  biometricRequireAppOpen: 'Require biometric authentication upon opening app',
+  biometricRequireAppOpen: 'Require biometric authentication after 60 minutes of inactivity',
   biometricNotSupported: 'Biometric authentication is not supported on this device',
   biometricTypeDefault: 'Face ID / Fingerprint',
   appLockedTitle: 'CargoTracker Locked',

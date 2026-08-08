@@ -200,15 +200,15 @@ export const StatisticsScreen = () => {
           {/* Active Filter Chip */}
           {selectedMonthLabel && (
             <TouchableOpacity
-              style={[styles.filterChip, { backgroundColor: colors.primaryContainer, borderColor: colors.primary }]}
+              style={[styles.filterChip, { backgroundColor: colors.primary, borderColor: colors.primary }]}
               onPress={() => setSelectedMonthKey(null)}
               activeOpacity={0.8}
             >
-              <MaterialIcons name="filter-list" size={14} color={colors.onPrimaryContainer} />
-              <Text style={[styles.filterChipText, { color: colors.onPrimaryContainer }]}>
+              <MaterialIcons name="filter-list" size={14} color={colors.onPrimary} />
+              <Text style={[styles.filterChipText, { color: colors.onPrimary }]}>
                 {selectedMonthLabel}
               </Text>
-              <MaterialIcons name="close" size={14} color={colors.onPrimaryContainer} />
+              <MaterialIcons name="close" size={14} color={colors.onPrimary} />
             </TouchableOpacity>
           )}
         </View>

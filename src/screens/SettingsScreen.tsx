@@ -25,8 +25,8 @@ export const SettingsScreen = () => {
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
 
-  const { theme: colors, isDarkMode, toggleTheme } = useTheme();
-  const { t, language, setLanguage } = useTranslation();
+  const { theme: colors } = useTheme();
+  const { t } = useTranslation();
   const signOut = useAuthStore(state => state.signOut);
   const { isSupported, isEnabled, biometricTypes, toggleBiometric } = useBiometrics();
 
@@ -148,7 +148,7 @@ export const SettingsScreen = () => {
 
               <View style={styles.sectionBody}>
                 {/* Push Notifications */}
-                <View style={styles.settingRow}>
+                <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
                   <View style={styles.settingTextContent}>
                     <Text style={[styles.settingLabel, { color: colors.onSurface }]}>{t('pushNotifications')}</Text>
                     <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>{t('pushNotificationsDesc')}</Text>
@@ -159,54 +159,6 @@ export const SettingsScreen = () => {
                     onValueChange={setPushEnabled}
                     value={pushEnabled}
                   />
-                </View>
-
-                {/* Dark Mode */}
-                <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
-                  <View style={styles.settingTextContent}>
-                    <Text style={[styles.settingLabel, { color: colors.onSurface }]}>{t('darkMode')}</Text>
-                    <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>{t('darkModeDesc')}</Text>
-                  </View>
-                  <Switch
-                    trackColor={{ false: colors.surfaceVariant, true: colors.primary }}
-                    thumbColor={'#ffffff'}
-                    onValueChange={toggleTheme}
-                    value={isDarkMode}
-                  />
-                </View>
-              </View>
-            </View>
-
-            {/* Language & Region Section */}
-            <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
-              <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
-                <MaterialIcons name="language" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>{t('language')}</Text>
-              </View>
-              
-              <View style={styles.sectionBodyPad}>
-                <Text style={[styles.inputLabel, { color: colors.onSurfaceVariant }]}>{t('languageDesc')}</Text>
-                
-                <View style={styles.langBtnRow}>
-                  <TouchableOpacity 
-                    style={[
-                      styles.langBtn, 
-                      language === 'tr' && { backgroundColor: colors.primary, borderColor: colors.primary }
-                    ]}
-                    onPress={() => setLanguage('tr')}
-                  >
-                    <Text style={[styles.langBtnText, language === 'tr' && { color: colors.onPrimary }]}>Türkçe (TR)</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={[
-                      styles.langBtn, 
-                      language === 'en' && { backgroundColor: colors.primary, borderColor: colors.primary }
-                    ]}
-                    onPress={() => setLanguage('en')}
-                  >
-                    <Text style={[styles.langBtnText, language === 'en' && { color: colors.onPrimary }]}>English (EN)</Text>
-                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -219,27 +171,12 @@ export const SettingsScreen = () => {
               </View>
 
               <View style={styles.sectionBody}>
-                <TouchableOpacity style={styles.settingRow} activeOpacity={0.7} onPress={handleSignOut}>
+                <TouchableOpacity style={[styles.settingRow, { borderBottomWidth: 0 }]} activeOpacity={0.7} onPress={handleSignOut}>
                   <View style={styles.settingTextContent}>
                     <Text style={[styles.settingLabel, { color: colors.error }]}>{t('signOut')}</Text>
                   </View>
                   <MaterialIcons name="logout" size={24} color={colors.error} />
                 </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* About Section */}
-            <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
-              <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
-                <MaterialIcons name="info" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Hakkında</Text>
-              </View>
-
-              <View style={styles.sectionBody}>
-                <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
-                  <Text style={[styles.settingLabel, { color: colors.onSurface }]}>Versiyon</Text>
-                  <Text style={[styles.versionText, { color: colors.onSurfaceVariant }]}>v2.6.0 (Build 8495)</Text>
-                </View>
               </View>
             </View>
 

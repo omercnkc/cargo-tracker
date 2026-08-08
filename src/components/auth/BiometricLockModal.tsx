@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -14,14 +14,21 @@ export function BiometricLockModal({ visible, onAuthenticate, biometricType }: B
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
   const activeType = biometricType || t('biometricTypeDefault');
+  const isFaceId = activeType.toLowerCase().includes('face');
 
-  // Kilit ekranı göründüğünde otomatik biyometrik istemciyi başlat
+  const hasAttemptedRef = useRef(false);
+
+  // Kilit ekranı ilk açıldığında otomatik biyometrik doğrulamayı başlatır
   useEffect(() => {
-    if (visible) {
+    if (visible && !hasAttemptedRef.current) {
+      hasAttemptedRef.current = true;
       const timer = setTimeout(() => {
         onAuthenticate();
-      }, 300);
+      }, 350);
       return () => clearTimeout(timer);
+    }
+    if (!visible) {
+      hasAttemptedRef.current = false;
     }
   }, [visible, onAuthenticate]);
 
@@ -30,7 +37,11 @@ export function BiometricLockModal({ visible, onAuthenticate, biometricType }: B
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.content}>
           <View style={[styles.iconBg, { backgroundColor: colors.primaryContainer }]}>
-            <MaterialIcons name="fingerprint" size={56} color={colors.primary} />
+            {isFaceId ? (
+              <MaterialCommunityIcons name="face-recognition" size={56} color={colors.primary} />
+            ) : (
+              <MaterialIcons name="fingerprint" size={56} color={colors.primary} />
+            )}
           </View>
 
           <Text style={[styles.title, { color: colors.onBackground }]}>{t('appLockedTitle')}</Text>

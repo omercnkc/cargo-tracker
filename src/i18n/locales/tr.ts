@@ -16,6 +16,12 @@ export const tr = {
   statusInTransit: 'Dağıtımda',
   statusDelivered: 'Teslim Edildi',
   statusPending: 'Bekliyor',
+  stepCreated: 'Oluşturuldu',
+  stepReceived: 'Teslim Alındı',
+  stepTransit: 'Transferde',
+  stepDestination: 'Varış Şubesinde',
+  stepOutForDelivery: 'Dağıtımda',
+  stepDelivered: 'Teslim Edildi',
 
   // Stats
   delivered: 'Teslim Edilen',
@@ -99,8 +105,15 @@ export const tr = {
   // Notifications Screen
   notificationsTitle: 'Bildirimler',
   markAllAsRead: 'Tümünü Okundu İşaretle',
+  clearAll: 'Temizle',
+  clearAllNotifsTitle: 'Bildirimleri Temizle',
+  clearAllNotifsConfirm: 'Tüm bildirimleri silmek istediğinizden emin misiniz?',
+  unreadFilter: 'Okunmamış',
   noNotifications: 'Henüz Bildirim Yok',
   noNotificationsSub: 'Kargonuzun durumu değiştiğinde anlık bildirimler burada görünecektir.',
+  unreadEmptyTitle: 'Okunmamış Bildirim Yok',
+  unreadEmptySubtitle: 'Tüm bildirimlerinizi okudunuz.',
+  delete: 'Sil',
   notifDeliveredTitle: 'Kargonuz teslim edildi',
   notifDeliveredDesc: '5738 2901 2345 takip numaralı kargonuz teslim edildi.',
   notifInTransitTitle: 'Kargonuz yola çıktı',
@@ -187,7 +200,7 @@ export const tr = {
   // Biometrics & Security
   securityAndBiometrics: 'Güvenlik & Biyometrik',
   biometricLoginTitle: 'ile Giriş',
-  biometricRequireAppOpen: 'Uygulama açılışında biyometrik kimlik doğrulaması iste',
+  biometricRequireAppOpen: '60 dakika boyunca uygulamaya girilmediğinde biyometrik doğrulama iste',
   biometricNotSupported: 'Bu cihazda biyometrik kimlik desteği bulunmuyor',
   biometricTypeDefault: 'Face ID / Parmak İzi',
   appLockedTitle: 'KargoTakip Kilitli',

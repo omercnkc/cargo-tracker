@@ -2,6 +2,8 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 
 const BIOMETRIC_ENABLED_KEY = 'cargo_tracker_biometric_enabled';
+const LAST_ACTIVE_TIMESTAMP_KEY = 'cargo_tracker_last_active_timestamp';
+export const BIOMETRIC_TIMEOUT_MS = 60 * 60 * 1000; // 60 dakika (ms)
 
 export class BiometricService {
   /**
@@ -51,23 +53,21 @@ export class BiometricService {
   }
 
   /**
-   * Biyometrik doğrulama penceresini açar ve sonucu döner
+   * Biyometrik doğrulama penceresini açar ve sonucu döner (Face ID / Touch ID)
    */
   static async authenticate(promptMessage: string = 'KargoTakip güvenli giriş için doğrulayın'): Promise<boolean> {
     try {
       const isSupported = await this.isHardwareSupported();
       const isEnrolled = await this.isEnrolled();
 
-      // Fiziksel cihazda biyometri tanımlı değilse veya simülatördeyse yedek doğrulamayı çalıştırır
       if (!isSupported || !isEnrolled) {
         const result = await LocalAuthentication.authenticateAsync({
-          promptMessage: `${promptMessage}`,
-          fallbackLabel: 'Şifre İle Kilidi Aç',
+          promptMessage,
+          fallbackLabel: 'Şifre İle Gir',
+          cancelLabel: 'İptal',
           disableDeviceFallback: false,
         });
-
-        // Simülatör / Donanımsız ortam kilitlenmelerini önlemek için fallback başarısını döner
-        return result.success || true;
+        return result.success;
       }
 
       const result = await LocalAuthentication.authenticateAsync({
@@ -104,6 +104,41 @@ export class BiometricService {
       return val === 'true';
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Son aktif olunan zaman damgasını kaydeder/günceller
+   */
+  static async updateLastActiveTimestamp(): Promise<void> {
+    try {
+      await SecureStore.setItemAsync(LAST_ACTIVE_TIMESTAMP_KEY, Date.now().toString());
+    } catch (err) {
+      console.error('Son aktif zaman damgası saklanamadı:', err);
+    }
+  }
+
+  /**
+   * 60 dakikalık inaktiflik süresinin dolup dolmadığını ve kilit gerekip gerekmediğini kontrol eder
+   */
+  static async shouldRequireLock(): Promise<boolean> {
+    try {
+      const isEnabled = await this.isBiometricEnabled();
+      if (!isEnabled) return false;
+
+      const val = await SecureStore.getItemAsync(LAST_ACTIVE_TIMESTAMP_KEY);
+      if (!val) {
+        // Timestamp henüz kaydedilmediyse kilit iste
+        return true;
+      }
+
+      const lastActive = parseInt(val, 10);
+      const elapsed = Date.now() - lastActive;
+
+      // 60 dakika (3.600.000 ms) dolduysa kilit iste
+      return elapsed >= BIOMETRIC_TIMEOUT_MS;
+    } catch {
+      return true;
     }
   }
 }

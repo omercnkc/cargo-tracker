@@ -27,7 +27,13 @@
       "expo-secure-store",
       "expo-font",
       "expo-splash-screen",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "KargoTakip kilit ekranını açmak için Face ID doğrulaması kullanılır."
+        }
+      ]
     ]
   }
 }

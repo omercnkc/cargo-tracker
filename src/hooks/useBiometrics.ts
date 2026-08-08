@@ -24,9 +24,12 @@ export function useBiometrics() {
     setIsEnabled(enabled);
     setBiometricTypes(types);
 
-    // Eğer biyometrik giriş açık ise başlangıçta uygulamayı kilitli başlat
+    // Biyometrik kilit aktif ise 60 dakika inaktiflik süresinin dolup dolmadığını kontrol et
     if (enabled) {
-      setIsLocked(true);
+      const shouldLock = await BiometricService.shouldRequireLock();
+      setIsLocked(shouldLock);
+    } else {
+      setIsLocked(false);
     }
 
     setLoading(false);
@@ -36,16 +39,28 @@ export function useBiometrics() {
     checkBiometricStatus();
   }, [checkBiometricStatus]);
 
-  // Arka plandan dönüşlerde otomatik kilit açma mantığı
+  // Arka plana geçiş ve dönüşlerde 60 dakika kontrolü
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (nextAppState: AppStateStatus) => {
+      // Uygulama arka plana/inaktif duruma geçtiğinde son zaman damgasını kaydet
+      if (
+        appState.current.match(/active/) &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        await BiometricService.updateLastActiveTimestamp();
+      }
+
+      // Uygulama tekrar ön plana geçtiğinde 60 dk dolduysa kilit ekranını getir
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         const enabled = await BiometricService.isBiometricEnabled();
         if (enabled) {
-          setIsLocked(true);
+          const shouldLock = await BiometricService.shouldRequireLock();
+          if (shouldLock) {
+            setIsLocked(true);
+          }
         }
       }
       appState.current = nextAppState;
@@ -56,12 +71,13 @@ export function useBiometrics() {
     };
   }, []);
 
-  const toggleBiometric = async (value: boolean): Promise<boolean> => {
+  const toggleBiometric = useCallback(async (value: boolean): Promise<boolean> => {
     if (value) {
       // Aktif etmeden önce cihaz üzerinde doğrulama iste
       const success = await BiometricService.authenticate('Biyometrik girişi aktifleştirmek için onaylayın');
       if (success) {
         await BiometricService.setBiometricEnabled(true);
+        await BiometricService.updateLastActiveTimestamp();
         setIsEnabled(true);
         return true;
       }
@@ -72,16 +88,17 @@ export function useBiometrics() {
       setIsLocked(false);
       return true;
     }
-  };
+  }, []);
 
-  const unlockApp = async (): Promise<boolean> => {
+  const unlockApp = useCallback(async (): Promise<boolean> => {
     const success = await BiometricService.authenticate('KargoTakip kilitli. Lütfen kimliğinizi doğrulayın.');
     if (success) {
+      await BiometricService.updateLastActiveTimestamp();
       setIsLocked(false);
       return true;
     }
     return false;
-  };
+  }, []);
 
   return {
     isSupported,

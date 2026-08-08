@@ -17,7 +17,7 @@ import { useDrawerStore } from '../store/drawer.store';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useShipments } from '../features/shipment/hooks/useShipments';
-import { ProfileThemeLangSwitchCard } from '../components/profile/ProfileThemeLangSwitchCard';
+import { useNotificationStore } from '../store/notification.store';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
@@ -31,6 +31,7 @@ export const ProfileScreen = () => {
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
   const { data: dbShipments } = useShipments(user?.id);
+  const unreadCount = useNotificationStore((state) => state.notifications.filter((n) => n.unread).length);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
   const displayEmail = user?.email || 'omercnkc123@gmail.com';
@@ -60,7 +61,13 @@ export const ProfileScreen = () => {
           >
             <View style={{ position: 'relative' }}>
               <MaterialIcons name="notifications-none" size={24} color={colors.primary} />
-              <View style={[styles.redDot, { backgroundColor: colors.error }]} />
+              {unreadCount > 0 && (
+                <View style={[styles.redDot, { backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center', minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 2, top: -2, right: -4 }]}>
+                  <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: '700' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              )}
             </View>
           </TouchableOpacity>
         </View>
@@ -135,9 +142,6 @@ export const ProfileScreen = () => {
           </View>
 
         </View>
-
-        {/* Theme & Language Switch Card */}
-        <ProfileThemeLangSwitchCard />
 
       </ScrollView>
     </View>
