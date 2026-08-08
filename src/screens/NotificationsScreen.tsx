@@ -138,7 +138,7 @@ export const NotificationsScreen = () => {
       >
         {/* Header Row */}
         <View style={styles.headerRow}>
-          <Text style={[styles.pageTitle, { color: colors.onSurface }]}>{t('notificationsTitle')}</Text>
+          <Text style={[styles.pageTitle, { color: colors.primary }]}>{t('notificationsTitle')}</Text>
           
           <View style={styles.headerActions}>
             {unreadCount > 0 && (

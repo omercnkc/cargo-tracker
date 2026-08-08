@@ -191,7 +191,7 @@ export const StatisticsScreen = () => {
       >
         <View style={styles.pageHeaderRow}>
           <View style={styles.pageHeaderLeft}>
-            <Text style={[styles.pageTitle, { color: colors.onSurface }]}>{t('performanceSummary')}</Text>
+            <Text style={[styles.pageTitle, { color: colors.primary }]}>{t('performanceSummary')}</Text>
             <Text style={[styles.pageSubtitle, { color: colors.onSurfaceVariant }]}>
               {selectedMonthLabel ? `${selectedMonthLabel}` : t('statsOverviewSubtitle')}
             </Text>
