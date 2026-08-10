@@ -280,6 +280,17 @@ export const tr = {
   scanGmailNow: 'Gmail\'i Şimdi Tara',
   removeEmailLink: 'E-Posta Bağlantısını Kaldır',
   connectGoogleLive: 'Google ile Canlı Bağlan',
+  neighborhoodLabel: 'Mahalle',
+  selectCity: 'İl Seçiniz',
+  selectDistrict: 'İlçe Seçiniz',
+  selectNeighborhood: 'Mahalle Seçiniz',
+  selectCityFirst: 'Önce İl Seçiniz',
+  selectDistrictFirst: 'Önce İlçe Seçiniz',
+  searchPlaceholderAddress: 'Arama yapın...',
+  gpsUnavailableTitle: 'GPS Uyarısı',
+  gpsUnavailableMsg: 'GPS verisi şu an kullanılamıyor. Lütfen konum servisinizin açık olduğunu ve izin verildiğini kontrol edip tekrar deneyin.',
+  gpsPermissionDeniedTitle: 'Konum İzni Reddedildi',
+  gpsPermissionDeniedMsg: 'Anlık konumunuzu alabilmek için cihazınızdan konum izni vermeniz gerekmektedir.',
 };
 
 export type TranslationKeys = typeof tr;

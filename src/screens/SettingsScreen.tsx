@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Switch,
   useWindowDimensions,
@@ -46,8 +46,8 @@ export const SettingsScreen = () => {
       t('signOutConfirm'),
       [
         { text: t('cancel'), style: 'cancel' },
-        { 
-          text: t('signOut'), 
+        {
+          text: t('signOut'),
           style: 'destructive',
           onPress: async () => {
             await signOut();
@@ -59,7 +59,7 @@ export const SettingsScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      
+
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface }]}>
         <View style={styles.appBarContent}>
@@ -73,7 +73,7 @@ export const SettingsScreen = () => {
 
       <View style={styles.layoutWrapper}>
         {/* Main Content */}
-        <ScrollView 
+        <ScrollView
           style={styles.mainScroll}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
@@ -138,7 +138,7 @@ export const SettingsScreen = () => {
                 </TouchableOpacity>
               </View>
             </View>
-            
+
             {/* Preferences Section */}
             <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
               <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>

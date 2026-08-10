@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Image
 } from 'react-native';
@@ -46,17 +46,17 @@ export const ProfileScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
-      
+
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.surfaceContainer }]}>
         <View style={styles.appBarContent}>
           <TouchableOpacity style={styles.iconButton} onPress={openDrawer}>
             <MaterialIcons name="menu" size={24} color={colors.primary} />
           </TouchableOpacity>
-          
+
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.iconButton}
             onPress={() => navigation.navigate('Notifications')}
           >
@@ -74,7 +74,7 @@ export const ProfileScreen = () => {
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.mainContent,
@@ -84,17 +84,17 @@ export const ProfileScreen = () => {
         {/* Profile Info Card */}
         <View style={[styles.profileCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
           <View style={[styles.avatarBorderContainer, { borderColor: colors.surfaceContainerLowest }]}>
-            <Image 
+            <Image
               source={{ uri: displayAvatar }}
               style={styles.avatarImage}
             />
           </View>
-          
+
           <Text style={[styles.profileName, { color: colors.onSurface }]}>{displayName}</Text>
           <Text style={[styles.profileEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
 
-          <TouchableOpacity 
-            style={[styles.editPillButton, { backgroundColor: colors.primary }]} 
+          <TouchableOpacity
+            style={[styles.editPillButton, { backgroundColor: colors.primary }]}
             activeOpacity={0.8}
             onPress={() => navigation.navigate('Settings')}
           >
@@ -105,7 +105,7 @@ export const ProfileScreen = () => {
 
         {/* Bento Stats Row */}
         <View style={[styles.statsCardRow, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-          
+
           {/* Item 1: Toplam */}
           <View style={styles.statColItem}>
             <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff' }]}>

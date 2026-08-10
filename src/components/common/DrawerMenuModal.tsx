@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Modal, 
-  Image, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Image,
   Alert,
   TouchableWithoutFeedback,
   ScrollView
@@ -68,8 +68,8 @@ export const DrawerMenuModal = () => {
       t('signOutConfirm'),
       [
         { text: t('cancel'), style: 'cancel' },
-        { 
-          text: t('signOut'), 
+        {
+          text: t('signOut'),
           style: 'destructive',
           onPress: async () => {
             closeDrawer();
@@ -97,10 +97,10 @@ export const DrawerMenuModal = () => {
 
         {/* Drawer Body */}
         <View style={[
-          styles.drawerContainer, 
+          styles.drawerContainer,
           { backgroundColor: colors.surfaceContainerLowest, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 }
         ]}>
-          
+
           {/* Top Brand & Close Header */}
           <View style={styles.topBrandRow}>
             <View style={styles.brandGroup}>
@@ -123,13 +123,13 @@ export const DrawerMenuModal = () => {
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuScrollContent}>
-            
+
             {/* HESAP SECTION */}
             <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>{t('accountHeader')}</Text>
-            
+
             {/* 1. Kişisel Bilgiler */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={() => handleNavigate('Settings')}
             >
@@ -139,8 +139,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 2. Adreslerim */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={handleOpenAddressModal}
             >
@@ -150,8 +150,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 3. Şifre Değiştir */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={handleOpenChangePasswordModal}
             >
@@ -161,8 +161,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 4. Bildirim Ayarları */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={() => handleNavigate('Notifications')}
             >
@@ -172,8 +172,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 5. Varsayılan Kargo Firmaları */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={handleOpenCarrierModal}
             >
@@ -188,8 +188,8 @@ export const DrawerMenuModal = () => {
             <Text style={[styles.sectionHeaderTitle, { color: colors.onSurfaceVariant }]}>{t('supportHeader')}</Text>
 
             {/* 6. Yardım Merkezi */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={() => handleOpenSupportModal('help')}
             >
@@ -199,8 +199,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 7. Uygulamayı Puanla */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={() => handleOpenSupportModal('rate')}
             >
@@ -210,8 +210,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 8. Geri Bildirim Gönder */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={() => handleOpenSupportModal('feedback')}
             >
@@ -221,8 +221,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 9. Gizlilik Politikası */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={() => handleOpenSupportModal('privacy')}
             >
@@ -232,8 +232,8 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* 10. Kullanım Koşulları */}
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               activeOpacity={0.7}
               onPress={() => handleOpenSupportModal('terms')}
             >
@@ -243,9 +243,9 @@ export const DrawerMenuModal = () => {
             </TouchableOpacity>
 
             {/* Logout Pill Button */}
-            <TouchableOpacity 
-              style={[styles.logoutPillBtn, { backgroundColor: isDarkMode ? '#450a0a' : '#fee2e2' }]} 
-              activeOpacity={0.8} 
+            <TouchableOpacity
+              style={[styles.logoutPillBtn, { backgroundColor: isDarkMode ? '#450a0a' : '#fee2e2' }]}
+              activeOpacity={0.8}
               onPress={handleLogout}
             >
               <MaterialIcons name="logout" size={20} color={colors.error} />
