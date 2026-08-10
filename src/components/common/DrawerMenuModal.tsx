@@ -35,7 +35,7 @@ export const DrawerMenuModal = () => {
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
   const displayEmail = user?.email || 'omercnkc123@gmail.com';
-  const displayAvatar = profile?.avatar_url || 'https://i.pravatar.cc/300?img=11';
+  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://i.pravatar.cc/300?img=11';
 
   const handleNavigate = (screenName: string) => {
     closeDrawer();

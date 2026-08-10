@@ -62,6 +62,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         _isInitialized: true,
       });
+      await authRepository.syncUserProfileFromAuth(session.user);
       await get().fetchProfile(session.user.id);
     }
 
@@ -74,6 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: true,
           isLoading: false,
         });
+        await authRepository.syncUserProfileFromAuth(session.user);
         await get().fetchProfile(session.user.id);
       } else {
         set({ session: null, user: null, profile: null, isAuthenticated: false, isLoading: false });
@@ -116,16 +118,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     if (session && user) {
-      set({
-        session,
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
+      set({ session, user, isAuthenticated: true, isLoading: false });
       await get().fetchProfile(user.id);
       return {};
     }
 
+    // Session yoksa onAuthStateChange yakalayıp işleyecek
     set({ isLoading: false });
     return {};
   },

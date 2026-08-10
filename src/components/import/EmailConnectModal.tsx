@@ -5,11 +5,8 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 
-import Constants from 'expo-constants';
-
 import { EmailSyncService, EmailScanResult } from '../../services/import/emailSyncService';
 import { GoogleAuthService, GoogleUserProfile } from '../../services/import/googleAuthService';
-import { GOOGLE_CONFIG } from '../../config/google.config';
 import { useTheme } from '../../theme/useTheme';
 import { useAuthStore } from '../../store/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,7 +16,14 @@ import { useTranslation } from '../../hooks/useTranslation';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
+// Gmail API erişimi için Google OAuth Client ID'leri
+// NOT: Bu akış kullanıcı girişiyle değil, Gmail okuma izniyle ilgilidir.
+const GMAIL_OAUTH = {
+  androidClientId: '624428912304-756s6lfo6tumina9rfa3kcq2h5dotk28.apps.googleusercontent.com',
+  iosClientId: '624428912304-1jfiuhjc0iv93snrt09legt4lb2ip4rn.apps.googleusercontent.com',
+  webClientId: '624428912304-4lqg8t28d6k7ht3scraghea6khmjat1n.apps.googleusercontent.com',
+  scopes: ['openid', 'profile', 'email'],
+};
 
 interface EmailConnectModalProps {
   visible: boolean;
@@ -40,10 +44,10 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
   const [syncing, setSyncing] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GOOGLE_CONFIG.androidClientId,
-    iosClientId: GOOGLE_CONFIG.iosClientId,
-    webClientId: GOOGLE_CONFIG.webClientId,
-    scopes: GOOGLE_CONFIG.scopes,
+    androidClientId: GMAIL_OAUTH.androidClientId,
+    iosClientId: GMAIL_OAUTH.iosClientId,
+    webClientId: GMAIL_OAUTH.webClientId,
+    scopes: GMAIL_OAUTH.scopes,
   });
 
   const [feedback, setFeedback] = useState<{
