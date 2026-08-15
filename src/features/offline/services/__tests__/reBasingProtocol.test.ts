@@ -24,6 +24,12 @@ jest.mock('react-native', () => ({
   StyleSheet: { create: (styles: any) => styles },
 }));
 
+jest.mock('../../../../hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 jest.mock('expo-sqlite', () => ({
   openDatabaseSync: () => ({
     execSync: () => {},

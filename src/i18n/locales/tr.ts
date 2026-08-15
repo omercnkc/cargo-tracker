@@ -306,6 +306,31 @@ export const tr = {
   errorBoundaryTitle: 'Bir Şeyler Ters Gitti',
   errorBoundaryMsg: 'Uygulama beklenmeyen bir hatayla karşılaştı.',
   retry: 'Yeniden Dene',
+
+  // Offline & Conflict Management
+  offlineSyncPending: 'Senkronize Bekliyor',
+  offlineSyncConflict: 'Çakışma - Çözüm Bekliyor',
+  offlineSyncFailed: 'Hata - Başarısız',
+  offlineSyncBlocked: 'Engellendi',
+  offlineSyncProcessing: 'İşleniyor',
+
+  offlineStatusOffline: 'Çevrimdışısınız',
+  offlineStatusPendingItems: 'bekleyen işlem',
+  offlineStatusConflictCount: 'adet versiyon çakışması mevcut',
+  offlineStatusResolveBtn: 'Çözümle',
+  offlineStatusSyncing: 'Senkronize ediliyor',
+  offlineStatusSuccess: 'Tüm veriler senkronize edildi!',
+  offlineStatusPendingWait: 'adet işlem gönderilmeyi bekliyor',
+  offlineStatusSyncNowBtn: 'Şimdi Senkronize Et',
+
+  offlineConflictTitle: '⚠️ Çakışma Çözümleme',
+  offlineConflictSubtitle: 'Kargoda sizin çevrimdışı yaptığınız değişiklik ile sunucudaki taze veri çakıştı.',
+  offlineConflictLocalHeader: '📱 Sizin Değişikliğiniz (Yerel)',
+  offlineConflictServerHeader: '☁️ Sunucudaki Güncel Veri',
+  offlineConflictStatus: 'Durum',
+  offlineConflictVersion: 'Versiyon',
+  offlineConflictApplyLocalBtn: 'Benim Değişikliğimi Uygula (Overwrite)',
+  offlineConflictAcceptServerBtn: 'Sunucu Değişikliğini Kabul Et (Discard)',
 };
 
 export type TranslationKeys = typeof tr;

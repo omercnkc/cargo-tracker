@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MutationStatus } from '../types/offline.types';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 interface SyncBadgeProps {
   status?: MutationStatus | 'synced';
@@ -8,6 +9,8 @@ interface SyncBadgeProps {
 }
 
 export const SyncBadge: React.FC<SyncBadgeProps> = ({ status = 'pending', size = 'medium' }) => {
+  const { t } = useTranslation();
+
   if (status === 'synced') {
     return null; // Synced items need no badge
   }
@@ -20,7 +23,7 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({ status = 'pending', size =
           textColor: '#854D0E',
           borderColor: '#FDE047',
           icon: '⏳',
-          text: 'Senkronize Bekliyor',
+          text: t('offlineSyncPending'),
         };
       case 'conflict':
         return {
@@ -28,7 +31,7 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({ status = 'pending', size =
           textColor: '#9A3412',
           borderColor: '#FDBA74',
           icon: '⚠️',
-          text: 'Çakışma - Çözüm Bekliyor',
+          text: t('offlineSyncConflict'),
         };
       case 'dead':
       case 'failed':
@@ -37,7 +40,7 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({ status = 'pending', size =
           textColor: '#991B1B',
           borderColor: '#FCA5A5',
           icon: '🚫',
-          text: 'Hata - Başarısız',
+          text: t('offlineSyncFailed'),
         };
       case 'blocked':
         return {
@@ -45,7 +48,7 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({ status = 'pending', size =
           textColor: '#374151',
           borderColor: '#D1D5DB',
           icon: '⛔',
-          text: 'Engellendi',
+          text: t('offlineSyncBlocked'),
         };
       default:
         return {
@@ -53,7 +56,7 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({ status = 'pending', size =
           textColor: '#374151',
           borderColor: '#D1D5DB',
           icon: '⏳',
-          text: 'İşleniyor',
+          text: t('offlineSyncProcessing'),
         };
     }
   };

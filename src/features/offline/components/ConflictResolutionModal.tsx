@@ -4,6 +4,7 @@ import { useOfflineSyncStore } from '../store/offlineSync.store';
 import { OfflineQueueRepository } from '../repositories/offlineQueue.repository';
 import { SyncEngineService } from '../services/syncEngine.service';
 import { PendingMutation, UpdateShipmentStatusPayload } from '../types/offline.types';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 export const handleResolveConflictUserChoice = async (
   conflictMutation: PendingMutation,
@@ -36,6 +37,7 @@ export const handleDiscardConflictUserChoice = async (conflictMutationId: string
 };
 
 export const ConflictResolutionModal: React.FC = () => {
+  const { t } = useTranslation();
   const activeConflict = useOfflineSyncStore((state) => state.activeConflict);
 
   if (!activeConflict) {
@@ -78,38 +80,38 @@ export const ConflictResolutionModal: React.FC = () => {
       <View style={styles.overlay}>
         <View style={styles.modalCard}>
           <View style={styles.header}>
-            <Text style={styles.title}>⚠️ Çakışma Çözümleme</Text>
+            <Text style={styles.title}>{t('offlineConflictTitle')}</Text>
             <Text style={styles.subtitle}>
-              Kargoda sizin çevrimdışı yaptığınız değişiklik ile sunucudaki taze veri çakıştı.
+              {t('offlineConflictSubtitle')}
             </Text>
           </View>
 
           <ScrollView style={styles.body}>
             <View style={styles.comparisonCard}>
-              <Text style={styles.sectionHeader}>📱 Sizin Değişikliğiniz (Yerel)</Text>
+              <Text style={styles.sectionHeader}>{t('offlineConflictLocalHeader')}</Text>
               <Text style={styles.valueText}>
-                Durum: <Text style={styles.bold}>{clientPayload?.status || 'Güncellendi'}</Text>
+                {t('offlineConflictStatus')}: <Text style={styles.bold}>{clientPayload?.status || 'Güncellendi'}</Text>
               </Text>
             </View>
 
             <View style={[styles.comparisonCard, styles.serverCard]}>
-              <Text style={styles.sectionHeader}>☁️ Sunucudaki Güncel Veri</Text>
+              <Text style={styles.sectionHeader}>{t('offlineConflictServerHeader')}</Text>
               <Text style={styles.valueText}>
-                Durum: <Text style={styles.bold}>{serverData?.current_status || serverData?.status || 'Sunucu verisi'}</Text>
+                {t('offlineConflictStatus')}: <Text style={styles.bold}>{serverData?.current_status || serverData?.status || 'Sunucu verisi'}</Text>
               </Text>
               <Text style={styles.valueText}>
-                Versiyon: <Text style={styles.bold}>v{serverVersion}</Text>
+                {t('offlineConflictVersion')}: <Text style={styles.bold}>v{serverVersion}</Text>
               </Text>
             </View>
           </ScrollView>
 
           <View style={styles.actions}>
             <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={onApplyMyChanges}>
-              <Text style={styles.primaryButtonText}>Benim Değişikliğimi Uygula (Overwrite)</Text>
+              <Text style={styles.primaryButtonText}>{t('offlineConflictApplyLocalBtn')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={onAcceptServerChanges}>
-              <Text style={styles.secondaryButtonText}>Sunucu Değişikliğini Kabul Et (Discard)</Text>
+              <Text style={styles.secondaryButtonText}>{t('offlineConflictAcceptServerBtn')}</Text>
             </TouchableOpacity>
           </View>
         </View>

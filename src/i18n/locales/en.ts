@@ -309,4 +309,29 @@ export const en: TranslationKeys = {
   errorBoundaryTitle: 'Something Went Wrong',
   errorBoundaryMsg: 'The application encountered an unexpected error.',
   retry: 'Retry',
+
+  // Offline & Conflict Management
+  offlineSyncPending: 'Pending Sync',
+  offlineSyncConflict: 'Conflict - Action Required',
+  offlineSyncFailed: 'Failed - Error',
+  offlineSyncBlocked: 'Blocked',
+  offlineSyncProcessing: 'Processing',
+
+  offlineStatusOffline: 'You are offline',
+  offlineStatusPendingItems: 'pending action(s)',
+  offlineStatusConflictCount: 'version conflict(s) detected',
+  offlineStatusResolveBtn: 'Resolve',
+  offlineStatusSyncing: 'Syncing',
+  offlineStatusSuccess: 'All data synced successfully!',
+  offlineStatusPendingWait: 'action(s) waiting to be sent',
+  offlineStatusSyncNowBtn: 'Sync Now',
+
+  offlineConflictTitle: '⚠️ Conflict Resolution',
+  offlineConflictSubtitle: 'Your offline change conflicts with fresh data on the server.',
+  offlineConflictLocalHeader: '📱 Your Local Change',
+  offlineConflictServerHeader: '☁️ Server Data',
+  offlineConflictStatus: 'Status',
+  offlineConflictVersion: 'Version',
+  offlineConflictApplyLocalBtn: 'Apply My Changes (Overwrite)',
+  offlineConflictAcceptServerBtn: 'Accept Server Changes (Discard)',
 };

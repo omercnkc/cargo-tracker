@@ -2,8 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useOfflineSyncStore } from '../store/offlineSync.store';
 import { SyncEngineService } from '../services/syncEngine.service';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 export const OfflineStatusBar: React.FC = () => {
+  const { t } = useTranslation();
   const isOnline = useOfflineSyncStore((state) => state.isOnline);
   const pendingCount = useOfflineSyncStore((state) => state.pendingCount);
   const conflictCount = useOfflineSyncStore((state) => state.conflictCount);
@@ -22,7 +24,7 @@ export const OfflineStatusBar: React.FC = () => {
       <View style={[styles.bar, styles.offlineBar]} testID="offline-status-bar">
         <Text style={styles.icon}>📡</Text>
         <Text style={styles.text}>
-          Çevrimdışısınız {pendingCount > 0 ? `(${pendingCount} bekleyen işlem)` : ''}
+          {t('offlineStatusOffline')} {pendingCount > 0 ? `(${pendingCount} ${t('offlineStatusPendingItems')})` : ''}
         </Text>
       </View>
     );
@@ -32,9 +34,9 @@ export const OfflineStatusBar: React.FC = () => {
     return (
       <View style={[styles.bar, styles.conflictBar]} testID="conflict-status-bar">
         <Text style={styles.icon}>⚠️</Text>
-        <Text style={styles.text}>{conflictCount} adet versiyon çakışması mevcut</Text>
+        <Text style={styles.text}>{conflictCount} {t('offlineStatusConflictCount')}</Text>
         <TouchableOpacity style={styles.syncButton} onPress={handleManualSync}>
-          <Text style={styles.syncButtonText}>Çözümle</Text>
+          <Text style={styles.syncButtonText}>{t('offlineStatusResolveBtn')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -44,7 +46,7 @@ export const OfflineStatusBar: React.FC = () => {
     return (
       <View style={[styles.bar, styles.syncingBar]} testID="syncing-status-bar">
         <ActivityIndicator size="small" color="#FFFFFF" style={styles.spinner} />
-        <Text style={styles.text}>Senkronize ediliyor ({pendingCount} bekliyor)...</Text>
+        <Text style={styles.text}>{t('offlineStatusSyncing')} ({pendingCount})...</Text>
       </View>
     );
   }
@@ -53,7 +55,7 @@ export const OfflineStatusBar: React.FC = () => {
     return (
       <View style={[styles.bar, styles.successBar]} testID="success-status-bar">
         <Text style={styles.icon}>✅</Text>
-        <Text style={styles.text}>Tüm veriler senkronize edildi!</Text>
+        <Text style={styles.text}>{t('offlineStatusSuccess')}</Text>
       </View>
     );
   }
@@ -62,9 +64,9 @@ export const OfflineStatusBar: React.FC = () => {
     return (
       <View style={[styles.bar, styles.pendingBar]} testID="pending-status-bar">
         <Text style={styles.icon}>⏳</Text>
-        <Text style={styles.text}>{pendingCount} adet işlem gönderilmeyi bekliyor</Text>
+        <Text style={styles.text}>{pendingCount} {t('offlineStatusPendingWait')}</Text>
         <TouchableOpacity style={styles.syncButton} onPress={handleManualSync}>
-          <Text style={styles.syncButtonText}>Şimdi Senkronize Et</Text>
+          <Text style={styles.syncButtonText}>{t('offlineStatusSyncNowBtn')}</Text>
         </TouchableOpacity>
       </View>
     );

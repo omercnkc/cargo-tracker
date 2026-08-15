@@ -11,6 +11,12 @@ jest.mock('react-native', () => ({
   StyleSheet: { create: (styles: any) => styles },
 }));
 
+jest.mock('../../../../hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 describe('SyncBadge Unit Tests', () => {
   it('should render null for synced status', () => {
     const element = SyncBadge({ status: 'synced' });
