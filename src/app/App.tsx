@@ -15,9 +15,12 @@ import { ToastProvider } from '../providers/ToastProvider';
 import { supabase } from '../services/supabase/supabase';
 import { authRepository } from '../features/auth/repositories/auth.repository';
 
+import { OfflinePersistProvider } from '../providers/OfflinePersistProvider';
+
 WebBrowser.maybeCompleteAuthSession();
 
 const queryClient = new QueryClient();
+
 
 const AppContent = () => {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -103,13 +106,13 @@ const AppContent = () => {
 const App = () => (
   <GestureHandlerRootView style={{ flex: 1 }}>
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+      <OfflinePersistProvider client={queryClient}>
         <SafeAreaProvider>
           <ToastProvider>
             <AppContent />
           </ToastProvider>
         </SafeAreaProvider>
-      </QueryClientProvider>
+      </OfflinePersistProvider>
     </ErrorBoundary>
   </GestureHandlerRootView>
 );
