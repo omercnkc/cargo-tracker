@@ -11,3 +11,7 @@ export * from './services/syncEngine.service';
 export * from './services/rehydration.service';
 export * from './services/podUpload.service';
 export * from './hooks/useNetworkStatus';
+export * from './hooks/useOfflineSync';
+export * from './components/SyncBadge';
+export * from './components/OfflineStatusBar';
+export * from './components/ConflictResolutionModal';
