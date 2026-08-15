@@ -3,9 +3,9 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
-  MainTabs: undefined;
+  MainTabs: { screen?: string; params?: any } | undefined;
   PackageDetail: { id?: string };
-  AddPackage: undefined;
+  AddPackage: { scannedTrackingNumber?: string } | undefined;
   Search: undefined;
   Notifications: undefined;
   Settings: undefined;
@@ -16,7 +16,7 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Packages: undefined;
-  AddPackage: undefined;
+  AddPackage: { scannedTrackingNumber?: string } | undefined;
   Statistics: undefined;
   Profile: undefined;
 };

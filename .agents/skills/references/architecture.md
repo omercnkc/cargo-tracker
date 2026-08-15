@@ -1,91 +1,65 @@
 # Mimari Detayları
 
-## Katman akışı
+## Katman Akışı
 
 ```
 Screen (UI)
    ↓
 Repository (veri erişim soyutlaması)
    ↓
-Service (iş kuralları / dış servis çağrısı)
+Service (iş kuralları / Supabase Client)
    ↓
-Axios Client (HTTP)
+Supabase Client (@supabase/supabase-js)
    ↓
-Backend (Node.js / Express)
+Backend (Supabase BaaS / PostgreSQL)
 ```
 
 **Yanlış:**
 ```ts
 // screens/Home/HomeScreen.tsx
-const { data } = useQuery(['shipments'], () => axios.get('/api/shipments'));
+const { data } = useQuery(['shipments'], () => supabase.from('shipments').select('*'));
 ```
 
 **Doğru:**
 ```ts
-// features/tracking/repositories/shipmentRepository.ts
+// features/shipment/repositories/shipment.repository.ts
 export const shipmentRepository = {
-  getAll: () => shipmentService.getShipments(),
-  getById: (id: string) => shipmentService.getShipmentById(id),
+  getShipments: (userId: string) => shipmentService.getShipments(userId),
 };
 
-// features/tracking/services/shipmentService.ts
-import { apiClient } from '@/services/apiClient';
+// features/shipment/services/shipment.service.ts
+import { supabase } from '@/services/supabase/supabase';
 export const shipmentService = {
-  getShipments: () => apiClient.get<Shipment[]>('/api/shipments'),
-  getShipmentById: (id: string) => apiClient.get<Shipment>(`/api/shipments/${id}`),
+  getShipments: (userId: string) => supabase.from('shipments').select('*').eq('user_id', userId),
 };
 
-// features/tracking/screens/HomeScreen.tsx
+// features/shipment/hooks/useShipments.ts
 const { data } = useQuery({
-  queryKey: ['shipments'],
-  queryFn: shipmentRepository.getAll,
+  queryKey: ['tracking', 'shipments', userId],
+  queryFn: () => shipmentRepository.getShipments(userId),
 });
 ```
 
 Neden bu ayrım var:
-- **Service**: dış dünyayla (HTTP, Firebase, vb.) konuşan, "nasıl" katmanı.
-- **Repository**: ekranın gördüğü arayüz, "ne" katmanı. Ekran servis detaylarını (endpoint, header, retry mantığı) bilmez.
-- Backend değişse (REST → GraphQL, PostgreSQL → MongoDB) sadece service/repository güncellenir, ekran kodu dokunulmaz.
+- **Service**: Dış dünyayla (Supabase Client, REST API vb.) konuşan "nasıl" katmanı.
+- **Repository**: Ekranın gördüğü arayüz, "ne" katmanı. Ekran servis detaylarını (endpoint, RLS, retry, offline queue) bilmez.
 
-## Provider zinciri
+## Provider Zinciri
 
 ```
 App
- └─ QueryProvider          (TanStack Query client)
-     └─ ThemeProvider       (light/dark, tema context)
-         └─ AuthenticationProvider   (kullanıcı/token durumu)
-             └─ NavigationProvider   (auth durumuna göre stack seçer)
-                 └─ Application
+ └─ QueryClientProvider        (TanStack Query client)
+     └─ PersistQueryClientProvider  (AsyncStorage kalıcı okuma önbelleği)
+         └─ ThemeProvider      (light/dark tema context)
+             └─ AuthenticationProvider  (Supabase Auth oturum durumu)
+                 └─ NavigationContainer (React Navigation)
+                     └─ ToastProvider
+                         └─ RootNavigator
 ```
 
-Önemli: **AuthenticationProvider, NavigationProvider'dan önce mount olmalı.** Aksi halde navigation, henüz kullanıcının login olup olmadığını bilmeden hangi stack'i (Auth stack vs Main Tabs) göstereceğine karar veremez ve splash/flicker sorunları ortaya çıkar.
+Önemli: **AuthenticationProvider, NavigationContainer'dan önce mount olmalı.**
 
-```tsx
-// app/App.tsx
-export default function App() {
-  return (
-    <QueryProvider>
-      <ThemeProvider>
-        <AuthenticationProvider>
-          <NavigationProvider>
-            <RootNavigator />
-          </NavigationProvider>
-        </AuthenticationProvider>
-      </ThemeProvider>
-    </QueryProvider>
-  );
-}
-```
+## Repository Pattern — Kapsam
 
-## Repository Pattern — kapsam
-
-- Her feature kendi `repositories/` klasörüne sahiptir (`features/tracking/repositories/`), global bir repository klasörü değil.
-- Repository fonksiyonları her zaman feature'a özel tipleri döner (`Shipment`, `ShipmentStatus`), ham API response'u değil.
-- Repository içinde hata yönetimi/normalize etme yapılabilir (örn. backend'den gelen `snake_case` alanları `camelCase`'e çevirmek) — ekran katmanı asla ham backend formatıyla uğraşmaz.
-
-## Testability
-
-Repository pattern sayesinde ekran testlerinde gerçek Axios/Firebase çağrısı yapılmaz; repository mock'lanır. Test yazarken:
-```ts
-jest.mock('@/features/tracking/repositories/shipmentRepository');
-```
+- Her feature kendi `repositories/` klasörüne sahiptir (`src/features/shipment/repositories/`), global bir repository klasörü değil.
+- Repository fonksiyonları her zaman feature'a özel tipleri ve `RepositoryMutationResult` döner.

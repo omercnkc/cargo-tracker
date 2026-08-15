@@ -1,5 +1,6 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { ErrorHandler, AppErrorCode } from '../services/error/errorHandler.service';
 
 export interface ExportShipmentData {
   tracking_number: string;
@@ -74,7 +75,7 @@ export class ExportUtils {
         });
       }
     } catch (error) {
-      console.error('PDF dışa aktarma hatası:', error);
+      ErrorHandler.handleError(AppErrorCode.FILE_SYSTEM_ERROR, 'ExportUtils');
     }
   }
 

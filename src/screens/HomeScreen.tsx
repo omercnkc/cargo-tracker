@@ -93,7 +93,7 @@ export const HomeScreen = () => {
         <TouchableOpacity 
           style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]} 
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('AddPackage')}
+          onPress={() => navigation.navigate('MainTabs', { screen: 'AddPackage' })}
         >
           <MaterialIcons name="add-box" size={24} color={colors.onPrimary} />
           <Text style={[styles.primaryActionText, { color: colors.onPrimary }]}>{t('addPackage')}</Text>

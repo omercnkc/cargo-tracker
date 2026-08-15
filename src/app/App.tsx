@@ -10,7 +10,8 @@ import * as WebBrowser from 'expo-web-browser';
 import RootNavigator from '../navigation/RootNavigator';
 import { useAuthStore } from '../store/auth.store';
 import { useTheme } from '../theme/useTheme';
-import ErrorBoundary from '../components/common/ErrorBoundary';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
+import { ToastProvider } from '../providers/ToastProvider';
 import { supabase } from '../services/supabase/supabase';
 import { authRepository } from '../features/auth/repositories/auth.repository';
 
@@ -104,7 +105,9 @@ const App = () => (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-          <AppContent />
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
     </ErrorBoundary>

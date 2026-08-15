@@ -294,4 +294,19 @@ export const en: TranslationKeys = {
   gpsUnavailableMsg: 'GPS data is currently unavailable. Please check that location services are enabled and try again.',
   gpsPermissionDeniedTitle: 'Location Permission Required',
   gpsPermissionDeniedMsg: 'Location permission is required to fetch your current GPS position.',
+
+  // Errors & Warnings
+  errorGenericTitle: 'An Error Occurred',
+  errorGenericMsg: 'An unexpected error occurred. Please try again.',
+  networkOfflineTitle: 'No Internet Connection',
+  networkOfflineMsg: 'Please check your internet connection and try again.',
+  gpsDisabledTitle: 'GPS Disabled',
+  gpsDisabledMsg: 'Location services (GPS) are disabled on your device. Please turn on location services.',
+  cameraDeniedTitle: 'Camera Permission Denied',
+  cameraDeniedMsg: 'Camera permission is required to scan parcel QR codes or barcodes.',
+  fileSystemErrorTitle: 'File Operation Failed',
+  fileSystemErrorMsg: 'An error occurred while creating or sharing the file.',
+  errorBoundaryTitle: 'Something Went Wrong',
+  errorBoundaryMsg: 'The application encountered an unexpected error.',
+  retry: 'Retry',
 };

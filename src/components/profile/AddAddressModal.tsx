@@ -22,6 +22,8 @@ import {
   getDistrictsByCityId,
   getNeighborhoodsByDistrictId,
 } from '../../services/addressData.service';
+import { ErrorHandler, AppErrorCode } from '../../services/error/errorHandler.service';
+import { InlineErrorBanner } from '../common/InlineErrorBanner';
 
 export interface UserAddress {
   id: string;
@@ -59,6 +61,11 @@ export function AddAddressModal({
   const [neighborhood, setNeighborhood] = useState('');
   const [fullAddress, setFullAddress] = useState('');
   const [loadingGps, setLoadingGps] = useState(false);
+  const [gpsInlineError, setGpsInlineError] = useState<{
+    title?: string;
+    message: string;
+    type?: 'warning' | 'error' | 'info';
+  } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     title?: string;
     fullAddress?: string;
@@ -80,6 +87,7 @@ export function AddAddressModal({
   // Auto-fill user name & surname when modal opens
   useEffect(() => {
     if (visible) {
+      setGpsInlineError(null);
       const userFullName =
         profile?.full_name ||
         user?.user_metadata?.full_name ||
@@ -97,13 +105,21 @@ export function AddAddressModal({
   const handleFetchCurrentGpsLocation = async () => {
     try {
       setLoadingGps(true);
+      setGpsInlineError(null);
+
+      // Check if location services (GPS) are enabled at device level first
+      const hasServices = await Location.hasServicesEnabledAsync();
+      if (!hasServices) {
+        const payload = ErrorHandler.handleError(AppErrorCode.GPS_DISABLED, 'AddAddressModal', { mode: 'none' });
+        setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
+        return;
+      }
+
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
-        Alert.alert(
-          t('gpsPermissionDeniedTitle'),
-          t('gpsPermissionDeniedMsg')
-        );
+        const payload = ErrorHandler.handleError(AppErrorCode.LOCATION_PERMISSION_DENIED, 'AddAddressModal', { mode: 'none' });
+        setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
         return;
       }
 
@@ -123,7 +139,8 @@ export function AddAddressModal({
       }
 
       if (!position) {
-        Alert.alert(t('gpsUnavailableTitle'), t('gpsUnavailableMsg'));
+        const payload = ErrorHandler.handleError(AppErrorCode.GPS_UNAVAILABLE, 'AddAddressModal', { mode: 'none' });
+        setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
         return;
       }
 
@@ -148,16 +165,18 @@ export function AddAddressModal({
 
         if (!title) setTitle('Mevcut Konumum');
         setFieldErrors({});
+        setGpsInlineError(null);
         Alert.alert(
           '📍 Konum Algılandı',
           `Adresiniz GPS üzerinden dolduruldu:\n${detectedDistrict} / ${detectedCity}`
         );
       } else {
-        Alert.alert(t('gpsUnavailableTitle'), t('gpsUnavailableMsg'));
+        const payload = ErrorHandler.handleError(AppErrorCode.GPS_UNAVAILABLE, 'AddAddressModal', { mode: 'none' });
+        setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
       }
     } catch (error) {
-      console.error('GPS konum hatası:', error);
-      Alert.alert(t('gpsUnavailableTitle'), t('gpsUnavailableMsg'));
+      const payload = ErrorHandler.handleError(error, 'AddAddressModal', { mode: 'none' });
+      setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
     } finally {
       setLoadingGps(false);
     }
@@ -374,6 +393,16 @@ export function AddAddressModal({
                   </>
                 )}
               </TouchableOpacity>
+
+              {/* GPS Inline Error/Warning Banner directly in-context inside the modal */}
+              {gpsInlineError && (
+                <InlineErrorBanner
+                  title={gpsInlineError.title}
+                  message={gpsInlineError.message}
+                  type={gpsInlineError.type}
+                  onDismiss={() => setGpsInlineError(null)}
+                />
+              )}
 
               {/* Address Title */}
               <View style={styles.inputGroup}>

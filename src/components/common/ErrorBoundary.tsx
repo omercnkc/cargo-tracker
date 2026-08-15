@@ -1,11 +1,12 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import colors from '../../theme/colors';
-import { logger } from '../../utils/logger';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { translate as t } from '../../hooks/useTranslation';
+import { ErrorHandler } from '../../services/error/errorHandler.service';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -24,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('Unhandled React Error:', { error, errorInfo });
+    ErrorHandler.handleError(error, 'ReactErrorBoundary', { showToast: false, showAlert: false });
   }
 
   private handleReset = () => {
@@ -33,24 +34,28 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
         <View style={styles.container}>
-          <View style={styles.iconWrapper}>
-            <MaterialIcons name="error-outline" size={64} color={colors.error} />
-          </View>
-          <Text style={styles.title}>Bir Hata Oluştu</Text>
-          <Text style={styles.subtitle}>
-            Beklenmeyen bir sorun meydana geldi. Lütfen tekrar deneyin.
-          </Text>
-          {this.state.error && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{this.state.error.message}</Text>
+          <View style={styles.card}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="warning-outline" size={48} color="#ef4444" />
             </View>
-          )}
-          <TouchableOpacity style={styles.retryButton} onPress={this.handleReset}>
-            <MaterialIcons name="refresh" size={20} color={colors.onPrimary} />
-            <Text style={styles.retryText}>Tekrar Dene</Text>
-          </TouchableOpacity>
+            <Text style={styles.title}>{t('errorBoundaryTitle')}</Text>
+            <Text style={styles.message}>{t('errorBoundaryMsg')}</Text>
+
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={this.handleReset}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="refresh" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+              <Text style={styles.retryBtnText}>{t('retry')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     }
@@ -62,56 +67,56 @@ export class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#0b0f19',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
-  iconWrapper: {
+  card: {
+    backgroundColor: '#111827',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#1f2937',
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'Inter',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
-    color: colors.primary,
+    color: '#f8fafc',
     marginBottom: 8,
-  },
-  subtitle: {
-    fontFamily: 'Inter',
-    fontSize: 15,
-    color: colors.onSurfaceVariant,
     textAlign: 'center',
+  },
+  message: {
+    fontSize: 14,
+    color: '#94a3b8',
+    textAlign: 'center',
+    lineHeight: 20,
     marginBottom: 24,
-    maxWidth: 300,
   },
-  errorBox: {
-    backgroundColor: colors.errorContainer,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 24,
-    maxWidth: '90%',
-  },
-  errorText: {
-    fontFamily: 'Courier Prime',
-    fontSize: 13,
-    color: colors.onErrorContainer,
-  },
-  retryButton: {
+  retryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    backgroundColor: '#2563eb',
     paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 999,
+    borderRadius: 10,
+    width: '100%',
   },
-  retryText: {
-    fontFamily: 'Inter',
-    fontSize: 16,
+  retryBtnText: {
+    color: '#ffffff',
+    fontSize: 15,
     fontWeight: '600',
-    color: colors.onPrimary,
   },
 });
-
-export default ErrorBoundary;

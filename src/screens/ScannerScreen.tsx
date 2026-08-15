@@ -91,7 +91,10 @@ export const ScannerScreen = () => {
         {
           text: 'Forma Aktar',
           onPress: () => {
-            navigation.navigate('AddPackage', { scannedTrackingNumber: trackingNumber });
+            navigation.navigate('MainTabs', {
+              screen: 'AddPackage',
+              params: { scannedTrackingNumber: trackingNumber },
+            });
           },
         },
       ]
@@ -115,7 +118,10 @@ export const ScannerScreen = () => {
         {
           text: 'Forma Aktar',
           onPress: () => {
-            navigation.navigate('AddPackage', { scannedTrackingNumber: ocrResult.detectedNumber });
+            navigation.navigate('MainTabs', {
+              screen: 'AddPackage',
+              params: { scannedTrackingNumber: ocrResult.detectedNumber },
+            });
           },
         },
       ]
@@ -216,7 +222,7 @@ export const ScannerScreen = () => {
       <View style={[styles.bottomContainer, { paddingBottom: insets.bottom || 24 }]}>
         <TouchableOpacity 
           style={styles.manualEntryButton}
-          onPress={() => navigation.navigate('AddPackage')}
+          onPress={() => navigation.navigate('MainTabs', { screen: 'AddPackage' })}
           activeOpacity={0.8}
         >
           <MaterialIcons name="keyboard" size={22} color="#ffffff" />

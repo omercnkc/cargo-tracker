@@ -291,6 +291,21 @@ export const tr = {
   gpsUnavailableMsg: 'GPS verisi şu an kullanılamıyor. Lütfen konum servisinizin açık olduğunu ve izin verildiğini kontrol edip tekrar deneyin.',
   gpsPermissionDeniedTitle: 'Konum İzni Reddedildi',
   gpsPermissionDeniedMsg: 'Anlık konumunuzu alabilmek için cihazınızdan konum izni vermeniz gerekmektedir.',
+
+  // Errors & Warnings
+  errorGenericTitle: 'Bir Hata Oluştu',
+  errorGenericMsg: 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.',
+  networkOfflineTitle: 'İnternet Bağlantısı Yok',
+  networkOfflineMsg: 'Lütfen internet bağlantınızı kontrol edip tekrar deneyin.',
+  gpsDisabledTitle: 'GPS Kapalı',
+  gpsDisabledMsg: 'Cihazınızın konum (GPS) servisleri kapalı. Lütfen konum servislerini açıp tekrar deneyin.',
+  cameraDeniedTitle: 'Kamera İzni Reddedildi',
+  cameraDeniedMsg: 'QR kod veya etiket tarayabilmek için kamera izni gereklidir.',
+  fileSystemErrorTitle: 'Dosya İşlemi Başarısız',
+  fileSystemErrorMsg: 'Dosya oluşturulurken veya paylaşılırken bir hata oluştu.',
+  errorBoundaryTitle: 'Bir Şeyler Ters Gitti',
+  errorBoundaryMsg: 'Uygulama beklenmeyen bir hatayla karşılaştı.',
+  retry: 'Yeniden Dene',
 };
 
 export type TranslationKeys = typeof tr;

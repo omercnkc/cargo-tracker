@@ -1,5 +1,6 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
+import { logger } from '../../utils/logger';
 
 const BIOMETRIC_ENABLED_KEY = 'cargo_tracker_biometric_enabled';
 const LAST_ACTIVE_TIMESTAMP_KEY = 'cargo_tracker_last_active_timestamp';
@@ -79,7 +80,7 @@ export class BiometricService {
 
       return result.success;
     } catch (error) {
-      console.error('Biyometrik doğrulama hatası:', error);
+      logger.warn('Biyometrik doğrulama iptal edildi veya başarısız oldu:', error);
       return false;
     }
   }
@@ -91,7 +92,7 @@ export class BiometricService {
     try {
       await SecureStore.setItemAsync(BIOMETRIC_ENABLED_KEY, enabled ? 'true' : 'false');
     } catch (err) {
-      console.error('SecureStore yazma hatası:', err);
+      logger.warn('SecureStore yazma hatası:', err);
     }
   }
 
