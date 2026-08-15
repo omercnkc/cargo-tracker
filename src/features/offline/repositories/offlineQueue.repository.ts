@@ -82,6 +82,21 @@ export class OfflineQueueRepository {
   }
 
   /**
+   * Re-hydration için kullanıcının aktif tüm mutasyonlarını ('pending', 'processing', 'conflict') tarih sırasına göre getirir.
+   */
+  static getActiveMutations(userId: string): PendingMutation[] {
+    const db = getDatabase();
+    const sql = `
+      SELECT * FROM mutations
+      WHERE user_id = ? AND status IN ('pending', 'processing', 'conflict')
+      ORDER BY created_at ASC;
+    `;
+
+    const rows = db.getAllSync<any>(sql, [userId]);
+    return rows.map(this.mapRowToMutation);
+  }
+
+  /**
    * Belirli bir mutasyonu ID ile getirir.
    */
   static getMutationById(id: string): PendingMutation | null {
