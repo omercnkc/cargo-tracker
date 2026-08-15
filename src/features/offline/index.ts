@@ -10,6 +10,7 @@ export * from './repositories/podStorage.repository';
 export * from './services/syncEngine.service';
 export * from './services/rehydration.service';
 export * from './services/podUpload.service';
+export * from './services/migration.service';
 export * from './hooks/useNetworkStatus';
 export * from './hooks/useOfflineSync';
 export * from './components/SyncBadge';

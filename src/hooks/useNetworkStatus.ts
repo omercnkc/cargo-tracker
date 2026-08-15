@@ -1,40 +1,25 @@
-import { useState, useEffect } from 'react';
-import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-import { OfflineQueueService } from '../services/offline/offlineQueue';
+import { useOfflineSyncStore } from '../features/offline/store/offlineSync.store';
+import { SyncEngineService } from '../features/offline/services/syncEngine.service';
 
 export function useNetworkStatus(onReconnectSync?: () => Promise<void>) {
-  const [isOnline, setIsOnline] = useState<boolean>(true);
-  const [pendingCount, setPendingCount] = useState<number>(0);
+  const isOnline = useOfflineSyncStore((state) => state.isOnline);
+  const pendingCount = useOfflineSyncStore((state) => state.pendingCount);
 
   const refreshPendingCount = async () => {
-    const queue = await OfflineQueueService.getQueue();
-    setPendingCount(queue.length);
+    // State is dynamically synchronized via Zustand offlineSyncStore
   };
 
-  useEffect(() => {
-    refreshPendingCount();
-
-    const unsubscribe = NetInfo.addEventListener(async (state: NetInfoState) => {
-      const online = Boolean(state.isConnected && state.isInternetReachable !== false);
-      setIsOnline(online);
-
-      // İnternet bağlantısı sağlandığında kuyruğu işle
-      if (online) {
-        if (onReconnectSync) {
-          await onReconnectSync();
-        }
-        await refreshPendingCount();
-      }
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [onReconnectSync]);
+  const triggerSync = async () => {
+    if (onReconnectSync) {
+      await onReconnectSync();
+    }
+    SyncEngineService.triggerSync();
+  };
 
   return {
     isOnline,
     pendingCount,
     refreshPendingCount,
+    triggerSync,
   };
 }
