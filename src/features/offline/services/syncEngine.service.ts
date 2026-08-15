@@ -1,7 +1,15 @@
 import { supabase } from '../../../services/supabase/supabase';
 import { OfflineQueueRepository } from '../repositories/offlineQueue.repository';
 import { useOfflineSyncStore } from '../store/offlineSync.store';
-import { PendingMutation, AddShipmentPayload, UpdateShipmentStatusPayload, UpdateShipmentDetailsPayload, ArchiveShipmentPayload } from '../types/offline.types';
+import {
+  PendingMutation,
+  AddShipmentPayload,
+  UpdateShipmentStatusPayload,
+  UpdateShipmentDetailsPayload,
+  ArchiveShipmentPayload,
+  UploadPodImagePayload,
+} from '../types/offline.types';
+import { PodUploadService } from './podUpload.service';
 
 export class SyncEngineService {
   private static isSyncing = false;
@@ -155,7 +163,6 @@ export class SyncEngineService {
           .single();
 
         if (error) {
-          // Idempotency key zaten varsa başarı kabul et
           if (error.code === '23505') return { success: true };
           return { success: false, error: error.message };
         }
@@ -164,8 +171,6 @@ export class SyncEngineService {
 
       case 'UPDATE_SHIPMENT_STATUS': {
         const p = payload as UpdateShipmentStatusPayload;
-        
-        // Önce güncel sunucu verisini oku (Versiyon Kontrolü)
         const { data: currentServerData } = await client
           .from('shipments')
           .select('*')
@@ -173,7 +178,6 @@ export class SyncEngineService {
           .single();
 
         if (currentServerData && currentServerData.base_version !== p.baseVersion) {
-          // Versiyon Çakışması!
           return { success: false, conflict: true, serverData: currentServerData };
         }
 
@@ -242,6 +246,16 @@ export class SyncEngineService {
 
         if (error) return { success: false, error: error.message };
         return { success: true, serverData: data };
+      }
+
+      case 'UPLOAD_POD_IMAGE': {
+        const p = payload as UploadPodImagePayload;
+        try {
+          const uploadResult = await PodUploadService.uploadPodImage(p, userId, item.idempotencyKey);
+          return { success: true, serverData: uploadResult };
+        } catch (uploadError: any) {
+          return { success: false, error: uploadError.message || 'POD upload failed' };
+        }
       }
 
       default:
