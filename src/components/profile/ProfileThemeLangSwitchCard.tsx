@@ -76,7 +76,7 @@ export const ProfileThemeLangSwitchCard = () => {
             activeOpacity={0.8}
           >
             <Image 
-              source={require('../../assets/eng-icon.png')} 
+              source={require('../../assets/company-icons/eng-icon.png')} 
               style={styles.flagIcon} 
               resizeMode="cover"
             />

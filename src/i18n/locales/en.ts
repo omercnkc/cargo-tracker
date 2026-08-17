@@ -334,4 +334,52 @@ export const en: TranslationKeys = {
   offlineConflictVersion: 'Version',
   offlineConflictApplyLocalBtn: 'Apply My Changes (Overwrite)',
   offlineConflictAcceptServerBtn: 'Accept Server Changes (Discard)',
+
+  // Additional App Keys
+  stepActionRequired: 'Action Required',
+  showingShipments: 'shipments displayed',
+  yourOrderTitle: 'Order',
+  eCommerceOrder: 'E-Commerce Order',
+
+  // Notifications
+  notifDesc1: 'Your parcel KP8943271105 has been successfully delivered to your address.',
+  notifDesc2: 'Yurtiçi Kargo parcel departed from the transfer hub and is out for delivery.',
+  notifDesc3: 'Your Aras Kargo parcel arrived at the Istanbul Main Transfer Center.',
+  notifDesc4: 'Sürat Kargo parcel was received at the origin branch and barcoded.',
+  notifDesc5: 'Your Trendyol Express parcel will be delivered today between 14:00 - 18:00.',
+
+  // Support & Help Modal
+  supportHelpTitle: 'Help Center & FAQ',
+  supportHelpQ1: '❓ How can I track my shipment?',
+  supportHelpA1: 'You can tap the + button on the home screen to enter your tracking number, use the QR code scanner, or connect your email.',
+  supportHelpQ2: '❓ What is the 15-minute courier security delay?',
+  supportHelpA2: 'To protect courier safety, live vehicle locations on the map are displayed with a 15-minute delay.',
+  supportHelpQ3: '📞 Customer Support Line',
+  supportHelpA3: 'You can reach our 24/7 Support Team at support@cargotracker.com.',
+
+  supportPrivacyTitle: 'Privacy Policy',
+  supportPrivacyDesc: 'At CargoTracker, we prioritize the security of your personal data.',
+  supportPrivacyQ1: '🔒 Data Encryption',
+  supportPrivacyA1: 'All your shipment data is stored securely using Supabase SSL/TLS 256-bit encryption.',
+  supportPrivacyQ2: '📧 Email Scanning',
+  supportPrivacyA2: 'Connected emails are scanned exclusively for shipment notification subjects; personal contents are never stored or shared.',
+
+  supportTermsTitle: 'Terms of Service',
+  supportTermsDesc: 'By using the CargoTracker application, you agree to the following terms:',
+  supportTermsQ1: '1. Scope of Service',
+  supportTermsA1: 'The app tracks domestic and international shipment data via provider APIs.',
+  supportTermsQ2: '2. Limitation of Liability',
+  supportTermsA2: 'Our app cannot be held liable for data delays caused by courier companies.',
+
+  supportFeedbackTitle: 'Send Feedback',
+  supportFeedbackDesc: 'Your feedback and suggestions are invaluable in helping us improve our application!',
+  supportFeedbackBtn: 'Submit Feedback Form',
+  supportFeedbackSuccessTitle: 'Thank You! 💬',
+  supportFeedbackSuccessMsg: 'Your feedback has been successfully submitted to our team.',
+
+  supportRateTitle: 'Rate the App',
+  supportRateDesc: 'Would you like to rate your CargoTracker experience 5 stars?',
+  supportRateBtn: 'Rate on App Store / Google Play',
+  supportRateSuccessTitle: '🎉 Awesome!',
+  supportRateSuccessMsg: 'Thank you so much for rating us 5 stars and supporting us!',
 };

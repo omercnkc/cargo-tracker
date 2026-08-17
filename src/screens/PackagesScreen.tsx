@@ -311,7 +311,7 @@ export const PackagesScreen = () => {
         paddingTop: insets.top,
       }]}>
         <View style={styles.appBarContent}>
-          <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>KargoTakip</Text>
+          <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>{t('appName')}</Text>
         </View>
       </View>
 
@@ -569,7 +569,7 @@ export const PackagesScreen = () => {
 
                 {/* Sub-info text */}
                 <Text style={[styles.paginationInfoText, { color: colors.onSurfaceVariant }]}>
-                  {`${(currentPage - 1) * ITEMS_PER_PAGE + 1} - ${Math.min(currentPage * ITEMS_PER_PAGE, filteredPackages.length)} / ${filteredPackages.length} kargo gösteriliyor`}
+                  {`${(currentPage - 1) * ITEMS_PER_PAGE + 1} - ${Math.min(currentPage * ITEMS_PER_PAGE, filteredPackages.length)} / ${filteredPackages.length} ${t('showingShipments')}`}
                 </Text>
               </View>
             )}

@@ -3,6 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../../../services/supabase/supabase';
 import { Database } from '../../../types/database.types';
 import { User, Session } from '@supabase/supabase-js';
+import { formatTitleCaseTR, formatPhoneClean, formatEmail } from '../../../utils/stringFormatters';
 
 export type UserProfile = Database['public']['Tables']['users']['Row'];
 
@@ -32,6 +33,44 @@ export class AuthRepository {
     }
   }
 
+  async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<{ profile: UserProfile | null; error: Error | null }> {
+    try {
+      const formattedUpdates: Partial<UserProfile> = { ...updates };
+      if (updates.full_name) {
+        formattedUpdates.full_name = formatTitleCaseTR(updates.full_name);
+      }
+      if (updates.phone) {
+        formattedUpdates.phone = formatPhoneClean(updates.phone);
+      }
+
+      const updateData = {
+        ...formattedUpdates,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await (supabase.from('users') as any)
+        .update(updateData)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) return { profile: null, error };
+
+      if (formattedUpdates.full_name !== undefined || formattedUpdates.avatar_url !== undefined) {
+        await supabase.auth.updateUser({
+          data: {
+            ...(formattedUpdates.full_name !== undefined ? { full_name: formattedUpdates.full_name } : {}),
+            ...(formattedUpdates.avatar_url !== undefined ? { avatar_url: formattedUpdates.avatar_url } : {}),
+          },
+        });
+      }
+
+      return { profile: data, error: null };
+    } catch (err) {
+      return { profile: null, error: err instanceof Error ? err : new Error('Profile update failed') };
+    }
+  }
+
   async signIn(email: string, pass: string): Promise<{ session: Session | null; user: User | null; error: Error | null }> {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
@@ -44,10 +83,13 @@ export class AuthRepository {
 
   async signUp(email: string, pass: string, fullName: string): Promise<{ user: User | null; error: Error | null }> {
     try {
+      const cleanEmail = formatEmail(email);
+      const cleanFullName = formatTitleCaseTR(fullName);
+
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password: pass,
-        options: { data: { full_name: fullName } },
+        options: { data: { full_name: cleanFullName } },
       });
 
       if (error) return { user: null, error };
@@ -55,7 +97,7 @@ export class AuthRepository {
       if (data.user) {
         const newUser: UserProfile = {
           id: data.user.id,
-          full_name: fullName,
+          full_name: cleanFullName,
           avatar_url: null,
           phone: null,
           created_at: new Date().toISOString(),

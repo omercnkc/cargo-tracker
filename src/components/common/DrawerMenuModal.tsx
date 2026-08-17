@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -31,15 +31,20 @@ export const DrawerMenuModal = () => {
   const profile = useAuthStore((state) => state.profile);
   const signOut = useAuthStore((state) => state.signOut);
 
-  const { openAddressModal, openChangePasswordModal, openSupportModal, openCarrierModal } = useModalStore();
+  const { openAddressModal, openChangePasswordModal, openSupportModal, openCarrierModal, openPersonalInfoModal } = useModalStore();
 
-  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
-  const displayEmail = user?.email || 'omercnkc123@gmail.com';
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
+  const displayEmail = user?.email || 'E-posta bulunamadı';
   const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://i.pravatar.cc/300?img=11';
 
   const handleNavigate = (screenName: string) => {
     closeDrawer();
     navigation.navigate(screenName);
+  };
+
+  const handleOpenPersonalInfoModal = () => {
+    closeDrawer();
+    openPersonalInfoModal();
   };
 
   const handleOpenAddressModal = () => {
@@ -105,7 +110,7 @@ export const DrawerMenuModal = () => {
           <View style={styles.topBrandRow}>
             <View style={styles.brandGroup}>
               <MaterialIcons name="inventory-2" size={24} color={colors.primary} />
-              <Text style={[styles.brandTitle, { color: colors.primary }]}>KargoTakip</Text>
+              <Text style={[styles.brandTitle, { color: colors.primary }]}>{t('appName')}</Text>
             </View>
 
             <TouchableOpacity style={styles.closeBtn} onPress={closeDrawer}>
@@ -131,14 +136,25 @@ export const DrawerMenuModal = () => {
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
-              onPress={() => handleNavigate('Settings')}
+              onPress={handleOpenPersonalInfoModal}
             >
               <MaterialIcons name="person-outline" size={22} color={colors.onSurface} />
               <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('personalInfo')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
-            {/* 2. Adreslerim */}
+            {/* 2. Ayarlar */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              activeOpacity={0.7}
+              onPress={() => handleNavigate('Settings')}
+            >
+              <MaterialIcons name="settings" size={22} color={colors.onSurface} />
+              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('settings')}</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
+            </TouchableOpacity>
+
+            {/* 3. Adreslerim */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -146,17 +162,6 @@ export const DrawerMenuModal = () => {
             >
               <MaterialIcons name="location-on" size={22} color={colors.onSurface} />
               <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('myAddresses')}</Text>
-              <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
-            </TouchableOpacity>
-
-            {/* 3. Şifre Değiştir */}
-            <TouchableOpacity
-              style={styles.menuItem}
-              activeOpacity={0.7}
-              onPress={handleOpenChangePasswordModal}
-            >
-              <MaterialIcons name="lock-outline" size={22} color={colors.onSurface} />
-              <Text style={[styles.menuItemText, { color: colors.onSurface }]}>{t('changePassword')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.outlineVariant} />
             </TouchableOpacity>
 
@@ -358,6 +363,33 @@ const styles = StyleSheet.create({
     height: 1,
     opacity: 0.4,
     marginVertical: 8,
+  },
+  personalInfoCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 14,
+    gap: 12,
+    marginTop: -4,
+    marginBottom: 4,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  infoTextWrapper: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    fontFamily: 'Inter',
+  },
+  infoValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    fontFamily: 'Inter',
+    marginTop: 1,
   },
   logoutPillBtn: {
     flexDirection: 'row',

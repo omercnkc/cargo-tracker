@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useNotificationStore } from '../store/notification.store';
 import { ProfileThemeLangSwitchCard } from '../components/profile/ProfileThemeLangSwitchCard';
+import { EditProfileModal } from '../components/profile/EditProfileModal';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
@@ -33,6 +34,8 @@ export const ProfileScreen = () => {
   const profile = useAuthStore((state) => state.profile);
   const { data: dbShipments } = useShipments(user?.id);
   const unreadCount = useNotificationStore((state) => state.notifications.filter((n) => n.unread).length);
+
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
   const displayEmail = user?.email || 'omercnkc123@gmail.com';
@@ -96,7 +99,7 @@ export const ProfileScreen = () => {
           <TouchableOpacity
             style={[styles.editPillButton, { backgroundColor: colors.primary }]}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Settings')}
+            onPress={() => setEditModalVisible(true)}
           >
             <MaterialIcons name="edit" size={16} color={colors.onPrimary} />
             <Text style={[styles.editPillButtonText, { color: colors.onPrimary }]}>{t('editProfile')}</Text>
@@ -148,6 +151,12 @@ export const ProfileScreen = () => {
         <ProfileThemeLangSwitchCard />
 
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+      />
     </View>
   );
 };

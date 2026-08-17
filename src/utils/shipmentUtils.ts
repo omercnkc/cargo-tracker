@@ -24,17 +24,11 @@ export interface ShipmentProgressInfo {
   colorType: 'pending' | 'action_required' | 'transit' | 'out_for_delivery' | 'delivered';
   colorHex: string;
   stepTitle: string;
+  titleKey: string;
 }
 
 /**
  * Calculates 6-step tracking progress info for a shipment status.
- * Steps:
- * 0: Oluşturuldu (0%)
- * 1: Teslim Alındı (20%)
- * 2: Transferde (40%)
- * 3: Varış Şubesinde (60%)
- * 4: Dağıtımda (80%)
- * 5: Teslim Edildi (100%)
  */
 export function getShipmentProgress(status?: string | null): ShipmentProgressInfo {
   if (!status) {
@@ -44,6 +38,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
       colorType: 'pending',
       colorHex: '#F59E0B',
       stepTitle: 'Oluşturuldu',
+      titleKey: 'stepCreated',
     };
   }
 
@@ -60,6 +55,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
         colorType: 'delivered',
         colorHex: '#10B981', // Vibrant Emerald Green
         stepTitle: 'Teslim Edildi',
+        titleKey: 'stepDelivered',
       };
 
     case 'out_for_delivery':
@@ -72,6 +68,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
         colorType: 'out_for_delivery',
         colorHex: '#0EA5E9', // Vivid Sky Cyan
         stepTitle: 'Dağıtımda',
+        titleKey: 'stepOutForDelivery',
       };
 
     case 'destination':
@@ -86,6 +83,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
         colorType: 'transit',
         colorHex: '#3B82F6', // Royal Blue
         stepTitle: 'Varış Şubesinde',
+        titleKey: 'stepDestination',
       };
 
     case 'transit':
@@ -102,6 +100,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
         colorType: 'transit',
         colorHex: '#2563EB', // Royal Electric Blue
         stepTitle: 'Transferde',
+        titleKey: 'stepTransit',
       };
 
     case 'received':
@@ -115,6 +114,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
         colorType: 'pending',
         colorHex: '#6366F1', // Indigo Accent
         stepTitle: 'Teslim Alındı',
+        titleKey: 'stepReceived',
       };
 
     case 'action_required':
@@ -129,6 +129,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
         colorType: 'action_required',
         colorHex: '#EF4444', // Crimson Warning Red
         stepTitle: 'İşlem Gerekli',
+        titleKey: 'stepActionRequired',
       };
 
     case 'created':
@@ -146,6 +147,7 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
         colorType: 'pending',
         colorHex: '#F59E0B', // Bright Amber Orange
         stepTitle: 'Oluşturuldu',
+        titleKey: 'stepCreated',
       };
   }
 }

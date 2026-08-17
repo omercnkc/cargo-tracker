@@ -24,6 +24,7 @@ import {
 } from '../../services/addressData.service';
 import { ErrorHandler, AppErrorCode } from '../../services/error/errorHandler.service';
 import { InlineErrorBanner } from '../common/InlineErrorBanner';
+import { formatTitleCaseTR, formatPhoneClean } from '../../utils/stringFormatters';
 
 export interface UserAddress {
   id: string;
@@ -318,11 +319,11 @@ export function AddAddressModal({
 
     const newAddress: UserAddress = {
       id: `addr_${Date.now()}`,
-      title: title.trim(),
-      fullName: fullName.trim() || 'Ahmet Yılmaz',
-      phone: phone.trim() || '0555 123 45 67',
-      city: city.trim() || 'İstanbul',
-      district: district.trim() || 'Beşiktaş',
+      title: formatTitleCaseTR(title),
+      fullName: formatTitleCaseTR(fullName.trim() || 'Ahmet Yılmaz'),
+      phone: formatPhoneClean(phone.trim() || '05551234567'),
+      city: formatTitleCaseTR(city.trim() || 'İstanbul'),
+      district: formatTitleCaseTR(district.trim() || 'Beşiktaş'),
       fullAddress: fullAddress.trim(),
     };
 

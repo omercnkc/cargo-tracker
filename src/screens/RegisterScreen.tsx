@@ -21,7 +21,7 @@ import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContai
 import { GoogleLogo } from '../components/common/GoogleLogo';
 import { useTranslation } from '../hooks/useTranslation';
 import { PasswordInput, PasswordStrengthMeter } from '../components/ui';
-import { validatePassword } from '../utils/validators';
+import { validatePassword, validateFullName } from '../utils/validators';
 
 export const RegisterScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
@@ -51,8 +51,9 @@ export const RegisterScreen = ({ navigation }: any) => {
   const handleRegister = async () => {
     const errors: { fullName?: string; email?: string; password?: string; confirmPassword?: string } = {};
 
-    if (!fullName.trim()) {
-      errors.fullName = t('fullNameRequired');
+    const nameVal = validateFullName(fullName);
+    if (!nameVal.isValid) {
+      errors.fullName = nameVal.error;
     }
 
     if (!email.trim()) {

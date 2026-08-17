@@ -74,7 +74,7 @@ export const PackageCard = ({ name, code, status, icon, logo, isLargeScreen, onP
 
         <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
           <Text style={[styles.statusBadgeText, { color: statusConfig.color }]}>
-            {progressInfo.stepTitle}
+            {t(progressInfo.titleKey as any) || progressInfo.stepTitle}
           </Text>
         </View>
       </View>

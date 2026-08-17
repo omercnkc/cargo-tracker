@@ -35,6 +35,7 @@ const ProfileScreenWithSwipe = withSwipe(ProfileScreen);
 const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
   const insets = useSafeAreaInsets();
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.sidebarContainer, { paddingTop: insets.top + 16, backgroundColor: colors.surfaceContainerLowest, borderRightColor: colors.outlineVariant + '4D' }]}>
@@ -43,7 +44,7 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
         <View style={[styles.brandIconBg, { backgroundColor: colors.primary }]}>
           <MaterialIcons name="inventory" size={24} color={colors.onPrimary} />
         </View>
-        <Text style={[styles.brandText, { color: colors.primary }]}>KargoTakip</Text>
+        <Text style={[styles.brandText, { color: colors.primary }]}>{t('appName')}</Text>
       </View>
 
       {/* Nav Links */}

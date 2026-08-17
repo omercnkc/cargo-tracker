@@ -6,8 +6,7 @@ import {
   ScrollView, 
   TouchableOpacity, 
   useWindowDimensions,
-  ActivityIndicator,
-  Alert
+  ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +18,6 @@ import { useShipmentDetail } from '../features/shipment/hooks/useShipments';
 import HeaderRightActions from '../components/common/HeaderRightActions';
 import { ShipmentMapView } from '../components/map/ShipmentMapView';
 import { useShipmentRealtime } from '../hooks/useShipmentRealtime';
-import { useNotifications } from '../hooks/useNotifications';
 import { LocationPoint } from '../types/location';
 import { getCarrierByName } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
@@ -36,7 +34,6 @@ export const PackageDetailScreen = () => {
 
   const shipmentId = route.params?.id;
   const { data: shipment, isLoading } = useShipmentDetail(shipmentId);
-  const { notifyStatusChange } = useNotifications();
 
   // Supabase Realtime Canlı Takip Hook'u
   useShipmentRealtime(shipmentId);
@@ -86,11 +83,6 @@ export const PackageDetailScreen = () => {
     },
   ], [nowMs]);
 
-  const handleTestNotification = async () => {
-    await notifyStatusChange(displayShipment.tracking_number, 'Kurye Yaklaştı! (Teslimat Bölgesinde)', shipmentId);
-    Alert.alert('🔔 Bildirim Tetiklendi', 'Kargo güncelleme bildirimi cihazınıza gönderildi.');
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* TopAppBar */}
@@ -130,16 +122,12 @@ export const PackageDetailScreen = () => {
                 <Text style={[styles.trackingNumber, { color: colors.primary }]}>{displayShipment.tracking_number}</Text>
               </View>
             </View>
-            <TouchableOpacity 
-              style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}
-              onPress={handleTestNotification}
-              activeOpacity={0.8}
-            >
+            <View style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}>
               <MaterialIcons name="notifications-active" size={18} color={colors.secondary} />
               <Text style={[styles.statusBadgeText, { color: colors.onSecondaryFixedVariant }]}>
                 {displayShipment.current_status === 'delivered' ? t('statusDelivered') : t('statusInTransit')}
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
 
           {/* Clean Map View: Only User Address & Courier Vehicle (No lines across sea) */}
@@ -182,18 +170,6 @@ export const PackageDetailScreen = () => {
                   </Text>
                 </View>
               </View>
-
-              {/* Quick Actions Card */}
-              <TouchableOpacity 
-                style={[styles.notificationTriggerCard, { backgroundColor: colors.primaryContainer }]}
-                onPress={handleTestNotification}
-                activeOpacity={0.85}
-              >
-                <MaterialIcons name="notifications-active" size={22} color={colors.onPrimaryContainer} />
-                <Text style={[styles.notificationTriggerText, { color: colors.onPrimaryContainer }]}>
-                  {t('sendTestNotification')}
-                </Text>
-              </TouchableOpacity>
 
             </View>
 
@@ -328,19 +304,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.6,
-  },
-  notificationTriggerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 16,
-    borderRadius: 12,
-    justifyContent: 'center',
-  },
-  notificationTriggerText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontWeight: '600',
   },
   gridContainer: {
     flexDirection: 'column',

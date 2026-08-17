@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import { ModernFeedbackModal, FeedbackType } from './ModernFeedbackModal';
 
 export type SupportModalType = 'help' | 'rate' | 'feedback' | 'privacy' | 'terms';
@@ -14,6 +15,7 @@ interface SupportHelpModalProps {
 
 export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalProps) {
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const [feedback, setFeedback] = useState<{
     visible: boolean;
@@ -33,63 +35,63 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
       case 'help':
         return {
           icon: 'help-outline',
-          title: 'Yardım Merkezi & SSS',
+          title: t('supportHelpTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.qText}>❓ Kargomu nasıl takip edebilirim?</Text>
-              <Text style={styles.aText}>Ana sayfadaki + butonuna basarak takip numaranızı girebilir, QR kod tarayıcıyı kullanabilir veya E-Posta bağlama özelliğinden faydalanabilirsiniz.</Text>
+              <Text style={styles.qText}>{t('supportHelpQ1')}</Text>
+              <Text style={styles.aText}>{t('supportHelpA1')}</Text>
               
-              <Text style={styles.qText}>❓ 15 dakikalık kargocu güvenlik gecikmesi nedir?</Text>
-              <Text style={styles.aText}>Kuryelerin kişisel güvenliğini korumak amacıyla canlı haritada kargo aracı konumu 15 dakika gecikmeli olarak gösterilir.</Text>
+              <Text style={styles.qText}>{t('supportHelpQ2')}</Text>
+              <Text style={styles.aText}>{t('supportHelpA2')}</Text>
               
-              <Text style={styles.qText}>📞 Müşteri Destek Hattı</Text>
-              <Text style={styles.aText}>7/24 Destek Ekibimize destek@kargotakip.com e-posta adresinden ulaşabilirsiniz.</Text>
+              <Text style={styles.qText}>{t('supportHelpQ3')}</Text>
+              <Text style={styles.aText}>{t('supportHelpA3')}</Text>
             </View>
           ),
         };
       case 'privacy':
         return {
           icon: 'shield',
-          title: 'Gizlilik Politikası',
+          title: t('supportPrivacyTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>KargoTakip olarak kişisel verilerinizin güvenliğine yüksek önem veriyoruz.</Text>
-              <Text style={styles.qText}>🔒 Veri Şifreleme</Text>
-              <Text style={styles.aText}>Tüm kargo verileriniz Supabase SSL/TLS 256-bit şifreleme altyapısında saklanır.</Text>
-              <Text style={styles.qText}>📧 E-Posta Taraması</Text>
-              <Text style={styles.aText}>Bağlı e-postalarınızda yalnızca kargo onay başlıkları taranır, kişisel içerikler saklanmaz veya üçüncü taraflarla paylaşılmaz.</Text>
+              <Text style={styles.aText}>{t('supportPrivacyDesc')}</Text>
+              <Text style={styles.qText}>{t('supportPrivacyQ1')}</Text>
+              <Text style={styles.aText}>{t('supportPrivacyA1')}</Text>
+              <Text style={styles.qText}>{t('supportPrivacyQ2')}</Text>
+              <Text style={styles.aText}>{t('supportPrivacyA2')}</Text>
             </View>
           ),
         };
       case 'terms':
         return {
           icon: 'description',
-          title: 'Kullanım Koşulları',
+          title: t('supportTermsTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>KargoTakip uygulamasını kullanarak aşağıdaki şartları kabul etmiş olursunuz:</Text>
-              <Text style={styles.qText}>1. Hizmet Kapsamı</Text>
-              <Text style={styles.aText}>Uygulama, Türkiye içi ve uluslararası kargo verilerini sağlayıcı apiler üzerinden takip etmek üzere sunulmaktadır.</Text>
-              <Text style={styles.qText}>2. Sorumluluk Sınırı</Text>
-              <Text style={styles.aText}>Kargo şirketlerinin veri gecikmelerinden uygulamamız sorumlu tutulamaz.</Text>
+              <Text style={styles.aText}>{t('supportTermsDesc')}</Text>
+              <Text style={styles.qText}>{t('supportTermsQ1')}</Text>
+              <Text style={styles.aText}>{t('supportTermsA1')}</Text>
+              <Text style={styles.qText}>{t('supportTermsQ2')}</Text>
+              <Text style={styles.aText}>{t('supportTermsA2')}</Text>
             </View>
           ),
         };
       case 'feedback':
         return {
           icon: 'chat-bubble-outline',
-          title: 'Geri Bildirim Gönder',
+          title: t('supportFeedbackTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>Görüş ve önerileriniz uygulamamızı geliştirmemiz için çok değerlidir!</Text>
+              <Text style={styles.aText}>{t('supportFeedbackDesc')}</Text>
               <TouchableOpacity
                 style={styles.actionPillBtn}
                 onPress={() => {
                   setFeedback({
                     visible: true,
                     type: 'success',
-                    title: 'Teşekkürler! 💬',
-                    message: 'Geri bildiriminiz ekibimize başarıyla iletildi.',
+                    title: t('supportFeedbackSuccessTitle'),
+                    message: t('supportFeedbackSuccessMsg'),
                     onConfirm: () => {
                       setFeedback(prev => ({ ...prev, visible: false }));
                       onClose();
@@ -98,7 +100,7 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
                 }}
               >
                 <MaterialIcons name="send" size={18} color="#ffffff" />
-                <Text style={styles.actionPillText}>Geri Bildirim Formunu Gönder</Text>
+                <Text style={styles.actionPillText}>{t('supportFeedbackBtn')}</Text>
               </TouchableOpacity>
             </View>
           ),
@@ -106,18 +108,18 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
       default:
         return {
           icon: 'star-outline',
-          title: 'Uygulamayı Puanla',
+          title: t('supportRateTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>KargoTakip deneyiminizi 5 yıldızla değerlendirmek ister misiniz?</Text>
+              <Text style={styles.aText}>{t('supportRateDesc')}</Text>
               <TouchableOpacity
                 style={styles.actionPillBtn}
                 onPress={() => {
                   setFeedback({
                     visible: true,
                     type: 'success',
-                    title: '🎉 Harika!',
-                    message: '5 yıldız verdiğiniz ve bize destek olduğunuz için çok teşekkür ederiz!',
+                    title: t('supportRateSuccessTitle'),
+                    message: t('supportRateSuccessMsg'),
                     onConfirm: () => {
                       setFeedback(prev => ({ ...prev, visible: false }));
                       onClose();
@@ -126,7 +128,7 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
                 }}
               >
                 <MaterialIcons name="star" size={20} color="#f59e0b" />
-                <Text style={styles.actionPillText}>App Store / Google Play'de Puanla</Text>
+                <Text style={styles.actionPillText}>{t('supportRateBtn')}</Text>
               </TouchableOpacity>
             </View>
           ),
@@ -150,9 +152,13 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
             {config.content}
           </ScrollView>
+
+          <TouchableOpacity style={[styles.footerCloseBtn, { backgroundColor: colors.primary }]} onPress={onClose}>
+            <Text style={[styles.footerCloseBtnText, { color: colors.onPrimary }]}>{t('close')}</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -161,14 +167,7 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
         type={feedback.type}
         title={feedback.title}
         message={feedback.message}
-        onPrimaryAction={() => {
-          if (feedback.onConfirm) {
-            feedback.onConfirm();
-          } else {
-            setFeedback(prev => ({ ...prev, visible: false }));
-          }
-        }}
-        onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
+        onConfirm={feedback.onConfirm}
       />
     </Modal>
   );
@@ -177,28 +176,35 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
     width: '100%',
-    maxWidth: 400,
-    borderRadius: 16,
-    padding: 24,
-    maxHeight: '80%',
+    maxWidth: 500,
+    maxHeight: '85%',
+    borderRadius: 20,
+    padding: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   title: {
     fontSize: 18,
@@ -207,36 +213,48 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  scrollContent: {
-    paddingBottom: 16,
+  scrollBody: {
+    marginVertical: 16,
   },
   contentGroup: {
     gap: 12,
   },
   qText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#00236f',
-    marginTop: 4,
+    color: '#1f2937',
+    marginTop: 8,
   },
   aText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#475569',
+    fontSize: 14,
+    color: '#4b5563',
+    lineHeight: 20,
   },
   actionPillBtn: {
+    backgroundColor: '#2563eb',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#00236f',
     paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginTop: 16,
   },
   actionPillText: {
     color: '#ffffff',
     fontSize: 14,
+    fontWeight: '700',
+  },
+  footerCloseBtn: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  footerCloseBtnText: {
+    fontSize: 15,
     fontWeight: '700',
   },
 });

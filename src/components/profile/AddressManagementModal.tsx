@@ -1,7 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Animated,
+  PanResponder,
+} from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { AddAddressModal, UserAddress } from './AddAddressModal';
@@ -36,17 +47,56 @@ interface AddressManagementModalProps {
 }
 
 export function AddressManagementModal({ visible, onClose }: AddressManagementModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
 
   const [addresses, setAddresses] = useState<UserAddress[]>(DEFAULT_ADDRESSES);
   const [addModalVisible, setAddModalVisible] = useState(false);
 
+  const translateY = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (visible) {
+      translateY.setValue(0);
       loadAddresses();
     }
   }, [visible]);
+
+  const handleCloseWithAnimation = () => {
+    Animated.timing(translateY, {
+      toValue: 600,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+      translateY.setValue(0);
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 5,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          handleCloseWithAnimation();
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            tension: 60,
+            friction: 10,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const loadAddresses = async () => {
     try {
@@ -67,26 +117,43 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
   };
 
   const handleDeleteAddress = (id: string) => {
-    setAddresses(prev => prev.filter(a => a.id !== id));
-  };
-
-  const handleSetDefault = (id: string) => {
-    setAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
+    setAddresses((prev) => prev.filter((a) => a.id !== id));
   };
 
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleCloseWithAnimation}>
       <View style={styles.overlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.surfaceContainerLowest }]}>
+        {/* Backdrop Tap to Close */}
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={handleCloseWithAnimation}
+        />
+
+        <Animated.View
+          style={[
+            styles.modalContent,
+            {
+              backgroundColor: colors.surfaceContainerLowest,
+              paddingBottom: insets.bottom || 24,
+              transform: [{ translateY }],
+            },
+          ]}
+        >
+          {/* Drag Handle Container */}
+          <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+            <View style={[styles.dragHandle, { backgroundColor: colors.outlineVariant }]} />
+          </View>
+
           {/* Header */}
-          <View style={styles.header}>
+          <View style={styles.header} {...panResponder.panHandlers}>
             <View style={styles.titleRow}>
               <MaterialIcons name="location-on" size={24} color={colors.primary} />
               <Text style={[styles.title, { color: colors.primary }]}>{t('myAddresses')}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={handleCloseWithAnimation} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
@@ -136,7 +203,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
               ))
             )}
           </ScrollView>
-        </View>
+        </Animated.View>
       </View>
 
       {/* GPS Supported Add Address Modal */}
@@ -157,16 +224,28 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
     maxHeight: '85%',
+  },
+  dragHandleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 999,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    paddingTop: 4,
   },
   titleRow: {
     flexDirection: 'row',

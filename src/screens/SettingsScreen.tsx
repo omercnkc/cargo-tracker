@@ -17,6 +17,7 @@ import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuthStore } from '../store/auth.store';
 import { useBiometrics } from '../hooks/useBiometrics';
+import { useModalStore } from '../store/modal.store';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
 
 export const SettingsScreen = () => {
@@ -29,6 +30,7 @@ export const SettingsScreen = () => {
   const { t } = useTranslation();
   const signOut = useAuthStore(state => state.signOut);
   const { isSupported, isEnabled, biometricTypes, toggleBiometric } = useBiometrics();
+  const openChangePasswordModal = useModalStore(state => state.openChangePasswordModal);
 
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
@@ -85,7 +87,7 @@ export const SettingsScreen = () => {
 
           <View style={styles.gridContainer}>
 
-            {/* Security Section (Biometrics) */}
+            {/* Security Section (Biometrics & Change Password) */}
             <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
               <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
                 <MaterialIcons name="security" size={20} color={colors.primary} />
@@ -93,7 +95,8 @@ export const SettingsScreen = () => {
               </View>
 
               <View style={styles.sectionBody}>
-                <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+                {/* Biyometrik Giriş */}
+                <View style={[styles.settingRow, { borderBottomWidth: 1, borderBottomColor: 'rgba(197, 197, 211, 0.3)' }]}>
                   <View style={styles.settingTextContent}>
                     <Text style={[styles.settingLabel, { color: colors.onSurface }]}>
                       {biometricTypes[0] ? `${t('biometricLoginTitle')} ${biometricTypes[0]}` : `${t('biometricLoginTitle')} Face ID / Touch ID`}
@@ -112,6 +115,21 @@ export const SettingsScreen = () => {
                     disabled={!isSupported}
                   />
                 </View>
+
+                {/* Şifre Değiştir */}
+                <TouchableOpacity
+                  style={[styles.settingRow, { borderBottomWidth: 0 }]}
+                  activeOpacity={0.7}
+                  onPress={openChangePasswordModal}
+                >
+                  <View style={styles.settingTextContent}>
+                    <Text style={[styles.settingLabel, { color: colors.onSurface }]}>{t('changePassword')}</Text>
+                    <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>
+                      Hesap şifrenizi yenileyin veya güncelleyin
+                    </Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
+                </TouchableOpacity>
               </View>
             </View>
 

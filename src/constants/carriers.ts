@@ -110,21 +110,21 @@ export const DEFAULT_CARRIERS: Carrier[] = [
     id: 'ptt',
     name: 'PTT Kargo',
     code: 'ptt',
-    logo: require('../assets/ptt-logo.png'),
+    logo: require('../assets/company-icons/ptt-logo.png'),
     brandColor: '#ffcc00',
   },
   {
     id: 'surat',
     name: 'Sürat Kargo',
     code: 'surat',
-    logo: require('../assets/surat-logo.png'),
+    logo: require('../assets/company-icons/surat-logo.png'),
     brandColor: '#ed1c24',
   },
   {
     id: 'trendyol',
     name: 'Trendyol Express',
     code: 'trendyol',
-    logo: require('../assets/trendyol-express-logo.png'),
+    logo: require('../assets/company-icons/trendyol-express-logo.png'),
     brandColor: '#f27a1a',
   },
   {
@@ -138,7 +138,7 @@ export const DEFAULT_CARRIERS: Carrier[] = [
     id: 'kargoist',
     name: 'Kargoist',
     code: 'kargoist',
-    logo: require('../assets/kargoist_logo.png'),
+    logo: require('../assets/company-icons/kargoist_logo.png'),
     brandColor: '#003366',
   },
   {
@@ -152,7 +152,7 @@ export const DEFAULT_CARRIERS: Carrier[] = [
     id: 'fedex',
     name: 'FedEx',
     code: 'fedex',
-    logo: require('../assets/logofedex-logo.png'),
+    logo: require('../assets/company-icons/logofedex-logo.png'),
     brandColor: '#4d148c',
   },
 ];

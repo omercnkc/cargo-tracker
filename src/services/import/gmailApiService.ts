@@ -1,4 +1,5 @@
 import { EmailScanResult } from './emailSyncService';
+import { translate } from '../../hooks/useTranslation';
 
 const ECOMMERCE_PLATFORMS = [
   { domain: 'trendyol', name: 'Trendyol', defaultCompany: 'Trendyol Express' },
@@ -124,7 +125,7 @@ export class GmailApiService {
       subject: subject || 'Kargo Bildirimi',
       trackingNumber,
       courierCompany: matchedPlatform.defaultCompany,
-      itemTitle: `${matchedPlatform.name} Siparişiniz`,
+      itemTitle: `${matchedPlatform.name} ${translate('yourOrderTitle')}`,
       foundAt: new Date().toISOString(),
     };
   }

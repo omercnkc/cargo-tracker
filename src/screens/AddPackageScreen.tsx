@@ -31,6 +31,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { ModernFeedbackModal, FeedbackType } from '../components/common/ModernFeedbackModal';
 import { DEFAULT_CARRIERS, getCarrierByName, isCarrierAllowed } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
+import { formatTrackingNumber, formatTitleCaseTR } from '../utils/stringFormatters';
 
 export const AddPackageScreen = () => {
   const navigation = useNavigation<any>();
@@ -153,22 +154,24 @@ export const AddPackageScreen = () => {
     }
 
     try {
+      const formattedTrackingNo = formatTrackingNumber(trackingNumber);
+      const formattedTitle = nickname.trim() ? formatTitleCaseTR(nickname) : (activeCarrier?.name || null);
       const dbCompanyId = selectedCarrier ? getDbCompanyId(selectedCarrier) : null;
+
       await addShipmentMutation.mutateAsync({
         user_id: user.id,
-        tracking_number: trackingNumber.trim(),
+        tracking_number: formattedTrackingNo,
         company_id: dbCompanyId,
-        title: nickname.trim() || activeCarrier?.name || null,
+        title: formattedTitle,
         current_status: 'transit',
       });
 
-      const addedCode = trackingNumber.trim();
       setFeedback({
         visible: true,
         type: 'success',
         title: t('addSuccessTitle'),
         message: t('addSuccessMsg'),
-        trackingNumber: addedCode,
+        trackingNumber: formattedTrackingNo,
         onConfirm: () => {
           setFeedback(prev => ({ ...prev, visible: false }));
           navigation.navigate('Packages');
@@ -213,7 +216,7 @@ export const AddPackageScreen = () => {
           paddingTop: insets.top,
         }]}>
           <View style={styles.appBarContent}>
-            <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>KargoTakip</Text>
+            <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>{t('appName')}</Text>
           </View>
         </View>
 

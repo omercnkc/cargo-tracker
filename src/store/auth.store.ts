@@ -21,6 +21,7 @@ interface AuthState {
   signOut: () => Promise<{ error?: string }>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
   fetchProfile: (userId: string) => Promise<void>;
+  updateProfile: (data: Partial<UserProfile>) => Promise<{ error?: string }>;
   clearError: () => void;
 }
 
@@ -43,6 +44,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (err: unknown) {
       logger.error('Error fetching user profile:', err);
+    }
+  },
+
+  updateProfile: async (data: Partial<UserProfile>) => {
+    const user = get().user;
+    if (!user) return { error: 'Oturum açmış kullanıcı bulunamadı.' };
+    set({ isLoading: true, error: null });
+    try {
+      const { profile, error } = await authRepository.updateProfile(user.id, data);
+      if (error) {
+        set({ isLoading: false, error: error.message });
+        return { error: error.message };
+      }
+      if (profile) {
+        set({ profile, isLoading: false });
+      } else {
+        set({
+          profile: get().profile ? { ...get().profile!, ...data } : null,
+          isLoading: false,
+        });
+      }
+      return {};
+    } catch (err: any) {
+      const msg = err.message || 'Profil güncellenemedi.';
+      set({ isLoading: false, error: msg });
+      return { error: msg };
     }
   },
 

@@ -331,6 +331,54 @@ export const tr = {
   offlineConflictVersion: 'Versiyon',
   offlineConflictApplyLocalBtn: 'Benim Değişikliğimi Uygula (Overwrite)',
   offlineConflictAcceptServerBtn: 'Sunucu Değişikliğini Kabul Et (Discard)',
+
+  // Additional App Keys
+  stepActionRequired: 'İşlem Gerekli',
+  showingShipments: 'kargo gösteriliyor',
+  yourOrderTitle: 'Siparişiniz',
+  eCommerceOrder: 'E-Ticaret Siparişi',
+
+  // Notifications
+  notifDesc1: 'KP8943271105 numaralı kargonuz adresinize sorunsuz şekilde teslim edilmiştir.',
+  notifDesc2: 'Yurtiçi Kargo paketi transfer merkezinden çıkış yaptı ve dağıtıma sunuldu.',
+  notifDesc3: 'Aras Kargo paketiniz İstanbul Ana Transfer Merkezine giriş yaptı.',
+  notifDesc4: 'Sürat Kargo gönderici şubeden paket teslim alındı ve barkodlandı.',
+  notifDesc5: 'Trendyol Express paketiniz bugün 14:00 - 18:00 saatleri arasında teslim edilecektir.',
+
+  // Support & Help Modal
+  supportHelpTitle: 'Yardım Merkezi & SSS',
+  supportHelpQ1: '❓ Kargomu nasıl takip edebilirim?',
+  supportHelpA1: 'Ana sayfadaki + butonuna basarak takip numaranızı girebilir, QR kod tarayıcıyı kullanabilir veya E-Posta bağlama özelliğinden faydalanabilirsiniz.',
+  supportHelpQ2: '❓ 15 dakikalık kargocu güvenlik gecikmesi nedir?',
+  supportHelpA2: 'Kuryelerin kişisel güvenliğini korumak amacıyla canlı haritada kargo aracı konumu 15 dakika gecikmeli olarak gösterilir.',
+  supportHelpQ3: '📞 Müşteri Destek Hattı',
+  supportHelpA3: '7/24 Destek Ekibimize destek@kargotakip.com e-posta adresinden ulaşabilirsiniz.',
+
+  supportPrivacyTitle: 'Gizlilik Politikası',
+  supportPrivacyDesc: 'CargoTracker olarak kişisel verilerinizin güvenliğine yüksek önem veriyoruz.',
+  supportPrivacyQ1: '🔒 Veri Şifreleme',
+  supportPrivacyA1: 'Tüm kargo verileriniz Supabase SSL/TLS 256-bit şifreleme altyapısında saklanır.',
+  supportPrivacyQ2: '📧 E-Posta Taraması',
+  supportPrivacyA2: 'Bağlı e-postalarınızda yalnızca kargo onay başlıkları taranır, kişisel içerikler saklanmaz veya üçüncü taraflarla paylaşılmaz.',
+
+  supportTermsTitle: 'Kullanım Koşulları',
+  supportTermsDesc: 'CargoTracker uygulamasını kullanarak aşağıdaki şartları kabul etmiş olursunuz:',
+  supportTermsQ1: '1. Hizmet Kapsamı',
+  supportTermsA1: 'Uygulama, Türkiye içi ve uluslararası kargo verilerini sağlayıcı apiler üzerinden takip etmek üzere sunulmaktadır.',
+  supportTermsQ2: '2. Sorumluluk Sınırı',
+  supportTermsA2: 'Kargo şirketlerinin veri gecikmelerinden uygulamamız sorumlu tutulamaz.',
+
+  supportFeedbackTitle: 'Geri Bildirim Gönder',
+  supportFeedbackDesc: 'Görüş ve önerileriniz uygulamamızı geliştirmemiz için çok değerlidir!',
+  supportFeedbackBtn: 'Geri Bildirim Formunu Gönder',
+  supportFeedbackSuccessTitle: 'Teşekkürler! 💬',
+  supportFeedbackSuccessMsg: 'Geri bildiriminiz ekibimize başarıyla iletildi.',
+
+  supportRateTitle: 'Uygulamayı Puanla',
+  supportRateDesc: 'CargoTracker deneyiminizi 5 yıldızla değerlendirmek ister misiniz?',
+  supportRateBtn: "App Store / Google Play'de Puanla",
+  supportRateSuccessTitle: '🎉 Harika!',
+  supportRateSuccessMsg: '5 yıldız verdiğiniz ve bize destek olduğunuz için çok teşekkür ederiz!',
 };
 
 export type TranslationKeys = typeof tr;

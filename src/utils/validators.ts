@@ -27,6 +27,71 @@ export interface PasswordStrengthResult {
   color: string;
 }
 
+export interface FullNameValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+/**
+ * Validates a Turkish full name (Ad Soyad)
+ * Enforces:
+ * - Non-empty
+ * - Minimum length (3 characters)
+ * - Maximum length (50 characters)
+ * - Only letters (Turkish chars included), spaces, hyphens
+ * - Must include both First Name and Last Name (at least 2 words)
+ */
+export function validateFullName(name: string): FullNameValidationResult {
+  if (!name || !name.trim()) {
+    return { isValid: false, error: 'Ad Soyad girilmesi zorunludur.' };
+  }
+
+  const trimmed = name.trim();
+
+  if (trimmed.length < 3) {
+    return { isValid: false, error: 'Ad Soyad en az 3 karakter olmalıdır.' };
+  }
+
+  if (trimmed.length > 50) {
+    return { isValid: false, error: 'Ad Soyad en fazla 50 karakter olabilir.' };
+  }
+
+  const validCharsRegex = /^[a-zA-ZğüşıöçĞÜŞİÖÇ\s'-]+$/;
+  if (!validCharsRegex.test(trimmed)) {
+    return { isValid: false, error: 'Ad Soyad yalnızca harf ve boşluk içermelidir (rakam veya özel karakter içeremez).' };
+  }
+
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length < 2) {
+    return { isValid: false, error: 'Lütfen hem adınızı hem de soyadınızı giriniz (Örn: Ömer Çanakçı).' };
+  }
+
+  for (const word of words) {
+    if (word.length < 2) {
+      return { isValid: false, error: 'Ad ve soyadın her bir kelimesi en az 2 harften oluşmalıdır.' };
+    }
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Formats a raw phone string to 0 (5XX) XXX XX XX
+ */
+export function formatPhoneTR(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  let clean = digits;
+  if (clean.startsWith('90')) clean = clean.slice(2);
+  if (clean.startsWith('0')) clean = clean.slice(1);
+  clean = clean.slice(0, 10);
+
+  if (clean.length === 0) return '';
+  if (clean.length <= 3) return `0 (${clean}`;
+  if (clean.length <= 6) return `0 (${clean.slice(0, 3)}) ${clean.slice(3)}`;
+  if (clean.length <= 8) return `0 (${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6)}`;
+  return `0 (${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6, 8)} ${clean.slice(8, 10)}`;
+}
+
 /**
  * Validates a Turkish phone number
  * Expected raw or formatted digits: 10 digits starting with 5 (e.g. 5551234567) or 11 digits starting with 05

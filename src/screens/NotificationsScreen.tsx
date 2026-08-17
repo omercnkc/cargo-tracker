@@ -248,13 +248,23 @@ export const NotificationsScreen = () => {
                       { color: colors.onSurface },
                       notification.unread && { fontWeight: '700' }
                     ]}>
-                      {notification.title}
+                      {notification.id === '1' ? t('notifDeliveredTitle') :
+                       notification.id === '2' ? t('notifInTransitTitle') :
+                       notification.id === '3' ? t('notifHubTitle') :
+                       notification.id === '4' ? t('notifReceivedTitle') :
+                       notification.id === '5' ? t('notifReminderTitle') :
+                       notification.title}
                     </Text>
                     <Text style={[
                       styles.descriptionText, 
                       { color: colors.onSurfaceVariant || '#64748B' }
                     ]}>
-                      {notification.description}
+                      {notification.id === '1' ? t('notifDesc1') :
+                       notification.id === '2' ? t('notifDesc2') :
+                       notification.id === '3' ? t('notifDesc3') :
+                       notification.id === '4' ? t('notifDesc4') :
+                       notification.id === '5' ? t('notifDesc5') :
+                       notification.description}
                     </Text>
                   </View>
 

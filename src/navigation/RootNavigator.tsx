@@ -23,6 +23,7 @@ import { AddressManagementModal } from '../components/profile/AddressManagementM
 import { ChangePasswordModal } from '../components/common/ChangePasswordModal';
 import { SupportHelpModal } from '../components/common/SupportHelpModal';
 import { CarrierSelectionModal } from '../components/common/CarrierSelectionModal';
+import { PersonalInfoModal } from '../components/profile/PersonalInfoModal';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -41,6 +42,8 @@ export const RootNavigator = () => {
     closeSupportModal,
     carrierModalOpen,
     closeCarrierModal,
+    personalInfoModalOpen,
+    closePersonalInfoModal,
   } = useModalStore();
 
   if (isLoading) {
@@ -83,6 +86,11 @@ export const RootNavigator = () => {
       {isAuthenticated && (
         <>
           <DrawerMenuModal />
+
+          <PersonalInfoModal
+            visible={personalInfoModalOpen}
+            onClose={closePersonalInfoModal}
+          />
 
           <AddressManagementModal
             visible={addressModalOpen}
