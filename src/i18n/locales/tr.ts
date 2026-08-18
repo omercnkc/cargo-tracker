@@ -205,7 +205,7 @@ export const tr = {
 
   // Biometrics & Security
   securityAndBiometrics: 'Güvenlik & Biyometrik',
-  biometricLoginTitle: 'ile Giriş',
+  biometricLoginTitle: 'Giriş Yap:',
   biometricRequireAppOpen: '60 dakika boyunca uygulamaya girilmediğinde biyometrik doğrulama iste',
   biometricNotSupported: 'Bu cihazda biyometrik kimlik desteği bulunmuyor',
   biometricTypeDefault: 'Face ID / Parmak İzi',
@@ -221,6 +221,18 @@ export const tr = {
   biometricCancel: 'İptal',
   fingerprintTouchId: 'Parmak İzi (Touch ID)',
   irisScan: 'Göz Taraması (Iris)',
+
+  // Personal Info & Edit Profile
+  userDetails: 'Kullanıcı Detayları',
+  emailAddressLabel: 'E-Posta Adresi',
+  phoneNumberLabel: 'Telefon Numarası',
+  notAddedYet: 'Henüz eklenmedi',
+  emailCannotBeChanged: 'E-posta adresi değiştirilemez.',
+  fullNameHelper: 'Lütfen hem adınızı hem de soyadınızı giriniz.',
+  phoneHelper: 'Örn: 0555 123 45 67',
+  saveChangesBtn: 'Değişiklikleri Kaydet',
+  profileUpdatedTitle: 'Profil Güncellendi 🎉',
+  profileUpdatedMsg: 'Kişisel bilgileriniz başarıyla güncellenmiştir.',
 
   // Settings
   settings: 'Ayarlar',

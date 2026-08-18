@@ -21,6 +21,7 @@ import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { hapticService } from '../services/haptics.service';
+import { resolveShipmentCarrier } from '../constants/carriers';
 
 interface DisplayPackage {
   id: string;
@@ -54,13 +55,17 @@ export const HomeScreen = () => {
   const displayPackages: DisplayPackage[] = useMemo(() => {
     const isTestUser = user?.email?.toLowerCase() === 'omercnkc123@gmail.com';
     if (dbShipments && dbShipments.length > 0 && !isTestUser) {
-      return dbShipments.map(s => ({
-        id: s.id,
-        name: s.courier_companies?.name || s.title || 'Kargo',
-        code: s.tracking_number,
-        status: s.current_status || 'transit',
-        icon: 'local-shipping' as keyof typeof MaterialIcons.glyphMap
-      }));
+      return dbShipments.map(s => {
+        const carrier = resolveShipmentCarrier(s);
+        const hasCustomTitle = s.title && s.title !== carrier.name;
+        return {
+          id: s.id,
+          name: hasCustomTitle ? s.title! : carrier.name,
+          code: hasCustomTitle ? `${carrier.name} • ${s.tracking_number}` : s.tracking_number,
+          status: s.current_status || 'transit',
+          icon: 'local-shipping' as keyof typeof MaterialIcons.glyphMap
+        };
+      });
     }
     return fallbackPackages;
   }, [dbShipments, user]);

@@ -16,6 +16,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import { useAuthStore } from '../../store/auth.store';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
 import { validateFullName, validatePhone, formatPhoneTR } from '../../utils/validators';
@@ -29,6 +30,7 @@ interface EditProfileModalProps {
 export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
   const insets = useSafeAreaInsets();
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
   const updateProfile = useAuthStore((state) => state.updateProfile);
@@ -150,7 +152,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
       setFeedback({
         visible: true,
         type: 'error',
-        title: 'Hata',
+        title: t('error'),
         message: result.error,
       });
     } else {
@@ -158,8 +160,8 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
       setFeedback({
         visible: true,
         type: 'success',
-        title: 'Profil Güncellendi 🎉',
-        message: 'Kişisel bilgileriniz başarıyla güncellenmiştir.',
+        title: t('profileUpdatedTitle'),
+        message: t('profileUpdatedMsg'),
         onConfirm: () => {
           setFeedback((prev) => ({ ...prev, visible: false }));
           handleCloseWithAnimation();
@@ -199,7 +201,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
           <View style={styles.header} {...panResponder.panHandlers}>
             <View style={styles.titleRow}>
               <MaterialIcons name="person" size={24} color={colors.primary} />
-              <Text style={[styles.title, { color: colors.primary }]}>Profili Düzenle</Text>
+              <Text style={[styles.title, { color: colors.primary }]}>{t('editProfile')}</Text>
             </View>
             <TouchableOpacity onPress={handleCloseWithAnimation} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
@@ -209,20 +211,20 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.formScroll}>
             {/* E-Posta (Salt Okunur) */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>E-Posta Adresi</Text>
+              <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>{t('emailAddressLabel')}</Text>
               <View style={[styles.disabledInputRow, { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant }]}>
                 <MaterialIcons name="email" size={20} color={colors.onSurfaceVariant} style={styles.inputIcon} />
                 <Text style={[styles.disabledInputText, { color: colors.onSurfaceVariant }]}>
-                  {user?.email || 'E-posta bulunamadı'}
+                  {user?.email || t('notAddedYet')}
                 </Text>
                 <MaterialIcons name="lock" size={16} color={colors.outlineVariant} />
               </View>
-              <Text style={[styles.helperText, { color: colors.outline }]}>E-posta adresi değiştirilemez.</Text>
+              <Text style={[styles.helperText, { color: colors.outline }]}>{t('emailCannotBeChanged')}</Text>
             </View>
 
             {/* Ad Soyad Input */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.onSurface }]}>Ad Soyad *</Text>
+              <Text style={[styles.label, { color: colors.onSurface }]}>{t('fullNameLabel')} *</Text>
               <View
                 style={[
                   styles.inputRow,
@@ -232,7 +234,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
                 <MaterialIcons name="person-outline" size={20} color={colors.onSurfaceVariant} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: colors.onSurface }]}
-                  placeholder="Adınız Soyadınız (Örn: Ömer Çanakçı)"
+                  placeholder={t('fullNamePlaceholder')}
                   placeholderTextColor={colors.outline}
                   maxLength={50}
                   value={fullName}
@@ -242,13 +244,13 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
               {errors.fullName ? (
                 <Text style={[styles.errorText, { color: colors.error }]}>{errors.fullName}</Text>
               ) : (
-                <Text style={[styles.helperText, { color: colors.outline }]}>Lütfen hem adınızı hem de soyadınızı giriniz.</Text>
+                <Text style={[styles.helperText, { color: colors.outline }]}>{t('fullNameHelper')}</Text>
               )}
             </View>
 
             {/* Telefon Numarası Input */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.onSurface }]}>Telefon Numarası</Text>
+              <Text style={[styles.label, { color: colors.onSurface }]}>{t('phoneNumberLabel')}</Text>
               <View
                 style={[
                   styles.inputRow,
@@ -269,7 +271,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
               {errors.phone ? (
                 <Text style={[styles.errorText, { color: colors.error }]}>{errors.phone}</Text>
               ) : (
-                <Text style={[styles.helperText, { color: colors.outline }]}>Örn: 0555 123 45 67</Text>
+                <Text style={[styles.helperText, { color: colors.outline }]}>{t('phoneHelper')}</Text>
               )}
             </View>
 
@@ -285,7 +287,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
               ) : (
                 <>
                   <MaterialIcons name="save" size={20} color="#ffffff" />
-                  <Text style={styles.submitButtonText}>Değişiklikleri Kaydet</Text>
+                  <Text style={styles.submitButtonText}>{t('saveChangesBtn')}</Text>
                 </>
               )}
             </TouchableOpacity>

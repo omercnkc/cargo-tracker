@@ -384,20 +384,28 @@ export class ShipmentRepository {
     return { synced: false, queued: true, mutationId: mutation.id };
   }
 
-  async getCourierCompanies(): Promise<{ companies: CourierCompany[]; error: Error | null }> {
+  /**
+   * Supabase Edge Function üzerinden kargo şirketinden canlı takip verisini çeker.
+   */
+  async fetchLiveTrackingFromCarrier(
+    trackingNumber: string,
+    carrierCode: string
+  ): Promise<{ data: any | null; error: Error | null }> {
     try {
-      const { data, error } = await supabase
-        .from('courier_companies')
-        .select('*')
-        .eq('active', true)
-        .order('name', { ascending: true });
+      const { data, error } = await supabase.functions.invoke('track-shipment', {
+        body: { trackingNumber, carrierCode },
+      });
 
-      if (error) return { companies: [], error };
-      return { companies: data || [], error: null };
+      if (error) return { data: null, error };
+      return { data, error: null };
     } catch (err) {
-      return { companies: [], error: err instanceof Error ? err : new Error('Failed to fetch courier companies') };
+      return {
+        data: null,
+        error: err instanceof Error ? err : new Error('Canlı kargo takibi sorgulanamadı'),
+      };
     }
   }
 }
 
 export const shipmentRepository = new ShipmentRepository();
+

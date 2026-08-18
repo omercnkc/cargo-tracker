@@ -20,7 +20,7 @@ import HeaderRightActions from '../components/common/HeaderRightActions';
 import { ShipmentMapView } from '../components/map/ShipmentMapView';
 import { useShipmentRealtime } from '../hooks/useShipmentRealtime';
 import { LocationPoint } from '../types/location';
-import { getCarrierByName } from '../constants/carriers';
+import { getCarrierByName, resolveShipmentCarrier } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { getShipmentProgress, translateTimelineEvent } from '../utils/shipmentUtils';
 import { hapticService } from '../services/haptics.service';
@@ -172,13 +172,15 @@ export const PackageDetailScreen = () => {
         >
           {/* Summary Header */}
           <View style={[styles.summaryHeader, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
               {(() => {
-                const cLogo = getCarrierByName(displayShipment.courier_companies?.name || displayShipment.title || '')?.logo;
-                return cLogo ? <CarrierLogo logo={cLogo} size={32} /> : null;
+                const carrier = resolveShipmentCarrier(displayShipment);
+                return carrier.logo ? <CarrierLogo logo={carrier.logo} size={32} /> : null;
               })()}
-              <View>
-                <Text style={[styles.trackingLabel, { color: colors.onSurfaceVariant }]}>{displayShipment.courier_companies?.name || displayShipment.title || t('trackingNumberLabel')}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.trackingLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+                  {displayShipment.title ? `${displayShipment.title} (${resolveShipmentCarrier(displayShipment).name})` : resolveShipmentCarrier(displayShipment).name}
+                </Text>
                 <Text style={[styles.trackingNumber, { color: colors.primary }]}>{displayShipment.tracking_number}</Text>
               </View>
             </View>

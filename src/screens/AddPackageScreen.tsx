@@ -182,7 +182,8 @@ export const AddPackageScreen = () => {
 
     try {
       const formattedTrackingNo = formatTrackingNumber(trackingNumber);
-      const formattedTitle = nickname.trim() ? formatTitleCaseTR(nickname) : (activeCarrier?.name || null);
+      const formattedTitle = nickname.trim() ? formatTitleCaseTR(nickname) : null;
+      const carrierName = activeCarrier?.name || 'Kargo';
       const dbCompanyId = selectedCarrier ? getDbCompanyId(selectedCarrier) : null;
 
       const receiverText = activeAddress
@@ -197,6 +198,7 @@ export const AddPackageScreen = () => {
         tracking_number: formattedTrackingNo,
         company_id: dbCompanyId,
         title: formattedTitle,
+        sender: carrierName,
         receiver: receiverText,
         last_location: lastLocText,
         current_status: 'transit',

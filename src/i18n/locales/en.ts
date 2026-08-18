@@ -225,6 +225,18 @@ export const en: TranslationKeys = {
   fingerprintTouchId: 'Fingerprint (Touch ID)',
   irisScan: 'Iris Scan',
 
+  // Personal Info & Edit Profile
+  userDetails: 'User Details',
+  emailAddressLabel: 'Email Address',
+  phoneNumberLabel: 'Phone Number',
+  notAddedYet: 'Not added yet',
+  emailCannotBeChanged: 'Email address cannot be changed.',
+  fullNameHelper: 'Please enter both your first and last name.',
+  phoneHelper: 'E.g. 0555 123 45 67',
+  saveChangesBtn: 'Save Changes',
+  profileUpdatedTitle: 'Profile Updated 🎉',
+  profileUpdatedMsg: 'Your personal details have been updated successfully.',
+
   // Settings
   settings: 'Settings',
   preferences: 'Preferences',

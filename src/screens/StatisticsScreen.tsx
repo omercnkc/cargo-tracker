@@ -17,6 +17,7 @@ import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useTranslation } from '../hooks/useTranslation';
 import { hapticService } from '../services/haptics.service';
+import { resolveShipmentCarrier } from '../constants/carriers';
 
 export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -166,7 +167,8 @@ const COURIER_CHART_COLORS = [
 
     const map: Record<string, number> = {};
     filteredShipments.forEach((s) => {
-      const companyName = s.courier_companies?.name || s.title || 'Diğer';
+      const carrier = resolveShipmentCarrier(s);
+      const companyName = carrier.name;
       map[companyName] = (map[companyName] || 0) + 1;
     });
 

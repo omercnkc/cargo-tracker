@@ -12,6 +12,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import { useAuthStore } from '../../store/auth.store';
 import { EditProfileModal } from './EditProfileModal';
 
@@ -25,15 +26,16 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
 
   const [editModalVisible, setEditModalVisible] = useState(false);
 
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
-  const displayEmail = user?.email || 'E-posta bulunamadı';
-  const displayPhone = profile?.phone || 'Henüz eklenmedi';
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || t('account');
+  const displayEmail = user?.email || t('notAddedYet');
+  const displayPhone = profile?.phone || t('notAddedYet');
   const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://i.pravatar.cc/300?img=11';
 
   return (
@@ -46,7 +48,7 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
             <TouchableOpacity style={styles.iconButton} onPress={onClose}>
               <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
             </TouchableOpacity>
-            <Text style={[styles.appBarTitle, { color: colors.primary }]}>Kişisel Bilgiler</Text>
+            <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('personalInfo')}</Text>
             <View style={{ width: 24 }} />
           </View>
         </View>
@@ -74,7 +76,7 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
               onPress={() => setEditModalVisible(true)}
             >
               <MaterialIcons name="edit" size={16} color="#ffffff" />
-              <Text style={styles.editPillButtonText}>Profili Düzenle</Text>
+              <Text style={styles.editPillButtonText}>{t('editProfile')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -82,7 +84,7 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
           <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
             <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
               <MaterialIcons name="badge" size={20} color={colors.primary} />
-              <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Kullanıcı Detayları</Text>
+              <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>{t('userDetails')}</Text>
             </View>
 
             <View style={styles.sectionBody}>
@@ -92,7 +94,7 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
                   <MaterialIcons name="person" size={20} color={colors.primary} />
                 </View>
                 <View style={styles.detailTextWrapper}>
-                  <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>Ad Soyad</Text>
+                  <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>{t('fullNameLabel')}</Text>
                   <Text style={[styles.detailValue, { color: colors.onSurface }]}>{displayName}</Text>
                 </View>
               </View>
@@ -103,7 +105,7 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
                   <MaterialIcons name="email" size={20} color={colors.primary} />
                 </View>
                 <View style={styles.detailTextWrapper}>
-                  <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>E-Posta Adresi</Text>
+                  <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>{t('emailAddressLabel')}</Text>
                   <Text style={[styles.detailValue, { color: colors.onSurface }]}>{displayEmail}</Text>
                 </View>
               </View>
@@ -114,7 +116,7 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
                   <MaterialIcons name="phone" size={20} color={colors.primary} />
                 </View>
                 <View style={styles.detailTextWrapper}>
-                  <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>Telefon Numarası</Text>
+                  <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>{t('phoneNumberLabel')}</Text>
                   <Text style={[styles.detailValue, { color: colors.onSurface }]}>{displayPhone}</Text>
                 </View>
               </View>

@@ -19,7 +19,7 @@ import { useTheme } from '../theme/useTheme';
 import useResponsive from '../hooks/useResponsive';
 import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
-import { DEFAULT_CARRIERS, getCarrierByName } from '../constants/carriers';
+import { DEFAULT_CARRIERS, getCarrierByName, resolveShipmentCarrier } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { useTranslation } from '../hooks/useTranslation';
 import { getShipmentProgress } from '../utils/shipmentUtils';
@@ -30,8 +30,9 @@ import styles from './PackagesScreen.styles';
 interface PackageItem {
   id: string;
   trackingNumber: string;
+  customTitle?: string | null;
   companyName: string;
-  companyLogo: string;
+  companyLogo: any;
   status: string;
   statusText: string;
   titleKey?: string;
@@ -48,6 +49,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
   {
     id: 'mock-1',
     trackingNumber: 'HB782910234',
+    customTitle: null,
     companyName: 'Hepsiburada',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
     status: 'created',
@@ -63,6 +65,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
   {
     id: 'mock-2',
     trackingNumber: 'TY987654321',
+    customTitle: null,
     companyName: 'Trendyol Express',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjM3WGmIKGRLjMW6IRU1kYHLqZV247A1R0k-tu002NXpTR9eBvCgJzSinfaCiyYFOL64rFF1bMhhEwZaJJxSkhUQPMWtaYISoFfhJliBKil7ol02FyEnBl2oBWRcxIwHPIpon6aPVYhSD6r7A3WpnmCQ3zsHhjl_muE97mWCTx9X9PyZ7C6jrUdCAkKaLg2jZ5e2XeWi3tgRJVO0bOJzm2jxXY9i2clZORqFEiiPJGldegt9z6hfKr4wZjrwqxlMY8QQev542fsWA',
     status: 'received',
@@ -78,6 +81,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
   {
     id: 'mock-3',
     trackingNumber: 'KP8943271105',
+    customTitle: null,
     companyName: 'MNG Kargo',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
     status: 'transit',
@@ -93,6 +97,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
   {
     id: 'mock-4',
     trackingNumber: 'SUT89201938',
+    customTitle: null,
     companyName: 'Sürat Kargo',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
     status: 'destination',
@@ -108,6 +113,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
   {
     id: 'mock-5',
     trackingNumber: 'ARAS99283019',
+    customTitle: null,
     companyName: 'Aras Kargo',
     companyLogo: 'https://www.araskargo.com.tr/assets/images/aras-logo.svg',
     status: 'out_for_delivery',
@@ -123,6 +129,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
   {
     id: 'mock-6',
     trackingNumber: 'TR1029384756',
+    customTitle: null,
     companyName: 'Yurtiçi Kargo',
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDndS9Xc59oX3WY735_crAmXQ57-GM1fOr2dpm7X82EOQi_wrJYw-pezBidOWHCa5k2Jy1QwtHqXyIABwy5DXMNneud1hVTvgLgVAXu0tIpyFM5yXixn4oLdsd9Tx8vvrITOEE58KWT8S-4-o6DUn-AZC0lkllVys5M0fxjZ5uZ5Ua6NrZA9PNoMvaOzlJcX2YxYivdZlnA8-We-T7hLcjvmmqA9xl7THZHNToHPMHiUGTg-sN5OTNsTIi5wCXOW9ahAtLQ_qb-4rk',
     status: 'delivered',
@@ -221,11 +228,14 @@ export const PackagesScreen = () => {
       const dbItems: PackageItem[] = dbShipments.map(s => {
         const rawStatus = s.current_status || 'transit';
         const progressInfo = getShipmentProgress(rawStatus);
+        const carrierInfo = resolveShipmentCarrier(s);
+        const isCustomTitle = s.title && s.title !== carrierInfo.name;
         return {
           id: s.id,
           trackingNumber: s.tracking_number,
-          companyName: s.courier_companies?.name || s.title || 'Kargo',
-          companyLogo: s.courier_companies?.logo_url || getCarrierByName(s.courier_companies?.name || s.title, s.tracking_number)?.logo,
+          customTitle: isCustomTitle ? s.title : null,
+          companyName: carrierInfo.name,
+          companyLogo: carrierInfo.logo,
           status: rawStatus as any,
           statusText: t(progressInfo.titleKey as any) || progressInfo.stepTitle,
           titleKey: progressInfo.titleKey,
@@ -266,7 +276,8 @@ export const PackagesScreen = () => {
         // Search query match
         const matchesSearch =
           pkg.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          pkg.companyName.toLowerCase().includes(searchQuery.toLowerCase());
+          pkg.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (pkg.customTitle && pkg.customTitle.toLowerCase().includes(searchQuery.toLowerCase()));
 
         // Status match
         const matchesStatus =
@@ -289,7 +300,9 @@ export const PackagesScreen = () => {
         } else if (sortBy === 'oldest') {
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         } else {
-          return a.companyName.localeCompare(b.companyName);
+          const nameA = a.customTitle || a.companyName;
+          const nameB = b.customTitle || b.companyName;
+          return nameA.localeCompare(nameB);
         }
       });
   }, [allPackages, searchQuery, statusFilter, carrierFilter, isCarrierFiltered, sortBy]);
@@ -457,9 +470,26 @@ export const PackagesScreen = () => {
                           size={24}
                         />
                       </View>
-                      <View>
-                        <Text style={[styles.trackingNumber, { color: colors.onSurface }]}>{pkg.trackingNumber}</Text>
-                        <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]}>{pkg.companyName}</Text>
+                      <View style={{ flex: 1 }}>
+                        {pkg.customTitle ? (
+                          <>
+                            <Text style={[styles.trackingNumber, { color: colors.onSurface }]} numberOfLines={1}>
+                              {pkg.customTitle}
+                            </Text>
+                            <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+                              {pkg.companyName} • {pkg.trackingNumber}
+                            </Text>
+                          </>
+                        ) : (
+                          <>
+                            <Text style={[styles.trackingNumber, { color: colors.onSurface }]} numberOfLines={1}>
+                              {pkg.trackingNumber}
+                            </Text>
+                            <Text style={[styles.companyName, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+                              {pkg.companyName}
+                            </Text>
+                          </>
+                        )}
                       </View>
                     </View>
                     {(() => {

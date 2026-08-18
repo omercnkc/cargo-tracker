@@ -72,6 +72,21 @@ export const SettingsScreen = () => {
     );
   };
 
+  const getLocalizedBiometricType = () => {
+    const rawType = biometricTypes[0];
+    if (!rawType) return 'Face ID / Touch ID';
+    if (rawType.includes('Parmak') || rawType.includes('Touch') || rawType.includes('Fingerprint')) {
+      return t('fingerprintTouchId');
+    }
+    if (rawType.includes('Face')) {
+      return 'Face ID';
+    }
+    if (rawType.includes('Iris') || rawType.includes('Göz')) {
+      return t('irisScan');
+    }
+    return rawType;
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
 
@@ -112,7 +127,7 @@ export const SettingsScreen = () => {
                 <View style={[styles.settingRow, { borderBottomWidth: 1, borderBottomColor: 'rgba(197, 197, 211, 0.3)' }]}>
                   <View style={styles.settingTextContent}>
                     <Text style={[styles.settingLabel, { color: colors.onSurface }]}>
-                      {biometricTypes[0] ? `${t('biometricLoginTitle')} ${biometricTypes[0]}` : `${t('biometricLoginTitle')} Face ID / Touch ID`}
+                      {`${t('biometricLoginTitle')} ${getLocalizedBiometricType()}`}
                     </Text>
                     <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>
                       {isSupported

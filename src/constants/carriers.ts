@@ -189,12 +189,71 @@ export const getCarrierByName = (
       text.includes(cName) ||
       cName.includes(text) ||
       text.includes(cCode) ||
-      (c.id === 'yurtici' && (text.includes('yk') || text.includes('yurtic'))) ||
-      (c.id === 'trendyol' && (text.includes('ty') || text.includes('trendyol'))) ||
-      (c.id === 'hepsijet' && (text.includes('hj') || text.includes('hepsi'))) ||
-      (c.id === 'surat' && (text.includes('surat') || text.includes('sürat')))
+      (c.id === 'aras' && (text.includes('aras') || text.startsWith('aras') || text.startsWith('24b'))) ||
+      (c.id === 'yurtici' && (text.includes('yk') || text.includes('yurtic') || text.startsWith('tr'))) ||
+      (c.id === 'trendyol' && (text.includes('ty') || text.includes('trendyol') || text.startsWith('ty'))) ||
+      (c.id === 'hepsijet' && (text.includes('hj') || text.includes('hepsi') || text.startsWith('hb'))) ||
+      (c.id === 'surat' && (text.includes('surat') || text.includes('sürat') || text.startsWith('sut'))) ||
+      (c.id === 'dhl' && (text.includes('dhl') || text.startsWith('dhl'))) ||
+      (c.id === 'fedex' && (text.includes('fedex') || text.startsWith('fdx')))
     );
   });
 
   return found;
+};
+
+export const resolveShipmentCarrier = (
+  shipment: {
+    courier_companies?: { name?: string; logo_url?: string | null } | null;
+    sender?: string | null;
+    tracking_number?: string;
+    title?: string | null;
+  }
+): { name: string; logo: any } => {
+  // 1. Direct joined relation from courier_companies
+  if (shipment.courier_companies?.name) {
+    const matched = getCarrierByName(shipment.courier_companies.name);
+    return {
+      name: shipment.courier_companies.name,
+      logo: matched?.logo || shipment.courier_companies.logo_url,
+    };
+  }
+
+  // 2. Look in sender field (where carrier name is stored)
+  if (shipment.sender) {
+    const matched = getCarrierByName(shipment.sender);
+    if (matched) {
+      return {
+        name: matched.name,
+        logo: matched.logo,
+      };
+    }
+  }
+
+  // 3. Look up by tracking number pattern (e.g. ARAS..., TY..., HB..., TR...)
+  if (shipment.tracking_number) {
+    const matched = getCarrierByName('', shipment.tracking_number);
+    if (matched) {
+      return {
+        name: matched.name,
+        logo: matched.logo,
+      };
+    }
+  }
+
+  // 4. Check if title itself is a carrier name (e.g. when title was set to carrier name)
+  if (shipment.title) {
+    const matched = getCarrierByName(shipment.title);
+    if (matched) {
+      return {
+        name: matched.name,
+        logo: matched.logo,
+      };
+    }
+  }
+
+  return {
+    name: 'Kargo',
+    logo: DEFAULT_CARRIERS[0]?.logo,
+  };
 };
