@@ -20,6 +20,7 @@ import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useNotificationStore } from '../store/notification.store';
 import { ProfileThemeLangSwitchCard } from '../components/profile/ProfileThemeLangSwitchCard';
 import { EditProfileModal } from '../components/profile/EditProfileModal';
+import { hapticService } from '../services/haptics.service';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
@@ -53,7 +54,10 @@ export const ProfileScreen = () => {
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.surfaceContainer }]}>
         <View style={styles.appBarContent}>
-          <TouchableOpacity style={styles.iconButton} onPress={openDrawer}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => {
+            hapticService.buttonPress();
+            openDrawer();
+          }}>
             <MaterialIcons name="menu" size={24} color={colors.primary} />
           </TouchableOpacity>
 
@@ -61,7 +65,10 @@ export const ProfileScreen = () => {
 
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => navigation.navigate('Notifications')}
+            onPress={() => {
+              hapticService.buttonPress();
+              navigation.navigate('Notifications');
+            }}
           >
             <View style={{ position: 'relative' }}>
               <MaterialIcons name="notifications-none" size={24} color={colors.primary} />
@@ -99,7 +106,10 @@ export const ProfileScreen = () => {
           <TouchableOpacity
             style={[styles.editPillButton, { backgroundColor: colors.primary }]}
             activeOpacity={0.8}
-            onPress={() => setEditModalVisible(true)}
+            onPress={() => {
+              hapticService.buttonPress();
+              setEditModalVisible(true);
+            }}
           >
             <MaterialIcons name="edit" size={16} color={colors.onPrimary} />
             <Text style={[styles.editPillButtonText, { color: colors.onPrimary }]}>{t('editProfile')}</Text>

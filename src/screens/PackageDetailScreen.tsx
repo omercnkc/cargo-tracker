@@ -21,6 +21,8 @@ import { useShipmentRealtime } from '../hooks/useShipmentRealtime';
 import { LocationPoint } from '../types/location';
 import { getCarrierByName } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
+import { getShipmentProgress, translateTimelineEvent } from '../utils/shipmentUtils';
+import { hapticService } from '../services/haptics.service';
 
 export const PackageDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -88,7 +90,10 @@ export const PackageDetailScreen = () => {
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface }]}>
         <View style={styles.appBarContent}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => {
+            hapticService.buttonPress();
+            navigation.goBack();
+          }}>
             <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
           </TouchableOpacity>
           
@@ -125,7 +130,10 @@ export const PackageDetailScreen = () => {
             <View style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}>
               <MaterialIcons name="notifications-active" size={18} color={colors.secondary} />
               <Text style={[styles.statusBadgeText, { color: colors.onSecondaryFixedVariant }]}>
-                {displayShipment.current_status === 'delivered' ? t('statusDelivered') : t('statusInTransit')}
+                {(() => {
+                  const progressInfo = getShipmentProgress(displayShipment.current_status);
+                  return t(progressInfo.titleKey as any) || progressInfo.stepTitle;
+                })()}
               </Text>
             </View>
           </View>
@@ -182,31 +190,34 @@ export const PackageDetailScreen = () => {
 
               <View style={styles.timelineContainer}>
                 {displayShipment.shipment_events && displayShipment.shipment_events.length > 0 ? (
-                  displayShipment.shipment_events.map((event: any, index: number) => (
-                    <View key={event.id || index} style={styles.timelineStep}>
-                      <View style={[
-                        index === 0 ? styles.timelineDotActiveWrapper : styles.timelineDotCompleted,
-                        { borderColor: colors.surfaceContainerLowest, backgroundColor: index === 0 ? colors.secondaryContainer : colors.tertiaryContainer }
-                      ]}>
-                        {index === 0 ? (
-                          <View style={[styles.timelineDotActiveInner, { backgroundColor: colors.secondary }]} />
-                        ) : (
-                          <MaterialIcons name="check" size={12} color={colors.onTertiary} />
-                        )}
+                  displayShipment.shipment_events.map((event: any, index: number) => {
+                    const translated = translateTimelineEvent(event, t);
+                    return (
+                      <View key={event.id || index} style={styles.timelineStep}>
+                        <View style={[
+                          index === 0 ? styles.timelineDotActiveWrapper : styles.timelineDotCompleted,
+                          { borderColor: colors.surfaceContainerLowest, backgroundColor: index === 0 ? colors.secondaryContainer : colors.tertiaryContainer }
+                        ]}>
+                          {index === 0 ? (
+                            <View style={[styles.timelineDotActiveInner, { backgroundColor: colors.secondary }]} />
+                          ) : (
+                            <MaterialIcons name="check" size={12} color={colors.onTertiary} />
+                          )}
+                        </View>
+                        <View style={[styles.timelineContent, index !== 0 && { opacity: 0.7 }]}>
+                          <Text style={[index === 0 ? styles.timelineTitleActive : styles.timelineTitle, { color: colors.onBackground }]}>
+                            {translated.status}
+                          </Text>
+                          {translated.description ? (
+                            <Text style={[styles.timelineDescription, { color: colors.onSurfaceVariant }]}>{translated.description}</Text>
+                          ) : null}
+                          {translated.event_time ? (
+                            <Text style={[styles.timelineTime, { color: colors.outline }]}>{translated.event_time}</Text>
+                          ) : null}
+                        </View>
                       </View>
-                      <View style={[styles.timelineContent, index !== 0 && { opacity: 0.7 }]}>
-                        <Text style={[index === 0 ? styles.timelineTitleActive : styles.timelineTitle, { color: colors.onBackground }]}>
-                          {event.status}
-                        </Text>
-                        {event.description && (
-                          <Text style={[styles.timelineDescription, { color: colors.onSurfaceVariant }]}>{event.description}</Text>
-                        )}
-                        {event.event_time && (
-                          <Text style={[styles.timelineTime, { color: colors.outline }]}>{event.event_time}</Text>
-                        )}
-                      </View>
-                    </View>
-                  ))
+                    );
+                  })
                 ) : (
                   <Text style={[styles.timelineDescription, { color: colors.onSurfaceVariant }]}>{t('noEvents')}</Text>
                 )}

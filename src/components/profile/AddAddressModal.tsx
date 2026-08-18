@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  PanResponder,
+  Animated,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -25,6 +27,8 @@ import {
 import { ErrorHandler, AppErrorCode } from '../../services/error/errorHandler.service';
 import { InlineErrorBanner } from '../common/InlineErrorBanner';
 import { formatTitleCaseTR, formatPhoneClean } from '../../utils/stringFormatters';
+import { validateFullName, validatePhone } from '../../utils/validators';
+import { hapticService } from '../../services/haptics.service';
 
 export interface UserAddress {
   id: string;
@@ -62,13 +66,27 @@ export function AddAddressModal({
   const [neighborhood, setNeighborhood] = useState('');
   const [fullAddress, setFullAddress] = useState('');
   const [loadingGps, setLoadingGps] = useState(false);
+  const [gpsSuccessInfo, setGpsSuccessInfo] = useState<{
+    district: string;
+    city: string;
+    street?: string;
+  } | null>(null);
   const [gpsInlineError, setGpsInlineError] = useState<{
+    title?: string;
+    message: string;
+    type?: 'warning' | 'error' | 'info';
+  } | null>(null);
+  const [formBanner, setFormBanner] = useState<{
     title?: string;
     message: string;
     type?: 'warning' | 'error' | 'info';
   } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     title?: string;
+    fullName?: string;
+    phone?: string;
+    city?: string;
+    district?: string;
     fullAddress?: string;
   }>({});
 
@@ -85,13 +103,62 @@ export function AddAddressModal({
   const [pickerTitle, setPickerTitle] = useState('');
   const [loadingPickerOptions, setLoadingPickerOptions] = useState(false);
 
-  // Auto-fill user name & surname when modal opens
+  // PanResponder for drag-down-to-dismiss gesture
+  const panY = useRef(new Animated.Value(600)).current;
+
+  const handleDismiss = () => {
+    Animated.timing(panY, {
+      toValue: 600,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 5,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          panY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 80 || gestureState.vy > 0.4) {
+          handleDismiss();
+        } else {
+          Animated.spring(panY, {
+            toValue: 0,
+            friction: 7,
+            tension: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // Auto-fill user name & surname when modal opens, animate sheet up
   useEffect(() => {
     if (visible) {
+      panY.setValue(600);
+      Animated.spring(panY, {
+        toValue: 0,
+        damping: 24,
+        mass: 0.8,
+        stiffness: 240,
+        useNativeDriver: true,
+      }).start();
+
+      setGpsSuccessInfo(null);
       setGpsInlineError(null);
+      setFormBanner(null);
       const userFullName =
         profile?.full_name ||
         user?.user_metadata?.full_name ||
+        user?.user_metadata?.name ||
         (user?.email ? user.email.split('@')[0] : '');
 
       if (userFullName && !fullName) {
@@ -101,16 +168,20 @@ export function AddAddressModal({
   }, [visible, user, profile]);
 
   /**
-   * Fast & Reliable GPS Location Fetching
+   * Fast & Reliable GPS Location Fetching with Smart Neighborhood & Address Autocomplete
    */
   const handleFetchCurrentGpsLocation = async () => {
+    hapticService.buttonPress();
     try {
       setLoadingGps(true);
       setGpsInlineError(null);
+      setFormBanner(null);
+      setGpsSuccessInfo(null);
 
       // Check if location services (GPS) are enabled at device level first
       const hasServices = await Location.hasServicesEnabledAsync();
       if (!hasServices) {
+        hapticService.warning();
         const payload = ErrorHandler.handleError(AppErrorCode.GPS_DISABLED, 'AddAddressModal', { mode: 'none' });
         setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
         return;
@@ -119,6 +190,7 @@ export function AddAddressModal({
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
+        hapticService.warning();
         const payload = ErrorHandler.handleError(AppErrorCode.LOCATION_PERMISSION_DENIED, 'AddAddressModal', { mode: 'none' });
         setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
         return;
@@ -140,6 +212,7 @@ export function AddAddressModal({
       }
 
       if (!position) {
+        hapticService.error();
         const payload = ErrorHandler.handleError(AppErrorCode.GPS_UNAVAILABLE, 'AddAddressModal', { mode: 'none' });
         setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
         return;
@@ -154,28 +227,82 @@ export function AddAddressModal({
         const item = geocode[0];
         const detectedCity = item.city || item.region || 'İstanbul';
         const detectedDistrict = item.subregion || item.district || 'Beşiktaş';
-        const detectedStreet = [item.street, item.streetNumber, item.name]
+        const detectedStreet = [item.street, item.streetNumber]
           .filter(Boolean)
           .join(' ');
 
-        setCity(detectedCity);
-        setDistrict(detectedDistrict);
-        setFullAddress(
-          `${detectedStreet}, ${detectedDistrict} / ${detectedCity}`
+        // Find city & district in local database for automatic picker sync
+        const foundCity = getProvinces().find(
+          (p) =>
+            p.sehir_adi.toLocaleLowerCase('tr-TR') === detectedCity.trim().toLocaleLowerCase('tr-TR') ||
+            detectedCity.trim().toLocaleLowerCase('tr-TR').includes(p.sehir_adi.toLocaleLowerCase('tr-TR'))
         );
 
-        if (!title) setTitle('Mevcut Konumum');
+        let foundDistrict: any = null;
+        let foundNeighborhood: any = null;
+
+        if (foundCity) {
+          setSelectedCity({ id: foundCity.sehir_id, name: foundCity.sehir_adi });
+          const districts = getDistrictsByCityId(foundCity.sehir_id);
+          foundDistrict = districts.find(
+            (d) =>
+              d.ilce_adi.toLocaleLowerCase('tr-TR') === detectedDistrict.trim().toLocaleLowerCase('tr-TR') ||
+              detectedDistrict.trim().toLocaleLowerCase('tr-TR').includes(d.ilce_adi.toLocaleLowerCase('tr-TR'))
+          );
+
+          if (foundDistrict) {
+            setSelectedDistrict({ id: foundDistrict.ilce_id, name: foundDistrict.ilce_adi });
+            const neighborhoods = getNeighborhoodsByDistrictId(foundDistrict.ilce_id);
+
+            // Match neighborhood from reverse geocode (item.district, item.name, item.street)
+            const rawNeighborhoodCandidate = (item.district || item.name || '').toLocaleLowerCase('tr-TR');
+            foundNeighborhood = neighborhoods.find(
+              (n) =>
+                (rawNeighborhoodCandidate && n.mahalle_adi.toLocaleLowerCase('tr-TR').includes(rawNeighborhoodCandidate)) ||
+                (rawNeighborhoodCandidate && rawNeighborhoodCandidate.includes(n.mahalle_adi.toLocaleLowerCase('tr-TR')))
+            );
+
+            if (foundNeighborhood) {
+              setSelectedNeighborhood({ id: foundNeighborhood.mahalle_id, name: foundNeighborhood.mahalle_adi });
+            }
+          }
+        }
+
+        const finalNeighborhood = foundNeighborhood?.mahalle_adi || item.district || item.name || '';
+        const finalDistrict = foundDistrict?.ilce_adi || detectedDistrict;
+        const finalCity = foundCity?.sehir_adi || detectedCity;
+
+        setCity(finalCity);
+        setDistrict(finalDistrict);
+        if (finalNeighborhood) {
+          setNeighborhood(finalNeighborhood);
+        }
+
+        const addressParts = [
+          finalNeighborhood,
+          detectedStreet,
+          `${finalDistrict} / ${finalCity}`,
+        ].filter(Boolean);
+
+        setFullAddress(addressParts.join(', '));
+
+        if (!title) setTitle(t('myCurrentLocation'));
         setFieldErrors({});
         setGpsInlineError(null);
-        Alert.alert(
-          '📍 Konum Algılandı',
-          `Adresiniz GPS üzerinden dolduruldu:\n${detectedDistrict} / ${detectedCity}`
-        );
+        setFormBanner(null);
+        hapticService.success();
+        setGpsSuccessInfo({
+          district: finalDistrict,
+          city: finalCity,
+          street: detectedStreet,
+        });
       } else {
+        hapticService.error();
         const payload = ErrorHandler.handleError(AppErrorCode.GPS_UNAVAILABLE, 'AddAddressModal', { mode: 'none' });
         setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
       }
     } catch (error) {
+      hapticService.error();
       const payload = ErrorHandler.handleError(error, 'AddAddressModal', { mode: 'none' });
       setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
     } finally {
@@ -187,6 +314,8 @@ export function AddAddressModal({
    * Lazy Evaluation Handlers for Address Selection
    */
   const handleOpenCityPicker = () => {
+    hapticService.selection();
+    setFormBanner(null);
     const provinces = getProvinces();
     const options: SelectOption[] = provinces.map((p) => ({
       id: p.sehir_id,
@@ -199,10 +328,17 @@ export function AddAddressModal({
 
   const handleOpenDistrictPicker = () => {
     if (!selectedCity && !city) {
-      Alert.alert('Bilgi', t('selectCityFirst'));
+      hapticService.warning();
+      setFormBanner({
+        title: t('missingInfo'),
+        message: t('selectCityFirst'),
+        type: 'warning',
+      });
       return;
     }
 
+    hapticService.selection();
+    setFormBanner(null);
     const cityId = selectedCity?.id;
     if (!cityId) {
       // If city was entered manually via text or GPS
@@ -210,7 +346,12 @@ export function AddAddressModal({
         (p) => p.sehir_adi.toLocaleLowerCase('tr-TR') === city.trim().toLocaleLowerCase('tr-TR')
       );
       if (!foundCity) {
-        Alert.alert('Bilgi', t('selectCityFirst'));
+        hapticService.warning();
+        setFormBanner({
+          title: t('missingInfo'),
+          message: t('selectCityFirst'),
+          type: 'warning',
+        });
         return;
       }
       const districts = getDistrictsByCityId(foundCity.sehir_id);
@@ -226,14 +367,26 @@ export function AddAddressModal({
 
   const handleOpenNeighborhoodPicker = () => {
     if (!selectedCity && !city) {
-      Alert.alert('Bilgi', t('selectCityFirst'));
+      hapticService.warning();
+      setFormBanner({
+        title: t('missingInfo'),
+        message: t('selectCityFirst'),
+        type: 'warning',
+      });
       return;
     }
     if (!selectedDistrict && !district) {
-      Alert.alert('Bilgi', t('selectDistrictFirst'));
+      hapticService.warning();
+      setFormBanner({
+        title: t('missingInfo'),
+        message: t('selectDistrictFirst'),
+        type: 'warning',
+      });
       return;
     }
 
+    hapticService.selection();
+    setFormBanner(null);
     setLoadingPickerOptions(true);
     setPickerTitle(t('selectNeighborhood'));
     setPickerModalType('neighborhood');
@@ -264,9 +417,14 @@ export function AddAddressModal({
   };
 
   const handleOptionSelect = (option: SelectOption) => {
+    hapticService.selection();
+    setFormBanner(null);
     if (pickerModalType === 'city') {
       setSelectedCity(option);
       setCity(option.name);
+      if (fieldErrors.city) {
+        setFieldErrors((prev) => ({ ...prev, city: undefined }));
+      }
 
       // Reset downstream selections (İlçe & Mahalle)
       setSelectedDistrict(null);
@@ -276,6 +434,9 @@ export function AddAddressModal({
     } else if (pickerModalType === 'district') {
       setSelectedDistrict(option);
       setDistrict(option.name);
+      if (fieldErrors.district) {
+        setFieldErrors((prev) => ({ ...prev, district: undefined }));
+      }
 
       // Reset downstream selection (Mahalle)
       setSelectedNeighborhood(null);
@@ -296,34 +457,71 @@ export function AddAddressModal({
   };
 
   const handleSave = () => {
-    const errors: { title?: string; fullAddress?: string } = {};
+    const errors: {
+      title?: string;
+      fullName?: string;
+      phone?: string;
+      city?: string;
+      district?: string;
+      fullAddress?: string;
+    } = {};
 
     if (!title.trim()) {
-      errors.title = 'Adres başlığı girilmesi zorunludur.';
+      errors.title = t('addressTitleRequired');
+    }
+
+    if (!fullName.trim()) {
+      errors.fullName = t('receiverFullNameRequired');
+    } else {
+      const nameVal = validateFullName(fullName);
+      if (!nameVal.isValid) {
+        errors.fullName = nameVal.error;
+      }
+    }
+
+    if (!phone.trim()) {
+      errors.phone = t('phoneRequired');
+    } else {
+      const phoneVal = validatePhone(phone);
+      if (!phoneVal.isValid) {
+        errors.phone = phoneVal.error;
+      }
+    }
+
+    if (!city.trim() && !selectedCity) {
+      errors.city = t('cityRequired');
+    }
+
+    if (!district.trim() && !selectedDistrict) {
+      errors.district = t('districtRequired');
     }
 
     if (!fullAddress.trim()) {
-      errors.fullAddress = 'Açık adres girilmesi zorunludur.';
+      errors.fullAddress = t('fullAddressRequired');
     }
 
     if (Object.keys(errors).length > 0) {
+      hapticService.error();
       setFieldErrors(errors);
-      Alert.alert(
-        'Eksik Bilgi',
-        'Lütfen kırmızı ile belirtilen tüm zorunlu alanları doldurun.'
-      );
+      setFormBanner({
+        title: t('missingInfo'),
+        message: t('addressValidationWarning'),
+        type: 'warning',
+      });
       return;
     }
 
+    hapticService.success();
     setFieldErrors({});
+    setFormBanner(null);
 
     const newAddress: UserAddress = {
       id: `addr_${Date.now()}`,
-      title: formatTitleCaseTR(title),
-      fullName: formatTitleCaseTR(fullName.trim() || 'Ahmet Yılmaz'),
-      phone: formatPhoneClean(phone.trim() || '05551234567'),
-      city: formatTitleCaseTR(city.trim() || 'İstanbul'),
-      district: formatTitleCaseTR(district.trim() || 'Beşiktaş'),
+      title: formatTitleCaseTR(title.trim()),
+      fullName: formatTitleCaseTR(fullName.trim()),
+      phone: formatPhoneClean(phone.trim()),
+      city: formatTitleCaseTR(city.trim() || selectedCity?.name || ''),
+      district: formatTitleCaseTR(district.trim() || selectedDistrict?.name || ''),
       fullAddress: fullAddress.trim(),
     };
 
@@ -340,6 +538,9 @@ export function AddAddressModal({
     setSelectedDistrict(null);
     setSelectedNeighborhood(null);
     setFullAddress('');
+    setGpsSuccessInfo(null);
+    setGpsInlineError(null);
+    setFormBanner(null);
     onClose();
   };
 
@@ -348,22 +549,35 @@ export function AddAddressModal({
       <Modal
         visible={visible}
         transparent
-        animationType="slide"
-        onRequestClose={onClose}
+        animationType="fade"
+        onRequestClose={handleDismiss}
       >
         <View style={styles.overlay}>
-          <View
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={handleDismiss}
+          />
+          <Animated.View
             style={[
               styles.modalContent,
-              { backgroundColor: colors.surfaceContainerLowest },
+              {
+                backgroundColor: colors.surfaceContainerLowest,
+                transform: [{ translateY: panY }],
+              },
             ]}
           >
+            {/* Top Sheet Drag Handle Bar ("-") with PanResponder */}
+            <View style={styles.dragHandleArea} {...panResponder.panHandlers}>
+              <View style={[styles.sheetHandle, { backgroundColor: colors.outlineVariant }]} />
+            </View>
+
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.modalTitle, { color: colors.primary }]}>
                 {t('addNewAddress')}
               </Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <TouchableOpacity onPress={handleDismiss} style={styles.closeButton}>
                 <MaterialIcons
                   name="close"
                   size={24}
@@ -395,6 +609,47 @@ export function AddAddressModal({
                 )}
               </TouchableOpacity>
 
+              {/* GPS Inline Success Feedback Banner */}
+              {gpsSuccessInfo && (
+                <View
+                  style={[
+                    styles.gpsSuccessBox,
+                    {
+                      backgroundColor: colors.surface === '#121212' || colors.background === '#121212'
+                        ? 'rgba(16, 185, 129, 0.12)'
+                        : '#ECFDF5',
+                      borderColor: colors.surface === '#121212' || colors.background === '#121212'
+                        ? 'rgba(16, 185, 129, 0.3)'
+                        : '#A7F3D0',
+                    },
+                  ]}
+                >
+                  <View style={styles.gpsSuccessIconWrapper}>
+                    <MaterialIcons name="check-circle" size={22} color="#059669" />
+                  </View>
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={styles.gpsSuccessTitle}>
+                      {t('locationDetectedTitle')}
+                    </Text>
+                    <Text style={styles.gpsSuccessSubtext}>
+                      {t('locationDetectedDesc')}
+                    </Text>
+                    <View style={styles.gpsLocationBadge}>
+                      <MaterialIcons name="place" size={14} color="#059669" />
+                      <Text style={styles.gpsLocationBadgeText}>
+                        {gpsSuccessInfo.district} / {gpsSuccessInfo.city}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setGpsSuccessInfo(null)}
+                    style={styles.gpsSuccessDismiss}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <MaterialIcons name="close" size={18} color="#047857" />
+                  </TouchableOpacity>
+                </View>
+              )}
               {/* GPS Inline Error/Warning Banner directly in-context inside the modal */}
               {gpsInlineError && (
                 <InlineErrorBanner
@@ -402,6 +657,16 @@ export function AddAddressModal({
                   message={gpsInlineError.message}
                   type={gpsInlineError.type}
                   onDismiss={() => setGpsInlineError(null)}
+                />
+              )}
+
+              {/* Form Validation Warning Banner */}
+              {formBanner && (
+                <InlineErrorBanner
+                  title={formBanner.title}
+                  message={formBanner.message}
+                  type={formBanner.type}
+                  onDismiss={() => setFormBanner(null)}
                 />
               )}
 
@@ -422,11 +687,12 @@ export function AddAddressModal({
                     },
                     fieldErrors.title ? { borderWidth: 1.5 } : null,
                   ]}
-                  placeholder="Örn: Evim, İş Yeri, Yazlık"
+                  placeholder={t('addressTitlePlaceholder')}
                   placeholderTextColor={colors.onSurfaceVariant}
                   value={title}
                   onChangeText={(val) => {
                     setTitle(val);
+                    if (formBanner) setFormBanner(null);
                     if (fieldErrors.title)
                       setFieldErrors((prev) => ({ ...prev, title: undefined }));
                   }}
@@ -448,28 +714,56 @@ export function AddAddressModal({
               {/* Receiver Full Name (Auto-filled with logged-in user name) */}
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.onSurface }]}>
-                  {t('receiverFullNameLabel')}
+                  {t('receiverFullNameLabel')}{' '}
+                  <Text style={{ color: colors.error }}>*</Text>
                 </Text>
                 <TextInput
                   style={[
                     styles.input,
                     {
-                      borderColor: colors.outlineVariant,
+                      borderColor: fieldErrors.fullName
+                        ? colors.error
+                        : colors.outlineVariant,
                       color: colors.onBackground,
                     },
+                    fieldErrors.fullName ? { borderWidth: 1.5 } : null,
                   ]}
                   placeholder="Ahmet Yılmaz"
                   placeholderTextColor={colors.onSurfaceVariant}
                   value={fullName}
-                  onChangeText={setFullName}
+                  onChangeText={(val) => {
+                    setFullName(val);
+                    if (fieldErrors.fullName) {
+                      setFieldErrors((prev) => ({ ...prev, fullName: undefined }));
+                    }
+                  }}
                 />
+                {!!fieldErrors.fullName && (
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: colors.error,
+                      marginTop: 4,
+                      fontWeight: '500',
+                    }}
+                  >
+                    {fieldErrors.fullName}
+                  </Text>
+                )}
               </View>
 
               {/* Phone Input */}
               <PhoneInput
                 label={t('phoneLabel')}
                 value={phone}
-                onChangeText={(formatted) => setPhone(formatted)}
+                required={true}
+                error={fieldErrors.phone}
+                onChangeText={(formatted) => {
+                  setPhone(formatted);
+                  if (fieldErrors.phone) {
+                    setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                  }
+                }}
               />
 
               {/* City & District (Lazy Evaluation Selectors) */}
@@ -477,15 +771,19 @@ export function AddAddressModal({
                 {/* İl Selector */}
                 <View style={[styles.inputGroup, { flex: 1 }]}>
                   <Text style={[styles.label, { color: colors.onSurface }]}>
-                    {t('cityLabel')}
+                    {t('cityLabel')}{' '}
+                    <Text style={{ color: colors.error }}>*</Text>
                   </Text>
                   <TouchableOpacity
                     style={[
                       styles.selectButton,
                       {
-                        borderColor: colors.outlineVariant,
+                        borderColor: fieldErrors.city
+                          ? colors.error
+                          : colors.outlineVariant,
                         backgroundColor: colors.surfaceContainer,
                       },
+                      fieldErrors.city ? { borderWidth: 1.5 } : null,
                     ]}
                     onPress={handleOpenCityPicker}
                     activeOpacity={0.8}
@@ -507,21 +805,37 @@ export function AddAddressModal({
                       color={colors.onSurfaceVariant}
                     />
                   </TouchableOpacity>
+                  {!!fieldErrors.city && (
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: colors.error,
+                        marginTop: 4,
+                        fontWeight: '500',
+                      }}
+                    >
+                      {fieldErrors.city}
+                    </Text>
+                  )}
                 </View>
 
                 {/* İlçe Selector (Requires City Selection) */}
                 <View style={[styles.inputGroup, { flex: 1 }]}>
                   <Text style={[styles.label, { color: colors.onSurface }]}>
-                    {t('districtLabel')}
+                    {t('districtLabel')}{' '}
+                    <Text style={{ color: colors.error }}>*</Text>
                   </Text>
                   <TouchableOpacity
                     style={[
                       styles.selectButton,
                       {
-                        borderColor: colors.outlineVariant,
+                        borderColor: fieldErrors.district
+                          ? colors.error
+                          : colors.outlineVariant,
                         backgroundColor: colors.surfaceContainer,
                         opacity: city ? 1 : 0.6,
                       },
+                      fieldErrors.district ? { borderWidth: 1.5 } : null,
                     ]}
                     onPress={handleOpenDistrictPicker}
                     activeOpacity={0.8}
@@ -543,6 +857,18 @@ export function AddAddressModal({
                       color={colors.onSurfaceVariant}
                     />
                   </TouchableOpacity>
+                  {!!fieldErrors.district && (
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: colors.error,
+                        marginTop: 4,
+                        fontWeight: '500',
+                      }}
+                    >
+                      {fieldErrors.district}
+                    </Text>
+                  )}
                 </View>
               </View>
 
@@ -641,7 +967,7 @@ export function AddAddressModal({
                 </Text>
               </TouchableOpacity>
             </ScrollView>
-          </View>
+          </Animated.View>
         </View>
       </Modal>
 
@@ -672,10 +998,23 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
     maxHeight: '90%',
+  },
+  dragHandleArea: {
+    width: '100%',
+    paddingTop: 10,
+    paddingBottom: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetHandle: {
+    width: 44,
+    height: 5,
+    borderRadius: 3,
   },
   header: {
     flexDirection: 'row',
@@ -709,6 +1048,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#00236f',
+  },
+  gpsSuccessBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    gap: 10,
+  },
+  gpsSuccessIconWrapper: {
+    padding: 4,
+    borderRadius: 8,
+  },
+  gpsSuccessTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#065F46',
+  },
+  gpsSuccessSubtext: {
+    fontSize: 12,
+    color: '#047857',
+    marginBottom: 4,
+  },
+  gpsLocationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 2,
+  },
+  gpsLocationBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#065F46',
+  },
+  gpsSuccessDismiss: {
+    padding: 4,
   },
   inputGroup: {
     gap: 6,

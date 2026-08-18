@@ -24,6 +24,7 @@ import { CarrierLogo } from '../components/common/CarrierLogo';
 import { useTranslation } from '../hooks/useTranslation';
 import { getShipmentProgress } from '../utils/shipmentUtils';
 import { CargoStatusTracker } from '../components/common/CargoStatusTracker';
+import { hapticService } from '../services/haptics.service';
 import styles from './PackagesScreen.styles';
 
 interface PackageItem {
@@ -33,6 +34,7 @@ interface PackageItem {
   companyLogo: string;
   status: string;
   statusText: string;
+  titleKey?: string;
   origin: string;
   destination: string;
   progress: number;
@@ -50,6 +52,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
     status: 'created',
     statusText: t('stepCreated'),
+    titleKey: 'stepCreated',
     origin: 'IST',
     destination: 'ANK',
     progress: 0,
@@ -64,6 +67,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjM3WGmIKGRLjMW6IRU1kYHLqZV247A1R0k-tu002NXpTR9eBvCgJzSinfaCiyYFOL64rFF1bMhhEwZaJJxSkhUQPMWtaYISoFfhJliBKil7ol02FyEnBl2oBWRcxIwHPIpon6aPVYhSD6r7A3WpnmCQ3zsHhjl_muE97mWCTx9X9PyZ7C6jrUdCAkKaLg2jZ5e2XeWi3tgRJVO0bOJzm2jxXY9i2clZORqFEiiPJGldegt9z6hfKr4wZjrwqxlMY8QQev542fsWA',
     status: 'received',
     statusText: t('stepReceived'),
+    titleKey: 'stepReceived',
     origin: 'IZM',
     destination: 'IST',
     progress: 20,
@@ -78,6 +82,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
     status: 'transit',
     statusText: t('stepTransit'),
+    titleKey: 'stepTransit',
     origin: 'ANK',
     destination: 'BUR',
     progress: 40,
@@ -92,6 +97,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBQAYJqGOz9kirXFakdn6xML_KFwHoJ2AJzf-LABWag5ontXgnBPLXxI192uHGnjtuk1Hxtu-RPvkgWi0FBe9hxBGpkREvyF-yGAGETdnOiW_Anjj5uxVbdY_4bphH45OozbEFmwKUcPL_IUaiv_kQ9ytX8zYZN6Rjyf-niXHs8wnoifbWzkzkiNk9XR2LgbV4Wi156KAbDz5St-Hj_eU3BHdztDN5j4hzSUGx41fUlqY5txG6DkkVfv-TWr8LO_vNfc0oDWmNgiDY',
     status: 'destination',
     statusText: t('stepDestination'),
+    titleKey: 'stepDestination',
     origin: 'IST',
     destination: 'ANT',
     progress: 60,
@@ -106,6 +112,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     companyLogo: 'https://www.araskargo.com.tr/assets/images/aras-logo.svg',
     status: 'out_for_delivery',
     statusText: t('stepOutForDelivery'),
+    titleKey: 'stepOutForDelivery',
     origin: 'IZM',
     destination: 'BUR',
     progress: 80,
@@ -120,6 +127,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     companyLogo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDndS9Xc59oX3WY735_crAmXQ57-GM1fOr2dpm7X82EOQi_wrJYw-pezBidOWHCa5k2Jy1QwtHqXyIABwy5DXMNneud1hVTvgLgVAXu0tIpyFM5yXixn4oLdsd9Tx8vvrITOEE58KWT8S-4-o6DUn-AZC0lkllVys5M0fxjZ5uZ5Ua6NrZA9PNoMvaOzlJcX2YxYivdZlnA8-We-T7hLcjvmmqA9xl7THZHNToHPMHiUGTg-sN5OTNsTIi5wCXOW9ahAtLQ_qb-4rk',
     status: 'delivered',
     statusText: t('stepDelivered'),
+    titleKey: 'stepDelivered',
     origin: 'IST',
     destination: 'ANK',
     progress: 100,
@@ -136,7 +144,7 @@ export const PackagesScreen = () => {
   const { theme: colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const { data: dbShipments } = useShipments(user?.id);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -219,12 +227,13 @@ export const PackagesScreen = () => {
           companyName: s.courier_companies?.name || s.title || 'Kargo',
           companyLogo: s.courier_companies?.logo_url || getCarrierByName(s.courier_companies?.name || s.title, s.tracking_number)?.logo,
           status: rawStatus as any,
-          statusText: progressInfo.stepTitle,
+          statusText: t(progressInfo.titleKey as any) || progressInfo.stepTitle,
+          titleKey: progressInfo.titleKey,
           origin: s.sender ? s.sender.substring(0, 3).toUpperCase() : 'TR',
           destination: s.receiver ? s.receiver.substring(0, 3).toUpperCase() : 'TR',
           progress: progressInfo.progressPercent,
           deliveryDateLabel: rawStatus === 'delivered' ? t('deliveredDateLabel') : t('deliveryDateLabel'),
-          deliveryDateValue: s.estimated_delivery || 'Yakında',
+          deliveryDateValue: s.estimated_delivery || (language === 'en' ? 'Soon' : 'Yakında'),
           createdAt: s.created_at || new Date().toISOString(),
         };
       });
@@ -236,7 +245,7 @@ export const PackagesScreen = () => {
       return dbItems;
     }
     return mockList;
-  }, [dbShipments, user, t]);
+  }, [dbShipments, user, t, language]);
 
   // Check if any filter is active
   const isCarrierFiltered = carrierFilter !== 'all' && carrierFilter !== 'Tümü' && carrierFilter !== CARRIER_OPTIONS[0];
@@ -349,7 +358,10 @@ export const PackagesScreen = () => {
                 styles.searchIconRight,
                 isFilterActive && [styles.filterBtnActive, { backgroundColor: colors.primary }]
               ]}
-              onPress={openFilterModal}
+              onPress={() => {
+                hapticService.buttonPress();
+                openFilterModal();
+              }}
               activeOpacity={0.8}
             >
               <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
@@ -367,7 +379,10 @@ export const PackagesScreen = () => {
                   <Text style={[styles.filterChipText, { color: colors.onPrimary }]}>
                     {statusFilter === 'transit' ? `🚚 ${t('statusInTransit')}` : statusFilter === 'delivered' ? `✅ ${t('statusDelivered')}` : `⚠️ ${t('statusPending')}`}
                   </Text>
-                  <TouchableOpacity onPress={() => setStatusFilter('all')}>
+                  <TouchableOpacity onPress={() => {
+                    hapticService.selection();
+                    setStatusFilter('all');
+                  }}>
                     <MaterialIcons name="close" size={14} color={colors.onPrimary} />
                   </TouchableOpacity>
                 </View>
@@ -375,7 +390,10 @@ export const PackagesScreen = () => {
               {isCarrierFiltered && (
                 <View style={[styles.filterChip, { backgroundColor: colors.primary }]}>
                   <Text style={[styles.filterChipText, { color: colors.onPrimary }]}>{carrierFilter}</Text>
-                  <TouchableOpacity onPress={() => setCarrierFilter('all')}>
+                  <TouchableOpacity onPress={() => {
+                    hapticService.selection();
+                    setCarrierFilter('all');
+                  }}>
                     <MaterialIcons name="close" size={14} color={colors.onPrimary} />
                   </TouchableOpacity>
                 </View>
@@ -385,12 +403,18 @@ export const PackagesScreen = () => {
                   <Text style={[styles.filterChipText, { color: colors.onPrimary }]}>
                     {sortBy === 'oldest' ? 'Oldest' : 'A-Z'}
                   </Text>
-                  <TouchableOpacity onPress={() => setSortBy('newest')}>
+                  <TouchableOpacity onPress={() => {
+                    hapticService.selection();
+                    setSortBy('newest');
+                  }}>
                     <MaterialIcons name="close" size={14} color={colors.onPrimary} />
                   </TouchableOpacity>
                 </View>
               )}
-              <TouchableOpacity onPress={resetFilters} style={styles.resetFiltersBtn}>
+              <TouchableOpacity onPress={() => {
+                hapticService.selection();
+                resetFilters();
+              }} style={styles.resetFiltersBtn}>
                 <Text style={{ fontSize: 12, color: colors.error, fontWeight: '600' }}>{t('filterClear')}</Text>
               </TouchableOpacity>
             </View>
@@ -405,7 +429,10 @@ export const PackagesScreen = () => {
             <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>
               {t('noPackagesFoundSub')}
             </Text>
-            <TouchableOpacity style={[styles.resetButton, { backgroundColor: colors.primary }]} onPress={resetFilters}>
+            <TouchableOpacity style={[styles.resetButton, { backgroundColor: colors.primary }]} onPress={() => {
+              hapticService.selection();
+              resetFilters();
+            }}>
               <Text style={styles.resetButtonText}>{t('filterClear')}</Text>
             </TouchableOpacity>
           </View>
@@ -416,7 +443,10 @@ export const PackagesScreen = () => {
                 <TouchableOpacity
                   key={pkg.id}
                   style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]}
-                  onPress={() => navigation.navigate('PackageDetail', { shipmentId: pkg.id })}
+                  onPress={() => {
+                    hapticService.buttonPress();
+                    navigation.navigate('PackageDetail', { shipmentId: pkg.id });
+                  }}
                   activeOpacity={0.8}
                 >
                   <View style={styles.cardHeader}>
@@ -455,7 +485,9 @@ export const PackagesScreen = () => {
 
                       return (
                         <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-                          <Text style={[styles.badgeText, { color: badgeColor }]}>{pkg.statusText}</Text>
+                          <Text style={[styles.badgeText, { color: badgeColor }]}>
+                            {pkg.titleKey ? (t(pkg.titleKey as any) || pkg.statusText) : pkg.statusText}
+                          </Text>
                         </View>
                       );
                     })()}
@@ -510,7 +542,10 @@ export const PackagesScreen = () => {
                       currentPage === 1 && styles.paginationBtnDisabled,
                     ]}
                     disabled={currentPage === 1}
-                    onPress={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onPress={() => {
+                      hapticService.selection();
+                      setCurrentPage((prev) => Math.max(prev - 1, 1));
+                    }}
                     activeOpacity={0.7}
                   >
                     <MaterialIcons name="chevron-left" size={20} color={currentPage === 1 ? colors.outline : colors.primary} />
@@ -533,7 +568,10 @@ export const PackagesScreen = () => {
                               borderColor: isActive ? colors.primary : colors.outlineVariant,
                             },
                           ]}
-                          onPress={() => setCurrentPage(pageNum)}
+                          onPress={() => {
+                            hapticService.selection();
+                            setCurrentPage(pageNum);
+                          }}
                           activeOpacity={0.8}
                         >
                           <Text
@@ -557,7 +595,10 @@ export const PackagesScreen = () => {
                       currentPage === totalPages && styles.paginationBtnDisabled,
                     ]}
                     disabled={currentPage === totalPages}
-                    onPress={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onPress={() => {
+                      hapticService.selection();
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.paginationBtnText, { color: currentPage === totalPages ? colors.outline : colors.primary }]}>

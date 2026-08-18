@@ -16,17 +16,19 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
+import { useTheme } from '../theme/useTheme';
 import { useAuthStore } from '../store/auth.store';
 import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
 import { GoogleLogo } from '../components/common/GoogleLogo';
 import { useTranslation } from '../hooks/useTranslation';
 import { PasswordInput } from '../components/ui';
+import { hapticService } from '../services/haptics.service';
 
 export const LoginScreen = ({ navigation }: any) => {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { theme: colors, isDarkMode } = useTheme();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,10 +40,14 @@ export const LoginScreen = ({ navigation }: any) => {
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const handleGoogleSignIn = async () => {
+    hapticService.buttonPress();
     setErrorMessage('');
     const res = await signInWithGoogle();
     if (res?.error) {
+      hapticService.error();
       setErrorMessage(res.error);
+    } else {
+      hapticService.success();
     }
   };
 
@@ -49,6 +55,7 @@ export const LoginScreen = ({ navigation }: any) => {
   const isLargeScreen = width >= 1024;
 
   const handleLogin = async () => {
+    hapticService.buttonPress();
     const errors: { email?: string; password?: string } = {};
     if (!email.trim()) {
       errors.email = 'E-posta adresi girilmesi zorunludur.';
@@ -61,6 +68,7 @@ export const LoginScreen = ({ navigation }: any) => {
     }
 
     if (Object.keys(errors).length > 0) {
+      hapticService.error();
       setFieldErrors(errors);
       setErrorMessage('Lütfen kırmızı ile belirtilen tüm zorunlu alanları doldurun.');
       return;
@@ -70,12 +78,15 @@ export const LoginScreen = ({ navigation }: any) => {
     setErrorMessage('');
     const res = await signIn(email.trim(), password);
     if (res.error) {
+      hapticService.error();
       setErrorMessage(res.error);
+    } else {
+      hapticService.success();
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Left Pane: Branding & Visuals (Visible only on large screens) */}
       {isLargeScreen && (
         <View style={styles.leftPane}>
@@ -90,14 +101,14 @@ export const LoginScreen = ({ navigation }: any) => {
             <View style={[styles.leftPaneContent, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
               {/* Top Branding */}
               <View style={styles.brandingHeader}>
-                <MaterialIcons name="inventory" size={40} color={colors.onPrimary} />
-                <Text style={styles.brandingLogoText}>KargoTakip</Text>
+                <MaterialIcons name="local-shipping" size={40} color={colors.onPrimary} />
+                <Text style={[styles.brandingLogoText, { color: colors.onPrimary }]}>{t('appName')}</Text>
               </View>
 
               {/* Bottom Copy */}
               <View style={styles.brandingCopy}>
-                <Text style={styles.brandingTitle}>Küresel lojistik,{'\n'}tek bir ekranda.</Text>
-                <Text style={styles.brandingSubtitle}>
+                <Text style={[styles.brandingTitle, { color: colors.onPrimary }]}>Küresel lojistik,{'\n'}tek bir ekranda.</Text>
+                <Text style={[styles.brandingSubtitle, { color: colors.primaryFixedDim }]}>
                   Güvenilirlik, şeffaflık ve hız. Gönderilerinizi anlık olarak izleyin ve operasyonlarınızı pürüzsüzce yönetin.
                 </Text>
               </View>
@@ -108,7 +119,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
       {/* Right Pane: Login Form */}
       <KeyboardAwareContainer 
-        style={[styles.rightPane, { width: isLargeScreen ? '50%' : '100%' }]}
+        style={[styles.rightPane, { width: isLargeScreen ? '50%' : '100%', backgroundColor: colors.surfaceContainerLowest }]}
         contentContainerStyle={[
           styles.scrollViewContent,
           { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
@@ -119,75 +130,90 @@ export const LoginScreen = ({ navigation }: any) => {
           {/* Mobile Header */}
           {!isLargeScreen && (
             <View style={styles.mobileHeader}>
-              <MaterialIcons name="inventory" size={48} color={colors.primary} />
-              <Text style={styles.mobileLogoText}>KargoTakip</Text>
+              <View style={[styles.logoBadge, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : colors.primaryContainer }]}>
+                <MaterialIcons name="local-shipping" size={32} color={isDarkMode ? colors.primary : colors.primary} />
+              </View>
+              <Text style={[styles.mobileLogoText, { color: colors.primary }]}>{t('appName')}</Text>
             </View>
           )}
 
           {/* Welcome Text */}
           <View style={[styles.welcomeSection, !isLargeScreen && styles.welcomeSectionMobile]}>
-            <Text style={styles.welcomeTitle}>{t('loginWelcomeTitle')}</Text>
-            <Text style={styles.welcomeSubtitle}>{t('loginWelcomeSubtitle')}</Text>
+            <Text style={[styles.welcomeTitle, { color: colors.onSurface }]}>{t('loginWelcomeTitle')}</Text>
+            <Text style={[styles.welcomeSubtitle, { color: colors.onSurfaceVariant }]}>{t('loginWelcomeSubtitle')}</Text>
           </View>
 
           {/* Error Message Box */}
           {!!errorMessage && (
-            <View style={styles.errorBox}>
+            <View style={[styles.errorBox, { backgroundColor: isDarkMode ? 'rgba(239, 68, 68, 0.15)' : '#FFEBEE', borderColor: isDarkMode ? 'rgba(239, 68, 68, 0.3)' : '#FFCDD2' }]}>
               <MaterialIcons name="error-outline" size={20} color={colors.error} />
-              <Text style={styles.errorText}>{errorMessage}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{errorMessage}</Text>
             </View>
           )}
 
           {/* Form */}
           <View style={styles.form}>
             
-            {/* Email Input Group */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t('emailLabel')} <Text style={{ color: colors.error }}>*</Text>
-              </Text>
-              <View style={[styles.inputWrapper, fieldErrors.email ? { borderColor: colors.error, borderWidth: 1.5 } : null]}>
-                <View style={styles.inputIconLeft}>
-                  <MaterialIcons name="mail" size={20} color={fieldErrors.email ? colors.error : colors.outline} />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('emailPlaceholder')}
-                  placeholderTextColor={colors.outlineVariant}
-                  value={email}
-                  onChangeText={(val) => {
-                    setEmail(val);
-                    if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
-                  }}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-              {!!fieldErrors.email && (
-                <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.email}</Text>
-              )}
-            </View>
+            {/* Inputs Group Card */}
+            <View style={[styles.inputsCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
 
-            {/* Password Input Group */}
-            <PasswordInput
-              label={t('passwordLabel')}
-              required
-              value={password}
-              onChangeText={(val) => {
-                setPassword(val);
-                if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
-              }}
-              error={fieldErrors.password}
-              rightHeaderAction={
-                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-                  <Text style={styles.forgotPassword}>{t('forgotPasswordTitle')}</Text>
-                </TouchableOpacity>
-              }
-            />
+              {/* Email Input Group */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.onSurfaceVariant }]}>
+                  {t('emailLabel')} <Text style={{ color: colors.error }}>*</Text>
+                </Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    {
+                      backgroundColor: isDarkMode ? colors.surfaceContainerLow : colors.surface,
+                      borderColor: fieldErrors.email ? colors.error : colors.outlineVariant,
+                      borderWidth: fieldErrors.email ? 1.5 : 1,
+                    },
+                  ]}
+                >
+                  <View style={styles.inputIconLeft}>
+                    <MaterialIcons name="mail" size={20} color={fieldErrors.email ? colors.error : colors.outline} />
+                  </View>
+                  <TextInput
+                    style={[styles.input, { color: colors.onSurface }]}
+                    placeholder={t('emailPlaceholder')}
+                    placeholderTextColor={colors.outlineVariant}
+                    value={email}
+                    onChangeText={(val) => {
+                      setEmail(val);
+                      if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
+                    }}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+                {!!fieldErrors.email && (
+                  <Text style={{ fontSize: 12, color: colors.error, marginTop: 4, fontWeight: '500' }}>{fieldErrors.email}</Text>
+                )}
+              </View>
+
+              {/* Password Input Group */}
+              <PasswordInput
+                label={t('passwordLabel')}
+                required
+                value={password}
+                onChangeText={(val) => {
+                  setPassword(val);
+                  if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+                }}
+                error={fieldErrors.password}
+                rightHeaderAction={
+                  <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                    <Text style={[styles.forgotPassword, { color: colors.primary }]}>{t('forgotPasswordTitle')}</Text>
+                  </TouchableOpacity>
+                }
+              />
+            </View>
 
             {/* Submit Button */}
             <TouchableOpacity 
-              style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+              style={[styles.submitButton, { backgroundColor: colors.primary }, isLoading && { opacity: 0.7 }]} 
               activeOpacity={0.8}
               onPress={handleLogin}
               disabled={isLoading}
@@ -196,7 +222,7 @@ export const LoginScreen = ({ navigation }: any) => {
                 <ActivityIndicator color={colors.onPrimary} />
               ) : (
                 <>
-                  <Text style={styles.submitButtonText}>{t('loginBtn')}</Text>
+                  <Text style={[styles.submitButtonText, { color: colors.onPrimary }]}>{t('loginBtn')}</Text>
                   <MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />
                 </>
               )}
@@ -204,31 +230,31 @@ export const LoginScreen = ({ navigation }: any) => {
 
             {/* Divider */}
             <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
+              <Text style={[styles.dividerText, { color: colors.onSurfaceVariant }]}>or</Text>
+              <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
             </View>
 
             {/* Google Sign In Button */}
             <TouchableOpacity
-              style={styles.googleButton}
+              style={[styles.googleButton, { backgroundColor: isDarkMode ? colors.surfaceContainer : '#ffffff', borderColor: colors.outlineVariant }]}
               activeOpacity={0.85}
               onPress={handleGoogleSignIn}
               disabled={isLoading}
             >
               <GoogleLogo size={22} />
-              <Text style={styles.googleButtonText}>Google {t('loginBtn')}</Text>
+              <Text style={[styles.googleButtonText, { color: colors.onSurface }]}>Google {t('loginBtn')}</Text>
             </TouchableOpacity>
 
           </View>
 
           {/* Registration Link */}
           <View style={styles.registerSection}>
-            <Text style={styles.registerText}>
+            <Text style={[styles.registerText, { color: colors.onSurfaceVariant }]}>
               {t('dontHaveAccount')}{' '}
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.registerLink}>{t('registerBtn')}</Text>
+              <Text style={[styles.registerLink, { color: colors.primary }]}>{t('registerBtn')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -243,7 +269,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: colors.background,
   },
   leftPane: {
     width: '50%',
@@ -273,7 +298,6 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     fontWeight: '700',
     letterSpacing: -0.64,
-    color: colors.onPrimary,
   },
   brandingCopy: {
     maxWidth: 400,
@@ -284,7 +308,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     lineHeight: 40,
     fontWeight: '700',
-    color: colors.onPrimary,
     marginBottom: 16,
   },
   brandingSubtitle: {
@@ -292,12 +315,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '400',
-    color: colors.primaryFixedDim,
     opacity: 0.9,
   },
   rightPane: {
     height: '100%',
-    backgroundColor: colors.surfaceContainerLowest,
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -311,8 +332,16 @@ const styles = StyleSheet.create({
   },
   mobileHeader: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
     gap: 8,
+  },
+  logoBadge: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   mobileLogoText: {
     fontFamily: 'Inter',
@@ -320,10 +349,9 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     fontWeight: '700',
     letterSpacing: -0.24,
-    color: colors.primary,
   },
   welcomeSection: {
-    marginBottom: 40,
+    marginBottom: 28,
   },
   welcomeSectionMobile: {
     alignItems: 'center',
@@ -334,7 +362,6 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     fontWeight: '700',
     letterSpacing: -0.64,
-    color: colors.onSurface,
     marginBottom: 8,
   },
   welcomeSubtitle: {
@@ -342,10 +369,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '400',
-    color: colors.onSurfaceVariant,
   },
   form: {
-    gap: 24,
+    gap: 20,
+  },
+  inputsCard: {
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   inputGroup: {
     gap: 8,
@@ -361,7 +398,6 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: '600',
     letterSpacing: 0.6,
-    color: colors.onSurfaceVariant,
   },
   forgotPassword: {
     fontFamily: 'Inter',
@@ -369,28 +405,25 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: '600',
     letterSpacing: 0.6,
-    color: colors.primary,
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#FFEBEE',
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FFCDD2',
   },
   errorText: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: colors.error,
     flex: 1,
   },
   inputWrapper: {
     position: 'relative',
     justifyContent: 'center',
+    borderRadius: 8,
   },
   inputIconLeft: {
     position: 'absolute',
@@ -406,30 +439,19 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: 'Inter',
     fontSize: 16,
-    backgroundColor: colors.surfaceContainerLowest,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    borderRadius: 8,
-    color: colors.onSurface,
     paddingVertical: 14,
     paddingLeft: 44,
     paddingRight: 16,
-  },
-  inputWithRightIcon: {
-    paddingRight: 44,
   },
   submitButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginTop: 8,
-    // Note: React Native Shadow
-    shadowColor: colors.primaryContainer,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -443,7 +465,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '500',
-    color: colors.onPrimary,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -454,21 +475,17 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.outlineVariant,
   },
   dividerText: {
     fontFamily: 'Inter',
     fontSize: 12,
-    color: colors.onSurfaceVariant,
   },
   googleButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -477,7 +494,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 15,
     fontWeight: '600',
-    color: colors.onSurface,
   },
   registerSection: {
     flexDirection: 'row',
@@ -490,14 +506,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '400',
-    color: colors.onSurfaceVariant,
   },
   registerLink: {
     fontFamily: 'Inter',
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '600',
-    color: colors.primary,
     textDecorationLine: 'underline',
   },
 });

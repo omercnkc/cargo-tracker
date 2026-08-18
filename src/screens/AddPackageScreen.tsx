@@ -32,6 +32,7 @@ import { ModernFeedbackModal, FeedbackType } from '../components/common/ModernFe
 import { DEFAULT_CARRIERS, getCarrierByName, isCarrierAllowed } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { formatTrackingNumber, formatTitleCaseTR } from '../utils/stringFormatters';
+import { hapticService } from '../services/haptics.service';
 
 export const AddPackageScreen = () => {
   const navigation = useNavigation<any>();
@@ -117,12 +118,14 @@ export const AddPackageScreen = () => {
 
   const handleApplyClipboard = () => {
     if (clipboardDetected) {
+      hapticService.selection();
       setTrackingNumber(clipboardDetected);
       setClipboardDetected(null);
     }
   };
 
   const handleSubmit = async () => {
+    hapticService.buttonPress();
     const errors: { trackingNumber?: string; selectedCarrier?: string } = {};
     if (!trackingNumber.trim()) {
       errors.trackingNumber = t('trackingNumberRequired');
@@ -132,6 +135,7 @@ export const AddPackageScreen = () => {
     }
 
     if (Object.keys(errors).length > 0) {
+      hapticService.warning();
       setFieldErrors(errors);
       setFeedback({
         visible: true,
@@ -144,6 +148,7 @@ export const AddPackageScreen = () => {
     setFieldErrors({});
 
     if (!user) {
+      hapticService.error();
       setFeedback({
         visible: true,
         type: 'error',
@@ -166,6 +171,7 @@ export const AddPackageScreen = () => {
         current_status: 'transit',
       });
 
+      hapticService.success();
       setFeedback({
         visible: true,
         type: 'success',
@@ -178,6 +184,7 @@ export const AddPackageScreen = () => {
         },
       });
     } catch (err: any) {
+      hapticService.error();
       setFeedback({
         visible: true,
         type: 'error',
@@ -188,6 +195,7 @@ export const AddPackageScreen = () => {
   };
 
   const handleBack = () => {
+    hapticService.buttonPress();
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
@@ -461,6 +469,7 @@ export const AddPackageScreen = () => {
                     <TouchableOpacity
                       style={[styles.carrierGridCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}
                       onPress={() => {
+                        hapticService.selection();
                         setSelectedCarrier(item.id);
                         setSheetVisible(false);
                         setSearchQuery('');

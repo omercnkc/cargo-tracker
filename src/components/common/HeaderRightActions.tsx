@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
+import { hapticService } from '../../services/haptics.service';
 
 export const HeaderRightActions = () => {
   const { theme: colors, isDarkMode, toggleTheme } = useTheme();
@@ -28,7 +29,12 @@ export const HeaderRightActions = () => {
               { backgroundColor: '#ffffff', shadowColor: '#000' },
             ],
           ]}
-          onPress={() => isDarkMode && toggleTheme()}
+          onPress={() => {
+            if (isDarkMode) {
+              hapticService.selection();
+              toggleTheme();
+            }
+          }}
           activeOpacity={0.8}
         >
           <MaterialIcons
@@ -46,7 +52,12 @@ export const HeaderRightActions = () => {
               { backgroundColor: '#3b82f6', shadowColor: '#3b82f6' },
             ],
           ]}
-          onPress={() => !isDarkMode && toggleTheme()}
+          onPress={() => {
+            if (!isDarkMode) {
+              hapticService.selection();
+              toggleTheme();
+            }
+          }}
           activeOpacity={0.8}
         >
           <MaterialIcons

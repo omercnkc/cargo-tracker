@@ -151,3 +151,50 @@ export function getShipmentProgress(status?: string | null): ShipmentProgressInf
       };
   }
 }
+
+/**
+ * Translates timeline events dynamically based on current language
+ */
+export function translateTimelineEvent(
+  event: { status?: string; description?: string; location?: string; event_time?: string },
+  t: (key: any) => string
+): { status: string; description: string; location: string; event_time: string } {
+  const statusStr = event.status || '';
+  const descStr = event.description || '';
+  const locStr = event.location || '';
+  const timeStr = event.event_time || '';
+
+  // 1. Status title translation
+  let translatedStatus = statusStr;
+  const progressInfo = getShipmentProgress(statusStr);
+  const statusTranslated = t(progressInfo.titleKey as any);
+  if (statusTranslated && statusTranslated !== progressInfo.titleKey) {
+    translatedStatus = statusTranslated;
+  }
+
+  // 2. Common event descriptions dictionary
+  const descMap: Record<string, string> = {
+    'Kurye teslimat adresinize doğru yola çıktı.': t('eventDescOutForDelivery'),
+    'Avrupa Yakası Aktarma Merkezi': t('eventDescHub'),
+    'Gönderici kargoyu şubeye teslim etti.': t('eventDescOrderReceived'),
+    'Kargonuz şubeye ulaştı.': t('eventDescBranchArrived'),
+    'Kargo başarıyla teslim edildi.': t('eventDescDelivered'),
+  };
+
+  const translatedDesc = descMap[descStr] || descStr;
+
+  // 3. Time translation (e.g. "Bugün, 09:15" -> "Today, 09:15" / "Dün, 22:45" -> "Yesterday, 22:45")
+  let translatedTime = timeStr;
+  if (timeStr.includes('Bugün')) {
+    translatedTime = timeStr.replace('Bugün', t('today'));
+  } else if (timeStr.includes('Dün')) {
+    translatedTime = timeStr.replace('Dün', t('yesterday'));
+  }
+
+  return {
+    status: translatedStatus,
+    description: translatedDesc,
+    location: locStr,
+    event_time: translatedTime,
+  };
+}

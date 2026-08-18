@@ -18,6 +18,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useAuthStore } from '../store/auth.store';
 import { useBiometrics } from '../hooks/useBiometrics';
 import { useModalStore } from '../store/modal.store';
+import { useSettingsStore } from '../store/settings.store';
+import { hapticService } from '../services/haptics.service';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
 
 export const SettingsScreen = () => {
@@ -31,9 +33,20 @@ export const SettingsScreen = () => {
   const signOut = useAuthStore(state => state.signOut);
   const { isSupported, isEnabled, biometricTypes, toggleBiometric } = useBiometrics();
   const openChangePasswordModal = useModalStore(state => state.openChangePasswordModal);
+  const { hapticsEnabled, setHapticsEnabled } = useSettingsStore();
 
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
+
+  const handleHapticsToggle = async (value: boolean) => {
+    setHapticsEnabled(value);
+    if (value) {
+      // Trigger a light confirmation feedback when enabled
+      setTimeout(() => {
+        hapticService.buttonPress();
+      }, 50);
+    }
+  };
 
   const handleBiometricToggle = async (value: boolean) => {
     const success = await toggleBiometric(value);
@@ -125,7 +138,7 @@ export const SettingsScreen = () => {
                   <View style={styles.settingTextContent}>
                     <Text style={[styles.settingLabel, { color: colors.onSurface }]}>{t('changePassword')}</Text>
                     <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>
-                      Hesap şifrenizi yenileyin veya güncelleyin
+                      {t('changePasswordDesc')}
                     </Text>
                   </View>
                   <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
@@ -137,7 +150,7 @@ export const SettingsScreen = () => {
             <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest }]}>
               <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceContainer }]}>
                 <MaterialIcons name="mark-email-read" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Otomatik Kargo Taraması</Text>
+                <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>{t('autoScanTitle')}</Text>
               </View>
 
               <View style={styles.sectionBody}>
@@ -147,9 +160,9 @@ export const SettingsScreen = () => {
                   onPress={() => setEmailModalVisible(true)}
                 >
                   <View style={styles.settingTextContent}>
-                    <Text style={[styles.settingLabel, { color: colors.onSurface }]}>E-Posta Hesabını Bağla</Text>
+                    <Text style={[styles.settingLabel, { color: colors.onSurface }]}>{t('connectEmailTitle')}</Text>
                     <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>
-                      Trendyol, Hepsiburada ve Amazon'dan gelen "Paketiniz kargoya verildi" maillerini otomatik tara
+                      {t('connectEmailDesc')}
                     </Text>
                   </View>
                   <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
@@ -166,7 +179,7 @@ export const SettingsScreen = () => {
 
               <View style={styles.sectionBody}>
                 {/* Push Notifications */}
-                <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+                <View style={[styles.settingRow, { borderBottomWidth: 1, borderBottomColor: 'rgba(197, 197, 211, 0.3)' }]}>
                   <View style={styles.settingTextContent}>
                     <Text style={[styles.settingLabel, { color: colors.onSurface }]}>{t('pushNotifications')}</Text>
                     <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>{t('pushNotificationsDesc')}</Text>
@@ -176,6 +189,20 @@ export const SettingsScreen = () => {
                     thumbColor={'#ffffff'}
                     onValueChange={setPushEnabled}
                     value={pushEnabled}
+                  />
+                </View>
+
+                {/* Haptic Feedback */}
+                <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+                  <View style={styles.settingTextContent}>
+                    <Text style={[styles.settingLabel, { color: colors.onSurface }]}>{t('hapticFeedback')}</Text>
+                    <Text style={[styles.settingDesc, { color: colors.onSurfaceVariant }]}>{t('hapticFeedbackDesc')}</Text>
+                  </View>
+                  <Switch
+                    trackColor={{ false: colors.surfaceVariant, true: colors.primary }}
+                    thumbColor={'#ffffff'}
+                    onValueChange={handleHapticsToggle}
+                    value={hapticsEnabled}
                   />
                 </View>
               </View>

@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ModernFeedbackModal, FeedbackType } from './ModernFeedbackModal';
+import { hapticService } from '../../services/haptics.service';
 
 export type SupportModalType = 'help' | 'rate' | 'feedback' | 'privacy' | 'terms';
 
@@ -87,6 +88,7 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
               <TouchableOpacity
                 style={styles.actionPillBtn}
                 onPress={() => {
+                  hapticService.success();
                   setFeedback({
                     visible: true,
                     type: 'success',
@@ -115,6 +117,7 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
               <TouchableOpacity
                 style={styles.actionPillBtn}
                 onPress={() => {
+                  hapticService.success();
                   setFeedback({
                     visible: true,
                     type: 'success',
@@ -147,7 +150,10 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
               <MaterialIcons name={config.icon as any} size={24} color={colors.primary} />
               <Text style={[styles.title, { color: colors.primary }]}>{config.title}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={() => {
+              hapticService.buttonPress();
+              onClose();
+            }} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
@@ -156,7 +162,10 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
             {config.content}
           </ScrollView>
 
-          <TouchableOpacity style={[styles.footerCloseBtn, { backgroundColor: colors.primary }]} onPress={onClose}>
+          <TouchableOpacity style={[styles.footerCloseBtn, { backgroundColor: colors.primary }]} onPress={() => {
+            hapticService.buttonPress();
+            onClose();
+          }}>
             <Text style={[styles.footerCloseBtnText, { color: colors.onPrimary }]}>{t('close')}</Text>
           </TouchableOpacity>
         </View>
@@ -167,7 +176,14 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
         type={feedback.type}
         title={feedback.title}
         message={feedback.message}
-        onConfirm={feedback.onConfirm}
+        onPrimaryAction={() => {
+          if (feedback.onConfirm) {
+            feedback.onConfirm();
+          } else {
+            setFeedback(prev => ({ ...prev, visible: false }));
+          }
+        }}
+        onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
       />
     </Modal>
   );

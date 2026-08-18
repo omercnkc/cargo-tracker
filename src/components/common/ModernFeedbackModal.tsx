@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
+import { hapticService } from '../../services/haptics.service';
 
 export type FeedbackType = 'success' | 'error' | 'info' | 'warning';
 
@@ -111,10 +112,13 @@ export const ModernFeedbackModal: React.FC<ModernFeedbackModalProps> = ({
 
               {/* Action Buttons */}
               <View style={styles.buttonContainer}>
-                {secondaryButtonText && onSecondaryAction && (
+                {secondaryButtonText && (
                   <TouchableOpacity
                     style={[styles.button, styles.secondaryButton, { borderColor: colors.outlineVariant }]}
-                    onPress={onSecondaryAction}
+                    onPress={() => {
+                      hapticService.buttonPress();
+                      onSecondaryAction ? onSecondaryAction() : onClose();
+                    }}
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.secondaryButtonText, { color: colors.onSurfaceVariant }]}>
@@ -130,7 +134,10 @@ export const ModernFeedbackModal: React.FC<ModernFeedbackModalProps> = ({
                     { backgroundColor: colors.primary },
                     secondaryButtonText ? { flex: 1 } : { width: '100%' },
                   ]}
-                  onPress={onPrimaryAction}
+                  onPress={() => {
+                    hapticService.buttonPress();
+                    onPrimaryAction();
+                  }}
                   activeOpacity={0.85}
                 >
                   <Text style={styles.primaryButtonText}>{primaryButtonText}</Text>

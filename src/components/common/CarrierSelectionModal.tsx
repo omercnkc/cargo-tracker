@@ -19,6 +19,7 @@ import { useTheme } from '../../theme/useTheme';
 import { DEFAULT_CARRIERS, isCarrierAllowed } from '../../constants/carriers';
 import { CarrierLogo } from './CarrierLogo';
 import { useTranslation } from '../../hooks/useTranslation';
+import { hapticService } from '../../services/haptics.service';
 
 interface CarrierSelectionModalProps {
   visible: boolean;
@@ -90,6 +91,7 @@ export const CarrierSelectionModal = ({
   );
 
   const handleSelect = (carrierName: string) => {
+    hapticService.selection();
     if (onSelectCarrier) {
       onSelectCarrier(carrierName);
     }

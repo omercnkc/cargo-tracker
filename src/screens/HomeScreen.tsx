@@ -20,6 +20,7 @@ import { useDrawerStore } from '../store/drawer.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
+import { hapticService } from '../services/haptics.service';
 
 interface DisplayPackage {
   id: string;
@@ -93,7 +94,10 @@ export const HomeScreen = () => {
         <TouchableOpacity 
           style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]} 
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('MainTabs', { screen: 'AddPackage' })}
+          onPress={() => {
+            hapticService.buttonPress();
+            navigation.navigate('MainTabs', { screen: 'AddPackage' });
+          }}
         >
           <MaterialIcons name="add-box" size={24} color={colors.onPrimary} />
           <Text style={[styles.primaryActionText, { color: colors.onPrimary }]}>{t('addPackage')}</Text>
@@ -102,7 +106,10 @@ export const HomeScreen = () => {
         <TouchableOpacity 
           style={[styles.secondaryActionBtn, { backgroundColor: colors.surfaceContainer, borderColor: colors.primaryFixed }]} 
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('Scanner')}
+          onPress={() => {
+            hapticService.buttonPress();
+            navigation.navigate('Scanner');
+          }}
         >
           <MaterialIcons name="qr-code-scanner" size={24} color={colors.primary} />
           <Text style={[styles.secondaryActionText, { color: colors.primary }]}>{t('qrScan')}</Text>
@@ -112,7 +119,10 @@ export const HomeScreen = () => {
       {/* Section Header */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: colors.onBackground }]}>{t('recentPackages')}</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+        <TouchableOpacity onPress={() => {
+          hapticService.buttonPress();
+          navigation.navigate('Search');
+        }}>
           <Text style={[styles.seeAllLink, { color: colors.primary }]}>{t('seeAll')}</Text>
         </TouchableOpacity>
       </View>
@@ -124,7 +134,10 @@ export const HomeScreen = () => {
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.surfaceContainer }]}>
         <View style={styles.appBarContent}>
-          <TouchableOpacity style={styles.iconButton} onPress={openDrawer}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => {
+            hapticService.buttonPress();
+            openDrawer();
+          }}>
             <MaterialIcons name="menu" size={24} color={colors.primary} />
           </TouchableOpacity>
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
@@ -154,7 +167,10 @@ export const HomeScreen = () => {
               status={item.status}
               icon={item.icon}
               isLargeScreen={isLargeScreen}
-              onPress={() => navigation.navigate('PackageDetail', { id: item.id })}
+              onPress={() => {
+                hapticService.buttonPress();
+                navigation.navigate('PackageDetail', { id: item.id });
+              }}
             />
           )}
         />

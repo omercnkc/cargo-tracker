@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } fr
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase/supabase';
 import { useTheme } from '../../theme/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import { ModernFeedbackModal, FeedbackType } from './ModernFeedbackModal';
 import { PasswordInput, PasswordStrengthMeter } from '../ui';
 import { validatePassword } from '../../utils/validators';
+import { hapticService } from '../../services/haptics.service';
 
 interface ChangePasswordModalProps {
   visible: boolean;
@@ -14,6 +16,7 @@ interface ChangePasswordModalProps {
 
 export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
   const { theme: colors } = useTheme();
+  const { t } = useTranslation();
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,28 +37,30 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
   });
 
   const handleChangePassword = async () => {
+    hapticService.buttonPress();
     const errors: { newPassword?: string; confirmPassword?: string } = {};
 
     const passValidation = validatePassword(newPassword);
     if (!newPassword) {
-      errors.newPassword = 'Yeni şifre girilmesi zorunludur.';
+      errors.newPassword = t('newPasswordRequired');
     } else if (!passValidation.isValid) {
       errors.newPassword = passValidation.errors[0];
     }
 
     if (!confirmPassword) {
-      errors.confirmPassword = 'Şifre tekrarı girilmesi zorunludur.';
+      errors.confirmPassword = t('confirmPasswordRequired');
     } else if (newPassword !== confirmPassword) {
-      errors.confirmPassword = 'Şifreler birbiriyle uyuşmuyor.';
+      errors.confirmPassword = t('passwordsDontMatch');
     }
 
     if (Object.keys(errors).length > 0) {
+      hapticService.warning();
       setFieldErrors(errors);
       setFeedback({
         visible: true,
         type: 'warning',
-        title: 'Zorunlu Alanlar Eksik',
-        message: 'Lütfen kırmızı ile belirtilen tüm alanları doldurun.',
+        title: t('missingFieldsTitle'),
+        message: t('missingFieldsMsg'),
       });
       return;
     }
@@ -68,18 +73,20 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
       setLoading(false);
 
       if (error) {
+        hapticService.error();
         setFeedback({
           visible: true,
           type: 'error',
-          title: 'Hata',
-          message: error.message || 'Şifre güncellenemedi.',
+          title: t('error'),
+          message: error.message || t('passwordUpdateError'),
         });
       } else {
+        hapticService.success();
         setFeedback({
           visible: true,
           type: 'success',
-          title: 'Şifre Güncellendi 🔒',
-          message: 'Hesap şifreniz başarıyla değiştirilmiştir.',
+          title: t('passwordUpdatedTitle'),
+          message: t('passwordUpdatedMsg'),
           onConfirm: () => {
             setFeedback(prev => ({ ...prev, visible: false }));
             setNewPassword('');
@@ -90,11 +97,12 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
       }
     } catch (err: any) {
       setLoading(false);
+      hapticService.error();
       setFeedback({
         visible: true,
         type: 'error',
-        title: 'Hata',
-        message: err.message || 'Şifre güncellenirken bir sorun oluştu.',
+        title: t('error'),
+        message: err.message || t('passwordUpdateError'),
       });
     }
   };
@@ -107,7 +115,7 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <MaterialIcons name="lock-reset" size={24} color={colors.primary} />
-              <Text style={[styles.title, { color: colors.primary }]}>Şifre Değiştir</Text>
+              <Text style={[styles.title, { color: colors.primary }]}>{t('changePassword')}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
@@ -115,12 +123,12 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
           </View>
 
           <Text style={[styles.description, { color: colors.onSurfaceVariant }]}>
-            Hesabınızın güvenliği için yeni güçlü bir şifre belirleyin.
+            {t('changePasswordModalDesc')}
           </Text>
 
           {/* New Password */}
           <PasswordInput
-            label="Yeni Şifre"
+            label={t('newPasswordLabel')}
             required
             value={newPassword}
             onChangeText={(val) => {
@@ -135,7 +143,7 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
 
           {/* Confirm Password */}
           <PasswordInput
-            label="Yeni Şifre (Tekrar)"
+            label={t('confirmNewPasswordLabel')}
             required
             leftIconName="lock-reset"
             value={confirmPassword}
@@ -156,7 +164,7 @@ export function ChangePasswordModal({ visible, onClose }: ChangePasswordModalPro
             ) : (
               <>
                 <MaterialIcons name="save" size={20} color="#ffffff" />
-                <Text style={styles.submitButtonText}>Şifreyi Güncelle</Text>
+                <Text style={styles.submitButtonText}>{t('updatePasswordBtn')}</Text>
               </>
             )}
           </TouchableOpacity>

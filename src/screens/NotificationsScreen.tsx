@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useNotificationStore, NotificationItem, NotificationFilter } from '../store/notification.store';
+import { hapticService } from '../services/haptics.service';
 import styles from './NotificationsScreen.styles';
 
 export const NotificationsScreen = () => {
@@ -41,6 +42,7 @@ export const NotificationsScreen = () => {
   }, [notifications, filter]);
 
   const handleItemPress = (item: NotificationItem) => {
+    hapticService.buttonPress();
     // Okundu olarak işaretle
     if (item.unread) {
       markAsRead(item.id);
@@ -52,6 +54,7 @@ export const NotificationsScreen = () => {
   };
 
   const handleClearAll = () => {
+    hapticService.warning();
     Alert.alert(
       t('clearAllNotifsTitle'),
       t('clearAllNotifsConfirm'),
@@ -60,7 +63,10 @@ export const NotificationsScreen = () => {
         {
           text: t('delete'),
           style: 'destructive',
-          onPress: () => clearAllNotifications(),
+          onPress: () => {
+            hapticService.buttonPress();
+            clearAllNotifications();
+          },
         },
       ]
     );
@@ -121,7 +127,10 @@ export const NotificationsScreen = () => {
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface }]}>
         <View style={styles.appBarContent}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => {
+            hapticService.buttonPress();
+            navigation.goBack();
+          }}>
             <MaterialIcons name="arrow-back" size={24} color={colors.onSurfaceVariant} />
           </TouchableOpacity>
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('notificationsTitle')}</Text>
@@ -142,7 +151,10 @@ export const NotificationsScreen = () => {
           
           <View style={styles.headerActions}>
             {unreadCount > 0 && (
-              <TouchableOpacity onPress={markAllAsRead}>
+              <TouchableOpacity onPress={() => {
+                hapticService.success();
+                markAllAsRead();
+              }}>
                 <Text style={[styles.actionText, { color: colors.primary }]}>{t('markAllAsRead')}</Text>
               </TouchableOpacity>
             )}
@@ -163,7 +175,10 @@ export const NotificationsScreen = () => {
                 ? { backgroundColor: colors.primary, borderColor: colors.primary }
                 : { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }
             ]}
-            onPress={() => setFilter('all')}
+            onPress={() => {
+              hapticService.selection();
+              setFilter('all');
+            }}
           >
             <Text style={[styles.filterTabText, { color: filter === 'all' ? colors.onPrimary : colors.onSurface }]}>
               {t('allFilter')}
@@ -185,7 +200,10 @@ export const NotificationsScreen = () => {
                 ? { backgroundColor: colors.primary, borderColor: colors.primary }
                 : { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }
             ]}
-            onPress={() => setFilter('unread')}
+            onPress={() => {
+              hapticService.selection();
+              setFilter('unread');
+            }}
           >
             <Text style={[styles.filterTabText, { color: filter === 'unread' ? colors.onPrimary : colors.onSurface }]}>
               {t('unreadFilter')}
@@ -277,6 +295,7 @@ export const NotificationsScreen = () => {
                       style={styles.deleteBtn}
                       onPress={(e) => {
                         e.stopPropagation();
+                        hapticService.buttonPress();
                         deleteNotification(notification.id);
                       }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

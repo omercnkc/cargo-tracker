@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
+import { hapticService } from '../../services/haptics.service';
 
 export const ProfileThemeLangSwitchCard = () => {
   const { theme: colors, isDarkMode, toggleTheme } = useTheme();
@@ -24,7 +25,12 @@ export const ProfileThemeLangSwitchCard = () => {
               styles.switchPill,
               !isDarkMode && styles.switchPillActiveLight,
             ]}
-            onPress={() => isDarkMode && toggleTheme()}
+            onPress={() => {
+              if (isDarkMode) {
+                hapticService.selection();
+                toggleTheme();
+              }
+            }}
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 12 }}>☀️</Text>
@@ -36,7 +42,12 @@ export const ProfileThemeLangSwitchCard = () => {
               styles.switchPill,
               isDarkMode && [styles.switchPillActiveDark, { backgroundColor: colors.primary }],
             ]}
-            onPress={() => !isDarkMode && toggleTheme()}
+            onPress={() => {
+              if (!isDarkMode) {
+                hapticService.selection();
+                toggleTheme();
+              }
+            }}
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 12 }}>🌙</Text>
@@ -58,7 +69,12 @@ export const ProfileThemeLangSwitchCard = () => {
               styles.switchPill,
               language === 'tr' && [styles.switchPillActiveBlue, { backgroundColor: colors.primary }],
             ]}
-            onPress={() => setLanguage('tr')}
+            onPress={() => {
+              if (language !== 'tr') {
+                hapticService.selection();
+                setLanguage('tr');
+              }
+            }}
             activeOpacity={0.8}
           >
             <Text style={{ fontSize: 13 }}>🇹🇷</Text>
@@ -72,7 +88,12 @@ export const ProfileThemeLangSwitchCard = () => {
               styles.switchPill,
               language === 'en' && [styles.switchPillActiveBlue, { backgroundColor: colors.primary }],
             ]}
-            onPress={() => setLanguage('en')}
+            onPress={() => {
+              if (language !== 'en') {
+                hapticService.selection();
+                setLanguage('en');
+              }
+            }}
             activeOpacity={0.8}
           >
             <Image 

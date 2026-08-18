@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { AddAddressModal, UserAddress } from './AddAddressModal';
+import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
+import { hapticService } from '../../services/haptics.service';
 
 const ADDRESSES_STORAGE_KEY = '@cargo_tracker_user_addresses';
 
@@ -53,6 +55,21 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
 
   const [addresses, setAddresses] = useState<UserAddress[]>(DEFAULT_ADDRESSES);
   const [addModalVisible, setAddModalVisible] = useState(false);
+
+  const [feedback, setFeedback] = useState<{
+    visible: boolean;
+    type: FeedbackType;
+    title: string;
+    message: string;
+    primaryBtnText?: string;
+    secondaryBtnText?: string;
+    onPrimaryAction?: () => void;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
 
   const translateY = useRef(new Animated.Value(0)).current;
 
@@ -113,11 +130,41 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
     const updated = [newAddress, ...addresses];
     setAddresses(updated);
     await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
-    Alert.alert('Başarılı', 'Yeni adresiniz teslimat listenize eklendi.');
+    hapticService.success();
+    setFeedback({
+      visible: true,
+      type: 'success',
+      title: t('success'),
+      message: t('addressAddedSuccess'),
+      primaryBtnText: t('close'),
+      onPrimaryAction: () => setFeedback((prev) => ({ ...prev, visible: false })),
+    });
   };
 
-  const handleDeleteAddress = (id: string) => {
-    setAddresses((prev) => prev.filter((a) => a.id !== id));
+  const handleDeleteAddressPrompt = (item: UserAddress) => {
+    hapticService.warning();
+    setFeedback({
+      visible: true,
+      type: 'warning',
+      title: t('deleteAddressTitle'),
+      message: item.title ? `"${item.title}" - ${t('deleteAddressConfirm')}` : t('deleteAddressConfirm'),
+      primaryBtnText: t('delete'),
+      secondaryBtnText: t('cancel'),
+      onPrimaryAction: async () => {
+        const updated = addresses.filter((a) => a.id !== item.id);
+        setAddresses(updated);
+        await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
+        hapticService.success();
+        setFeedback({
+          visible: true,
+          type: 'success',
+          title: t('success'),
+          message: t('addressDeletedSuccess'),
+          primaryBtnText: t('close'),
+          onPrimaryAction: () => setFeedback((prev) => ({ ...prev, visible: false })),
+        });
+      },
+    });
   };
 
   if (!visible) return null;
@@ -187,7 +234,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
                         </View>
                       )}
                     </View>
-                    <TouchableOpacity onPress={() => handleDeleteAddress(item.id)} style={styles.deleteBtn}>
+                    <TouchableOpacity onPress={() => handleDeleteAddressPrompt(item)} style={styles.deleteBtn}>
                       <MaterialIcons name="delete-outline" size={20} color={colors.error} />
                     </TouchableOpacity>
                   </View>
@@ -211,6 +258,25 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
         visible={addModalVisible}
         onClose={() => setAddModalVisible(false)}
         onSaveAddress={handleSaveNewAddress}
+      />
+
+      {/* Modern Feedback & Delete Confirmation Modal */}
+      <ModernFeedbackModal
+        visible={feedback.visible}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        primaryButtonText={feedback.primaryBtnText || t('confirm')}
+        secondaryButtonText={feedback.secondaryBtnText}
+        onPrimaryAction={() => {
+          if (feedback.onPrimaryAction) {
+            feedback.onPrimaryAction();
+          } else {
+            setFeedback((prev) => ({ ...prev, visible: false }));
+          }
+        }}
+        onSecondaryAction={() => setFeedback((prev) => ({ ...prev, visible: false }))}
+        onClose={() => setFeedback((prev) => ({ ...prev, visible: false }))}
       />
     </Modal>
   );

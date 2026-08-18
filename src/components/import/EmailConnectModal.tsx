@@ -101,15 +101,15 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'success',
-        title: 'Google Hesabı Bağlandı 🟢',
-        message: `${profile.email} hesabı başarıyla doğrulandı. Gmail kutunuzdaki kargo mailleri otomatik taranacak.`,
+        title: t('googleConnectedTitle'),
+        message: t('googleConnectedMsg').replace('{{email}}', profile.email),
       });
     } else {
       setFeedback({
         visible: true,
         type: 'error',
-        title: 'Bağlantı Hatası',
-        message: 'Google profil bilgileri alınamadı. Lütfen tekrar deneyin.',
+        title: t('googleAuthErrorTitle'),
+        message: t('googleAuthErrorMsg'),
       });
     }
     setLoading(false);
@@ -122,8 +122,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'warning',
-        title: 'Google Servisi',
-        message: 'Google yetkilendirme servisi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyin.',
+        title: t('googleServicePreparingTitle'),
+        message: t('googleServicePreparingMsg'),
       });
     }
   };
@@ -133,8 +133,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'warning',
-        title: 'Geçersiz E-Posta',
-        message: 'Lütfen geçerli bir e-posta adresi girin.',
+        title: t('invalidEmailTitle'),
+        message: t('invalidEmailMsg'),
       });
       return;
     }
@@ -148,8 +148,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'success',
-        title: 'E-Posta Bağlandı 📧',
-        message: `${emailInput} adresi kaydedildi.`,
+        title: t('emailSavedTitle'),
+        message: t('emailSavedMsg').replace('{{email}}', emailInput),
       });
     }
   };
@@ -168,8 +168,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'success',
-        title: '🎉 Yeni Kargolar Bulundu!',
-        message: `E-postanızda ${results.length} adet yeni kargo bildirimi tespit edildi ve kargo listenize eklendi:\n\n${shipmentSummary}`,
+        title: t('newShipmentsFoundTitle'),
+        message: t('newShipmentsFoundMsg').replace('{{count}}', String(results.length)).replace('{{summary}}', shipmentSummary),
         onConfirm: () => {
           setFeedback((prev) => ({ ...prev, visible: false }));
           if (onShipmentsImported) {
@@ -182,8 +182,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'info',
-        title: 'Kargo Güncel',
-        message: 'E-postanızda taranmamış yeni kargo bildirimi bulunamadı. Önceki kargolarınız zaten listenizde.',
+        title: t('noNewShipmentsFoundTitle'),
+        message: t('noNewShipmentsFoundMsg'),
       });
     }
   };
@@ -286,7 +286,7 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           <View style={styles.privacyBadge}>
             <MaterialIcons name="security" size={16} color="#047857" />
             <Text style={styles.privacyText}>
-              🛡️ Gizlilik Garantisi: Sadece kargo bildirim başlıkları taranır, kişisel verileriniz saklanmaz.
+              {t('privacyGuaranteeDesc')}
             </Text>
           </View>
         </View>

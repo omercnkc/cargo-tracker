@@ -19,6 +19,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useModalStore } from '../../store/modal.store';
+import { hapticService } from '../../services/haptics.service';
 
 export const DrawerMenuModal = () => {
   const { isOpen, closeDrawer } = useDrawerStore();
@@ -38,36 +39,43 @@ export const DrawerMenuModal = () => {
   const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://i.pravatar.cc/300?img=11';
 
   const handleNavigate = (screenName: string) => {
+    hapticService.buttonPress();
     closeDrawer();
     navigation.navigate(screenName);
   };
 
   const handleOpenPersonalInfoModal = () => {
+    hapticService.buttonPress();
     closeDrawer();
     openPersonalInfoModal();
   };
 
   const handleOpenAddressModal = () => {
+    hapticService.buttonPress();
     closeDrawer();
     openAddressModal();
   };
 
   const handleOpenChangePasswordModal = () => {
+    hapticService.buttonPress();
     closeDrawer();
     openChangePasswordModal();
   };
 
   const handleOpenSupportModal = (type: any) => {
+    hapticService.buttonPress();
     closeDrawer();
     openSupportModal(type);
   };
 
   const handleOpenCarrierModal = () => {
+    hapticService.buttonPress();
     closeDrawer();
     openCarrierModal();
   };
 
   const handleLogout = () => {
+    hapticService.warning();
     Alert.alert(
       t('signOut'),
       t('signOutConfirm'),

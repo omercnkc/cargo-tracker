@@ -5,7 +5,7 @@
     "scheme": "cargotracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/company-icons/kargo-takip-logo.png",
+    "icon": "./src/assets/kargo-takip-icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.omer.cargotracker",
@@ -16,7 +16,7 @@
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
-        "foregroundImage": "./src/assets/company-icons/kargo-takip-logo.png"
+        "foregroundImage": "./src/assets/kargo-takip-icon.png"
       },
       "predictiveBackGestureEnabled": false
     },

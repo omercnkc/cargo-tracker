@@ -13,6 +13,7 @@ import { MainTabParamList } from './types';
 import useResponsive from '../hooks/useResponsive';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
+import { hapticService } from '../services/haptics.service';
 
 import AnimatedCurvedTabBar from '../components/navigation/AnimatedCurvedTabBar';
 import SwipeableTabWrapper from '../components/navigation/SwipeableTabWrapper';
@@ -61,6 +62,7 @@ const CustomDesktopSidebar = ({ state, descriptors, navigation }: any) => {
           const isFocused = state.index === index;
 
           const onPress = () => {
+            hapticService.selection();
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,

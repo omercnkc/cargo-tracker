@@ -19,6 +19,7 @@ import { useTheme } from '../../theme/useTheme';
 import { useAuthStore } from '../../store/auth.store';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
 import { validateFullName, validatePhone, formatPhoneTR } from '../../utils/validators';
+import { hapticService } from '../../services/haptics.service';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -128,10 +129,12 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
     }
 
     if (Object.keys(newErrors).length > 0) {
+      hapticService.error();
       setErrors(newErrors);
       return;
     }
 
+    hapticService.buttonPress();
     setErrors({});
     setLoading(true);
 
@@ -143,6 +146,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
     setLoading(false);
 
     if (result.error) {
+      hapticService.error();
       setFeedback({
         visible: true,
         type: 'error',
@@ -150,6 +154,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
         message: result.error,
       });
     } else {
+      hapticService.success();
       setFeedback({
         visible: true,
         type: 'success',

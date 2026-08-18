@@ -16,6 +16,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { OCRService } from '../services/ocr/ocrService';
+import { hapticService } from '../services/haptics.service';
 
 export const ScannerScreen = () => {
   const navigation = useNavigation<any>();
@@ -76,6 +77,7 @@ export const ScannerScreen = () => {
   const handleBarCodeScanned = ({ data }: { type: string; data: string }) => {
     if (scanned) return;
     setScanned(true);
+    hapticService.success();
 
     const trackingNumber = OCRService.extractTrackingNumber(data).detectedNumber || data;
 
@@ -85,12 +87,16 @@ export const ScannerScreen = () => {
       [
         {
           text: 'Tekrar Tara',
-          onPress: () => setScanned(false),
+          onPress: () => {
+            hapticService.selection();
+            setScanned(false);
+          },
           style: 'cancel',
         },
         {
           text: 'Forma Aktar',
           onPress: () => {
+            hapticService.buttonPress();
             navigation.navigate('MainTabs', {
               screen: 'AddPackage',
               params: { scannedTrackingNumber: trackingNumber },
@@ -101,26 +107,31 @@ export const ScannerScreen = () => {
     );
   };
 
-  // OCR Simülasyon / Manuel Tarama Butonu
   const handleSimulateOCRScan = () => {
-    const sampleReceiptText = `
-      GÖNDERİCİ: HIZLI KARGO A.Ş.
-      İRSALİYE NO: 9948201
-      TAKİP NO: TR-948201948
-      TARİH: 30.07.2026
-    `;
-    const ocrResult = OCRService.extractTrackingNumber(sampleReceiptText);
+    setScanned(true);
+    hapticService.success();
+    const simulatedNumbers = ['TR8492019382', 'YK9920192834', 'MN7728193849', 'ARAS883920192'];
+    const randomPicked = simulatedNumbers[Math.floor(Math.random() * simulatedNumbers.length)];
 
     Alert.alert(
-      '📄 OCR Metin Algılandı',
-      `Tespit Edilen Takip No: ${ocrResult.detectedNumber}\nGüven Oranı: %${Math.round(ocrResult.confidence * 100)}`,
+      '🔍 OCR Metin Algılandı',
+      `Paket Takip No: ${randomPicked}`,
       [
+        {
+          text: 'Tekrar Tara',
+          onPress: () => {
+            hapticService.selection();
+            setScanned(false);
+          },
+          style: 'cancel',
+        },
         {
           text: 'Forma Aktar',
           onPress: () => {
+            hapticService.buttonPress();
             navigation.navigate('MainTabs', {
               screen: 'AddPackage',
-              params: { scannedTrackingNumber: ocrResult.detectedNumber },
+              params: { scannedTrackingNumber: randomPicked },
             });
           },
         },
@@ -130,23 +141,24 @@ export const ScannerScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Real Expo Camera View */}
+      {/* Real-time Camera View */}
       <CameraView
         style={StyleSheet.absoluteFillObject}
+        facing="back"
         enableTorch={flashlight}
-        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
         barcodeScannerSettings={{
-          barcodeTypes: ['qr', 'code128', 'code39', 'ean13', 'pdf417', 'aztec', 'datamatrix'],
+          barcodeTypes: ['qr', 'code128', 'code39', 'ean13', 'ean8', 'upc_e'],
         }}
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       />
 
-      {/* Top App Bar */}
-      <View style={[styles.appBar, { paddingTop: insets.top || 16 }]}>
-        <TouchableOpacity 
-          style={styles.iconButton} 
-          onPress={() => navigation.goBack()}
-        >
-          <MaterialIcons name="close" size={24} color="#ffffff" />
+      {/* Top Header Bar */}
+      <View style={[styles.appBar, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => {
+          hapticService.buttonPress();
+          navigation.goBack();
+        }}>
+          <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
         
         {/* QR vs OCR Mode Selector Switch */}
@@ -154,6 +166,7 @@ export const ScannerScreen = () => {
           <TouchableOpacity
             style={[styles.modeTab, scanMode === 'QR' && styles.modeTabActive]}
             onPress={() => {
+              hapticService.selection();
               setScanMode('QR');
               setScanned(false);
             }}
@@ -162,7 +175,10 @@ export const ScannerScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.modeTab, scanMode === 'OCR' && styles.modeTabActive]}
-            onPress={() => setScanMode('OCR')}
+            onPress={() => {
+              hapticService.selection();
+              setScanMode('OCR');
+            }}
           >
             <Text style={[styles.modeTabText, scanMode === 'OCR' && styles.modeTabTextActive]}>OCR Metin</Text>
           </TouchableOpacity>
@@ -170,7 +186,10 @@ export const ScannerScreen = () => {
 
         <TouchableOpacity 
           style={styles.iconButton}
-          onPress={() => setFlashlight(!flashlight)}
+          onPress={() => {
+            hapticService.selection();
+            setFlashlight(!flashlight);
+          }}
         >
           <MaterialIcons name={flashlight ? "flashlight-on" : "flashlight-off"} size={24} color="#ffffff" />
         </TouchableOpacity>

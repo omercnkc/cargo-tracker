@@ -237,7 +237,15 @@ export class AuthRepository {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase.from('users').upsert(profileData as any);
+      let { error } = await supabase.from('users').upsert(profileData as any);
+
+      if (error && error.message?.includes('JWT issued at future')) {
+        console.warn('[AuthRepository] Clock skew detected (JWT issued at future). Retrying profile sync in 1s...');
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const retryResult = await supabase.from('users').upsert(profileData as any);
+        error = retryResult.error;
+      }
+
       if (error) console.error('[AuthRepository] Error syncing user profile:', error.message);
       return { error: error || null };
     } catch (err) {

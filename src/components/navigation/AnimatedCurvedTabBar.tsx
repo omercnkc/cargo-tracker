@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
+import { hapticService } from '../../services/haptics.service';
 
 interface AnimatedCurvedTabBarProps {
   state: any;
@@ -98,6 +99,7 @@ export const AnimatedCurvedTabBar: React.FC<AnimatedCurvedTabBarProps> = ({
           const isFocused = state.index === index;
 
           const onPress = () => {
+            hapticService.selection();
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,

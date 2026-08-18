@@ -1,13 +1,14 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import Svg, { G, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import useResponsive from '../hooks/useResponsive';
@@ -15,30 +16,33 @@ import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useTranslation } from '../hooks/useTranslation';
+import { hapticService } from '../services/haptics.service';
 
 export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const { isOnline, pendingCount } = useNetworkStatus();
   const { theme: colors, isDarkMode } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const user = useAuthStore((state) => state.user);
   const { data: dbShipments, isLoading } = useShipments(user?.id);
 
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
+  const barScrollRef = useRef<ScrollView>(null);
 
   const shipments = useMemo(() => dbShipments || [], [dbShipments]);
 
-  // Monthly Bar Chart Data (Last 6 Months)
+  // Monthly Bar Chart Data (Last 12 Months)
   const monthlyBarData = useMemo(() => {
     const months: { month: string; value: number; year: number; monthIdx: number; key: string; fullLabel: string }[] = [];
     const now = new Date();
+    const locale = language === 'en' ? 'en-US' : 'tr-TR';
 
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthShort = d.toLocaleDateString('tr-TR', { month: 'short' });
-      const monthLong = d.toLocaleDateString('tr-TR', { month: 'long' });
+      const monthShort = d.toLocaleDateString(locale, { month: 'short' });
+      const monthLong = d.toLocaleDateString(locale, { month: 'long' });
       const year = d.getFullYear();
       const monthIdx = d.getMonth();
       const key = `${year}-${monthIdx}`;
@@ -72,7 +76,16 @@ export const StatisticsScreen = () => {
       height: `${Math.max(m.value > 0 ? (m.value / maxValue) * 100 : 8, 8)}%`,
       isSelected: selectedMonthKey === m.key,
     }));
-  }, [shipments, selectedMonthKey]);
+  }, [shipments, selectedMonthKey, language]);
+
+  // Auto scroll to latest month on mobile
+  useEffect(() => {
+    if (!isLargeScreen) {
+      setTimeout(() => {
+        barScrollRef.current?.scrollToEnd({ animated: true });
+      }, 150);
+    }
+  }, [isLargeScreen]);
 
   // Selected Month Label
   const selectedMonthLabel = useMemo(() => {
@@ -129,6 +142,19 @@ export const StatisticsScreen = () => {
     return ((deliveredShipments.length / totalCount) * 100).toFixed(1);
   }, [totalCount, deliveredShipments]);
 
+const COURIER_CHART_COLORS = [
+  '#3B82F6', // Vibrant Blue
+  '#10B981', // Emerald Green
+  '#F59E0B', // Warm Amber / Orange
+  '#8B5CF6', // Purple / Violet
+  '#EC4899', // Pink / Rose
+  '#06B6D4', // Cyan / Teal
+  '#F97316', // Deep Orange
+  '#6366F1', // Indigo
+  '#14B8A6', // Teal
+  '#EAB308', // Yellow
+];
+
   // Courier Company Distribution
   const courierStats = useMemo(() => {
     if (filteredShipments.length === 0) {
@@ -145,17 +171,17 @@ export const StatisticsScreen = () => {
     });
 
     const total = filteredShipments.length;
-    const chartColors = [colors.primary, colors.primaryContainer, colors.surfaceTint, colors.primaryFixed];
-
     const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
 
     const breakdown = entries.map(([label, count], index) => {
-      const pct = Math.round((count / total) * 100);
+      const fraction = total > 0 ? count / total : 0;
+      const pct = Math.round(fraction * 100);
       return {
         label,
         count,
         pct: `%${pct}`,
-        color: chartColors[index % chartColors.length],
+        fraction,
+        color: COURIER_CHART_COLORS[index % COURIER_CHART_COLORS.length],
       };
     });
 
@@ -163,7 +189,7 @@ export const StatisticsScreen = () => {
       totalCompanies: entries.length,
       breakdown,
     };
-  }, [filteredShipments, colors]);
+  }, [filteredShipments]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
@@ -171,7 +197,7 @@ export const StatisticsScreen = () => {
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.outlineVariant }]}>
         <View style={styles.appBarContent}>
           <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>{t('analyticsAndReporting')}</Text>
-          
+
           {/* Network Status Badge */}
           <View style={[styles.networkBadge, { backgroundColor: isOnline ? (isDarkMode ? '#064e3b' : '#dcfce7') : (isDarkMode ? '#7f1d1d' : '#fee2e2') }]}>
             <MaterialIcons name={isOnline ? "wifi" : "wifi-off"} size={14} color={isOnline ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b')} />
@@ -182,7 +208,7 @@ export const StatisticsScreen = () => {
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.mainContent,
@@ -281,18 +307,17 @@ export const StatisticsScreen = () => {
                     <Text style={[styles.chartTitle, { color: colors.onSurface }]}>{t('monthlyDistribution')}</Text>
                     <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>{t('tapBarToFilter')}</Text>
                   </View>
-                  {selectedMonthKey ? (
+                  {!!selectedMonthKey && (
                     <TouchableOpacity
                       style={[styles.dropdownPicker, { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.primary }]}
-                      onPress={() => setSelectedMonthKey(null)}
+                      onPress={() => {
+                        hapticService.selection();
+                        setSelectedMonthKey(null);
+                      }}
                     >
                       <Text style={[styles.dropdownText, { color: colors.primary, fontWeight: '600' }]}>{t('showAll')}</Text>
                       <MaterialIcons name="close" size={16} color={colors.primary} />
                     </TouchableOpacity>
-                  ) : (
-                    <View style={[styles.dropdownPicker, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-                      <Text style={[styles.dropdownText, { color: colors.onSurface }]}>{t('last6Months')}</Text>
-                    </View>
                   )}
                 </View>
 
@@ -304,35 +329,48 @@ export const StatisticsScreen = () => {
                     <View style={[styles.gridLine, { backgroundColor: colors.outlineVariant }]} />
                   </View>
 
-                  <View style={styles.barsArea}>
+                  <ScrollView
+                    ref={barScrollRef}
+                    horizontal={!isLargeScreen}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={[
+                      styles.barsArea,
+                      !isLargeScreen && styles.barsAreaScrollable
+                    ]}
+                    style={{ flex: 1, zIndex: 10 }}
+                  >
                     {monthlyBarData.map((item) => (
                       <TouchableOpacity
                         key={item.key}
-                        style={styles.barColumn}
+                        style={[
+                          styles.barColumn,
+                          !isLargeScreen && styles.barColumnScrollable
+                        ]}
                         activeOpacity={0.7}
                         onPress={() => {
+                          hapticService.selection();
                           setSelectedMonthKey((prev) => (prev === item.key ? null : item.key));
                         }}
                       >
                         <Text style={[
-                          styles.barValueText, 
-                          { 
-                            color: item.isSelected ? colors.primary : colors.onSurfaceVariant, 
-                            fontWeight: item.isSelected ? '700' : '600' 
+                          styles.barValueText,
+                          {
+                            color: item.isSelected ? colors.primary : colors.onSurfaceVariant,
+                            fontWeight: item.isSelected ? '700' : '600'
                           }
                         ]}>
                           {item.value > 0 ? item.value : ''}
                         </Text>
                         <View style={styles.barTrack}>
                           <View style={[
-                            styles.barFill, 
-                            { 
-                              height: item.height as any, 
-                              backgroundColor: item.isSelected 
-                                ? colors.primary 
-                                : selectedMonthKey 
-                                ? (isDarkMode ? '#374151' : '#e5e7eb') 
-                                : colors.primaryContainer 
+                            styles.barFill,
+                            {
+                              height: item.height as any,
+                              backgroundColor: item.isSelected
+                                ? colors.primary
+                                : selectedMonthKey
+                                  ? (isDarkMode ? '#374151' : '#e5e7eb')
+                                  : colors.primaryContainer
                             },
                           ]} />
                         </View>
@@ -350,7 +388,7 @@ export const StatisticsScreen = () => {
                         </View>
                       </TouchableOpacity>
                     ))}
-                  </View>
+                  </ScrollView>
                 </View>
               </View>
 
@@ -360,10 +398,51 @@ export const StatisticsScreen = () => {
                 {selectedMonthLabel && (
                   <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>{selectedMonthLabel}</Text>
                 )}
-                
+
+                {/* Proportional SVG Donut Chart */}
                 <View style={styles.donutChartContainer}>
-                  <View style={[styles.donutOuter, { backgroundColor: colors.primaryContainer, borderColor: colors.primary, borderTopColor: colors.primaryFixed, borderRightColor: colors.surfaceTint }]}>
-                    <View style={[styles.donutInner, { backgroundColor: colors.surfaceContainerLowest }]}>
+                  <View style={{ width: 160, height: 160, alignItems: 'center', justifyContent: 'center' }}>
+                    <Svg width={160} height={160} viewBox="0 0 160 160">
+                      <G rotation="-90" origin="80, 80">
+                        {/* Background Track Ring */}
+                        <Circle
+                          cx={80}
+                          cy={80}
+                          r={68}
+                          stroke={isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}
+                          strokeWidth={20}
+                          fill="transparent"
+                        />
+                        {/* Mathematical Proportional Slices */}
+                        {(() => {
+                          let accumulatedFraction = 0;
+                          const circumference = 2 * Math.PI * 68; // ~427.256
+                          return courierStats.breakdown.map((item, index) => {
+                            const sliceLength = item.fraction * circumference;
+                            const strokeDashoffset = -accumulatedFraction * circumference;
+                            accumulatedFraction += item.fraction;
+                            const gap = courierStats.breakdown.length > 1 ? 2.5 : 0;
+
+                            return (
+                              <Circle
+                                key={index}
+                                cx={80}
+                                cy={80}
+                                r={68}
+                                stroke={item.color}
+                                strokeWidth={20}
+                                strokeDasharray={`${Math.max(0, sliceLength - gap)} ${circumference}`}
+                                strokeDashoffset={strokeDashoffset}
+                                fill="transparent"
+                              />
+                            );
+                          });
+                        })()}
+                      </G>
+                    </Svg>
+
+                    {/* Center Text (Total Companies) */}
+                    <View style={styles.donutCenterContent} pointerEvents="none">
                       <Text style={[styles.donutCenterText, { color: colors.onSurface }]}>{courierStats.totalCompanies}</Text>
                       <Text style={[styles.donutCenterSubtext, { color: colors.onSurfaceVariant }]}>{t('companyUnit')}</Text>
                     </View>
@@ -608,11 +687,19 @@ const styles = StyleSheet.create({
     zIndex: 10,
     height: '100%',
   },
+  barsAreaScrollable: {
+    minWidth: 580,
+    paddingHorizontal: 6,
+  },
   barColumn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-end',
     height: '100%',
+  },
+  barColumnScrollable: {
+    width: 46,
+    flex: 0,
   },
   barValueText: {
     fontSize: 10,
@@ -642,24 +729,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   donutChartContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 16,
     minHeight: 160,
   },
-  donutOuter: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    borderWidth: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  donutInner: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+  donutCenterContent: {
+    position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
   },

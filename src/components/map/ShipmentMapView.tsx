@@ -4,6 +4,7 @@ import MapView, { PROVIDER_DEFAULT } from 'react-native-maps';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CustomMarker } from './CustomMarker';
 import { LocationPoint, getLatest15MinDelayedLocation } from '../../types/location';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface ShipmentMapViewProps {
   destination: LocationPoint;
@@ -18,6 +19,8 @@ export function ShipmentMapView({
   height = 240,
   onExpandFullScreen,
 }: ShipmentMapViewProps) {
+  const { t, language } = useTranslation();
+
   // Kurye güvenliği için 15 dakika gecikmeli en son konumu al
   const delayedCourierLocation = useMemo(() => {
     if (!rawCourierLocations || rawCourierLocations.length === 0) return undefined;
@@ -49,13 +52,15 @@ export function ShipmentMapView({
     };
   }, [delayedCourierLocation, destination]);
 
+  const locale = language === 'en' ? 'en-US' : 'tr-TR';
+
   return (
     <View style={[styles.container, { height }]}>
       {/* 15 Dakika Kurye Güvenliği Rozeti (Safety Badge) */}
       <View style={styles.securityBadge}>
         <MaterialIcons name="security" size={16} color="#047857" style={styles.securityIcon} />
         <Text style={styles.securityText}>
-          🛡️ Kurye güvenliği nedeniyle konum 15 dk gecikmeli gösterilmektedir.
+          {t('courierSafetyNotice')}
         </Text>
       </View>
 
@@ -71,8 +76,8 @@ export function ShipmentMapView({
           <CustomMarker
             location={delayedCourierLocation}
             type="courier"
-            title="Kargo Aracı Konumu (15 dk Gecikmeli)"
-            description={`Son Güvenli Kayıt: ${new Date(delayedCourierLocation.recordedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`}
+            title={t('courierLocationTitle')}
+            description={`${t('lastSecureRecord')}: ${new Date(delayedCourierLocation.recordedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`}
           />
         )}
 
@@ -80,8 +85,8 @@ export function ShipmentMapView({
         <CustomMarker
           location={destination}
           type="destination"
-          title="Teslimat Adresiniz"
-          description={destination.description || destination.title || "Kargonun varış adresi"}
+          title={t('deliveryAddressTitle')}
+          description={destination.description || destination.title || t('destinationAddressDesc')}
         />
       </MapView>
 
