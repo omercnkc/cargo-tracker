@@ -20,6 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useCourierCompanies, useAddShipment } from '../features/shipment/hooks/useShipments';
 import { useAuthStore } from '../store/auth.store';
@@ -27,6 +28,7 @@ import { useTheme } from '../theme/useTheme';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
 import { OCRService } from '../services/ocr/ocrService';
 import { useTranslation } from '../hooks/useTranslation';
+import { UserAddress } from '../components/profile/AddAddressModal';
 
 import { ModernFeedbackModal, FeedbackType } from '../components/common/ModernFeedbackModal';
 import { DEFAULT_CARRIERS, getCarrierByName, isCarrierAllowed } from '../constants/carriers';
@@ -46,6 +48,26 @@ export const AddPackageScreen = () => {
 
   const { data: dbCouriers } = useCourierCompanies();
   const addShipmentMutation = useAddShipment();
+
+  const [activeAddress, setActiveAddress] = useState<UserAddress | null>(null);
+
+  useEffect(() => {
+    const loadActiveAddress = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('@cargo_tracker_user_addresses');
+        if (stored) {
+          const list: UserAddress[] = JSON.parse(stored);
+          if (Array.isArray(list) && list.length > 0) {
+            const def = list.find(a => a.isDefault) || list[0];
+            if (def) setActiveAddress(def);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading address in AddPackageScreen:', e);
+      }
+    };
+    loadActiveAddress();
+  }, []);
 
   // Always use local DEFAULT_CARRIERS for UI (guaranteed icons)
   const carriers = DEFAULT_CARRIERS;
@@ -163,11 +185,20 @@ export const AddPackageScreen = () => {
       const formattedTitle = nickname.trim() ? formatTitleCaseTR(nickname) : (activeCarrier?.name || null);
       const dbCompanyId = selectedCarrier ? getDbCompanyId(selectedCarrier) : null;
 
+      const receiverText = activeAddress
+        ? `${activeAddress.fullName}\n${activeAddress.fullAddress}`
+        : 'Ahmet Yılmaz\nCihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul';
+      const lastLocText = activeAddress
+        ? `${activeAddress.district} Dağıtım Bölgesi, ${activeAddress.city}`
+        : 'Beşiktaş Dağıtım Bölgesi, İstanbul';
+
       await addShipmentMutation.mutateAsync({
         user_id: user.id,
         tracking_number: formattedTrackingNo,
         company_id: dbCompanyId,
         title: formattedTitle,
+        receiver: receiverText,
+        last_location: lastLocText,
         current_status: 'transit',
       });
 

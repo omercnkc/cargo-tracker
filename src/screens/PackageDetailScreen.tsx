@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
   ActivityIndicator
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -23,6 +24,20 @@ import { getCarrierByName } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { getShipmentProgress, translateTimelineEvent } from '../utils/shipmentUtils';
 import { hapticService } from '../services/haptics.service';
+import { UserAddress } from '../components/profile/AddAddressModal';
+
+const DEFAULT_ACTIVE_ADDRESS: UserAddress = {
+  id: 'addr_default_1',
+  title: 'Ev Adresim',
+  fullName: 'Ahmet Yılmaz',
+  phone: '0555 123 45 67',
+  city: 'İstanbul',
+  district: 'Beşiktaş',
+  fullAddress: 'Cihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul',
+  latitude: 41.0425,
+  longitude: 29.0068,
+  isDefault: true,
+};
 
 export const PackageDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -37,8 +52,34 @@ export const PackageDetailScreen = () => {
   const shipmentId = route.params?.id;
   const { data: shipment, isLoading } = useShipmentDetail(shipmentId);
 
+  // User's saved addresses list
+  const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([DEFAULT_ACTIVE_ADDRESS]);
+
+  useEffect(() => {
+    const loadAddresses = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('@cargo_tracker_user_addresses');
+        if (stored) {
+          const list: UserAddress[] = JSON.parse(stored);
+          if (Array.isArray(list) && list.length > 0) {
+            setSavedAddresses(list);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading addresses in PackageDetailScreen:', e);
+      }
+    };
+
+    loadAddresses();
+  }, []);
+
   // Supabase Realtime Canlı Takip Hook'u
   useShipmentRealtime(shipmentId);
+
+  // Active default address
+  const activeDefaultAddress = useMemo(() => {
+    return savedAddresses.find((a) => a.isDefault) || savedAddresses[0] || DEFAULT_ACTIVE_ADDRESS;
+  }, [savedAddresses]);
 
   // Fallback mock detail if not found or demo preview
   const displayShipment = shipment || {
@@ -47,43 +88,57 @@ export const PackageDetailScreen = () => {
     title: 'Aras Kargo Paketim',
     current_status: 'transit',
     sender: 'TechStore Elektronik A.Ş.',
-    receiver: 'Ahmet Yılmaz',
-    last_location: 'Dolmabahçe Dağıtım Bölgesi, İstanbul',
+    receiver: activeDefaultAddress ? `${activeDefaultAddress.fullName}\n${activeDefaultAddress.fullAddress}` : 'Ahmet Yılmaz\nBeşiktaş, İstanbul',
+    last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
     estimated_delivery: 'Bugün, 14:00 - 18:00',
     courier_companies: { name: 'Aras Kargo' },
     shipment_events: [
-      { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: 'Beşiktaş Şubesi', event_time: 'Bugün, 09:15' },
-      { id: 'e2', status: 'Transfer Merkezinde', description: 'Avrupa Yakası Aktarma Merkezi', location: 'İstanbul', event_time: 'Dün, 22:45' },
+      { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Bugün, 09:15' },
+      { id: 'e2', status: 'Transfer Merkezinde', description: 'Avrupa Yakası Aktarma Merkezi', location: activeDefaultAddress?.city || 'İstanbul', event_time: 'Dün, 22:45' },
       { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'Ankara', event_time: 'Dün, 14:10' },
     ]
   };
 
+  // Bu spesifik kargoya atanmış alıcı teslimat adresini ve koordinatlarını çözümle
+  const shipmentReceiverAddress = useMemo(() => {
+    const receiverText = (displayShipment.receiver || '').toLowerCase().trim();
+
+    if (receiverText && savedAddresses.length > 0) {
+      const matched = savedAddresses.find((addr) => {
+        const full = addr.fullAddress.toLowerCase().trim();
+        const dist = (addr.district || '').toLowerCase().trim();
+        const ttl = (addr.title || '').toLowerCase().trim();
+        return (
+          receiverText.includes(full) ||
+          full.includes(receiverText) ||
+          (dist && receiverText.includes(dist)) ||
+          (ttl && receiverText.includes(ttl))
+        );
+      });
+      if (matched) return matched;
+    }
+
+    return activeDefaultAddress;
+  }, [displayShipment.receiver, savedAddresses, activeDefaultAddress]);
+
   const nowMs = Date.now();
 
-  // Alıcı (User) Teslimat Adresi Konumu (Dolmabahçe / Beşiktaş)
-  const mapDestination: LocationPoint = {
-    latitude: 41.0390,
-    longitude: 29.0005,
-    title: 'Ahmet Yılmaz - Teslimat Adresi',
-    description: 'Beşiktaş, İstanbul',
-    recordedAt: new Date(nowMs).toISOString(),
-  };
+  // Alıcı (User) Teslimat Adresi Konumu (Kargonun Kayıtlı Alıcı Adresi)
+  const mapDestination: LocationPoint = useMemo(() => {
+    const lat = shipmentReceiverAddress?.latitude || 41.0425;
+    const lng = shipmentReceiverAddress?.longitude || 29.0068;
+    const destTitle = shipmentReceiverAddress?.title
+      ? `${shipmentReceiverAddress.title} - ${shipmentReceiverAddress.fullName}`
+      : (shipmentReceiverAddress?.fullName || 'Teslimat Adresi');
 
-  // Kuryenin 15 dk gecikmeli konum noktası (Aynı karada, Beşiktaş / Kabataş güzergahı üzerinde)
-  const rawCourierLocations: LocationPoint[] = useMemo(() => [
-    {
-      latitude: 41.0330,
-      longitude: 28.9920,
-      title: 'Kargo Aracı (Dağıtımda)',
-      recordedAt: new Date(nowMs - 20 * 60 * 1000).toISOString(), // 20 dk önce -> Son Güvenli Nokta
-    },
-    {
-      latitude: 41.0360,
-      longitude: 28.9960,
-      title: 'Kurye Anlık Yakın Konum',
-      recordedAt: new Date(nowMs - 3 * 60 * 1000).toISOString(), // 3 dk önce -> 15 DK FİLTRESİ İLE GİZLENİR
-    },
-  ], [nowMs]);
+    return {
+      latitude: lat,
+      longitude: lng,
+      title: destTitle,
+      description: shipmentReceiverAddress?.fullAddress || displayShipment.receiver || 'Beşiktaş, İstanbul',
+      recordedAt: new Date(nowMs).toISOString(),
+    };
+  }, [shipmentReceiverAddress, displayShipment.receiver, nowMs]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -138,10 +193,9 @@ export const PackageDetailScreen = () => {
             </View>
           </View>
 
-          {/* Clean Map View: Only User Address & Courier Vehicle (No lines across sea) */}
+          {/* Clean Map View: Focused Only on User's Delivery Address */}
           <ShipmentMapView
             destination={mapDestination}
-            rawCourierLocations={rawCourierLocations}
             height={260}
           />
 

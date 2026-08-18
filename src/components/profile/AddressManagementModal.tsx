@@ -30,6 +30,8 @@ const DEFAULT_ADDRESSES: UserAddress[] = [
     city: 'İstanbul',
     district: 'Beşiktaş',
     fullAddress: 'Cihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul',
+    latitude: 41.0425,
+    longitude: 29.0068,
     isDefault: true,
   },
   {
@@ -40,6 +42,9 @@ const DEFAULT_ADDRESSES: UserAddress[] = [
     city: 'İstanbul',
     district: 'Levent',
     fullAddress: 'Büyükdere Cad. No:199 K:12, Levent / İstanbul',
+    latitude: 41.0778,
+    longitude: 29.0112,
+    isDefault: false,
   },
 ];
 
@@ -167,6 +172,16 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
     });
   };
 
+  const handleSetDefaultAddress = async (id: string) => {
+    hapticService.selection();
+    const updated = addresses.map((a) => ({
+      ...a,
+      isDefault: a.id === id,
+    }));
+    setAddresses(updated);
+    await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
+  };
+
   if (!visible) return null;
 
   return (
@@ -224,9 +239,26 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
               </View>
             ) : (
               addresses.map((item) => (
-                <View key={item.id} style={[styles.addressCard, { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainer }]}>
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.addressCard,
+                    {
+                      borderColor: item.isDefault ? colors.primary : colors.outlineVariant,
+                      backgroundColor: colors.surfaceContainer,
+                      borderWidth: item.isDefault ? 1.5 : 1,
+                    },
+                  ]}
+                  activeOpacity={0.85}
+                  onPress={() => handleSetDefaultAddress(item.id)}
+                >
                   <View style={styles.cardHeader}>
                     <View style={styles.cardTitleBadgeRow}>
+                      <MaterialIcons
+                        name={item.isDefault ? 'radio-button-checked' : 'radio-button-unchecked'}
+                        size={20}
+                        color={item.isDefault ? colors.primary : colors.onSurfaceVariant}
+                      />
                       <Text style={[styles.cardTitle, { color: colors.primary }]}>{item.title}</Text>
                       {item.isDefault && (
                         <View style={styles.defaultBadge}>
@@ -234,7 +266,14 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
                         </View>
                       )}
                     </View>
-                    <TouchableOpacity onPress={() => handleDeleteAddressPrompt(item)} style={styles.deleteBtn}>
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleDeleteAddressPrompt(item);
+                      }}
+                      style={styles.deleteBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
                       <MaterialIcons name="delete-outline" size={20} color={colors.error} />
                     </TouchableOpacity>
                   </View>
@@ -246,7 +285,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
                       👤 {item.fullName} | 📞 {item.phone}
                     </Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))
             )}
           </ScrollView>

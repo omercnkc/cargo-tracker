@@ -38,6 +38,8 @@ export interface UserAddress {
   city: string;
   district: string;
   fullAddress: string;
+  latitude?: number;
+  longitude?: number;
   isDefault?: boolean;
 }
 
@@ -65,6 +67,7 @@ export function AddAddressModal({
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [fullAddress, setFullAddress] = useState('');
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [loadingGps, setLoadingGps] = useState(false);
   const [gpsSuccessInfo, setGpsSuccessInfo] = useState<{
     district: string;
@@ -217,6 +220,11 @@ export function AddAddressModal({
         setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
         return;
       }
+
+      setCoords({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
 
       const geocode = await Location.reverseGeocodeAsync({
         latitude: position.coords.latitude,
@@ -523,6 +531,8 @@ export function AddAddressModal({
       city: formatTitleCaseTR(city.trim() || selectedCity?.name || ''),
       district: formatTitleCaseTR(district.trim() || selectedDistrict?.name || ''),
       fullAddress: fullAddress.trim(),
+      latitude: coords?.latitude,
+      longitude: coords?.longitude,
     };
 
     onSaveAddress(newAddress);
@@ -538,6 +548,7 @@ export function AddAddressModal({
     setSelectedDistrict(null);
     setSelectedNeighborhood(null);
     setFullAddress('');
+    setCoords(null);
     setGpsSuccessInfo(null);
     setGpsInlineError(null);
     setFormBanner(null);
