@@ -1,40 +1,34 @@
-import { useRoute } from '@react-navigation/native';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   useWindowDimensions,
-  Image,
-  Modal,
-  FlatList,
-  Alert,
   ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useCourierCompanies, useAddShipment } from '../features/shipment/hooks/useShipments';
 import { useAuthStore } from '../store/auth.store';
 import { useTheme } from '../theme/useTheme';
-import { EmailConnectModal } from '../components/import/EmailConnectModal';
-import { OCRService } from '../services/ocr/ocrService';
 import { useTranslation } from '../hooks/useTranslation';
-import { UserAddress } from '../components/profile/AddAddressModal';
-
+import { useUserAddresses } from '../hooks/useUserAddresses';
+import { EmailConnectModal } from '../components/import/EmailConnectModal';
+import { CarrierSelectionSheet } from '../components/package/CarrierSelectionSheet';
+import { OCRService } from '../services/ocr/ocrService';
 import { ModernFeedbackModal, FeedbackType } from '../components/common/ModernFeedbackModal';
-import { DEFAULT_CARRIERS, getCarrierByName, isCarrierAllowed } from '../constants/carriers';
+import { DEFAULT_CARRIERS } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { formatTrackingNumber, formatTitleCaseTR } from '../utils/stringFormatters';
 import { hapticService } from '../services/haptics.service';
+import { styles } from './AddPackageScreen.styles';
 
 export const AddPackageScreen = () => {
   const navigation = useNavigation<any>();
@@ -48,26 +42,7 @@ export const AddPackageScreen = () => {
 
   const { data: dbCouriers } = useCourierCompanies();
   const addShipmentMutation = useAddShipment();
-
-  const [activeAddress, setActiveAddress] = useState<UserAddress | null>(null);
-
-  useEffect(() => {
-    const loadActiveAddress = async () => {
-      try {
-        const stored = await AsyncStorage.getItem('@cargo_tracker_user_addresses');
-        if (stored) {
-          const list: UserAddress[] = JSON.parse(stored);
-          if (Array.isArray(list) && list.length > 0) {
-            const def = list.find(a => a.isDefault) || list[0];
-            if (def) setActiveAddress(def);
-          }
-        }
-      } catch (e) {
-        console.error('Error loading address in AddPackageScreen:', e);
-      }
-    };
-    loadActiveAddress();
-  }, []);
+  const { defaultAddress } = useUserAddresses();
 
   // Always use local DEFAULT_CARRIERS for UI (guaranteed icons)
   const carriers = DEFAULT_CARRIERS;
@@ -92,6 +67,9 @@ export const AddPackageScreen = () => {
   const [nickname, setNickname] = useState('');
   const [clipboardDetected, setClipboardDetected] = useState<string | null>(null);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ trackingNumber?: string; selectedCarrier?: string }>({});
 
   const [feedback, setFeedback] = useState<{
     visible: boolean;
@@ -131,12 +109,13 @@ export const AddPackageScreen = () => {
     checkClipboard();
   }, []);
 
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<{ trackingNumber?: string; selectedCarrier?: string }>({});
+  const filteredCarriers = useMemo(() => {
+    return carriers.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [carriers, searchQuery]);
 
-  const filteredCarriers = carriers.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  const activeCarrier = carriers.find(c => c.id === selectedCarrier);
+  const activeCarrier = useMemo(() => {
+    return carriers.find(c => c.id === selectedCarrier);
+  }, [carriers, selectedCarrier]);
 
   const handleApplyClipboard = () => {
     if (clipboardDetected) {
@@ -186,11 +165,11 @@ export const AddPackageScreen = () => {
       const carrierName = activeCarrier?.name || 'Kargo';
       const dbCompanyId = selectedCarrier ? getDbCompanyId(selectedCarrier) : null;
 
-      const receiverText = activeAddress
-        ? `${activeAddress.fullName}\n${activeAddress.fullAddress}`
+      const receiverText = defaultAddress
+        ? `${defaultAddress.fullName}\n${defaultAddress.fullAddress}`
         : 'Ahmet Yılmaz\nCihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul';
-      const lastLocText = activeAddress
-        ? `${activeAddress.district} Dağıtım Bölgesi, ${activeAddress.city}`
+      const lastLocText = defaultAddress
+        ? `${defaultAddress.district} Dağıtım Bölgesi, ${defaultAddress.city}`
         : 'Beşiktaş Dağıtım Bölgesi, İstanbul';
 
       await addShipmentMutation.mutateAsync({
@@ -224,15 +203,6 @@ export const AddPackageScreen = () => {
         title: t('addErrorTitle'),
         message: err.message || t('error'),
       });
-    }
-  };
-
-  const handleBack = () => {
-    hapticService.buttonPress();
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.navigate('Home');
     }
   };
 
@@ -437,95 +407,21 @@ export const AddPackageScreen = () => {
         }}
       />
 
-      {/* Bottom Sheet Modal for Carrier Selection */}
-      <Modal
+      {/* Reusable Bottom Sheet Modal for Carrier Selection */}
+      <CarrierSelectionSheet
         visible={sheetVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setSheetVisible(false)}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setSheetVisible(false)}
-          />
-
-          <View style={[
-            styles.bottomSheetContainer,
-            { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant },
-            { paddingBottom: insets.bottom || 24 },
-            isLargeScreen && styles.bottomSheetContainerLarge
-          ]}>
-
-            {/* Drag Handle (Mobile) */}
-            {!isLargeScreen && (
-              <View style={styles.dragHandleContainer}>
-                <View style={[styles.dragHandle, { backgroundColor: colors.outlineVariant }]} />
-              </View>
-            )}
-
-            <View style={[styles.sheetHeader, { borderBottomColor: colors.surfaceContainer }]}>
-              <Text style={[styles.sheetTitle, { color: colors.onSurface }]}>{t('selectCarrier')}</Text>
-              <TouchableOpacity style={styles.iconButton} onPress={() => setSheetVisible(false)}>
-                <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.searchContainer}>
-              <View style={styles.searchIconContainer}>
-                <MaterialIcons name="search" size={20} color={colors.outline} />
-              </View>
-              <TextInput
-                style={[styles.searchInput, { backgroundColor: colors.surface, color: colors.onSurface, borderColor: colors.outlineVariant }]}
-                placeholder={t('searchCarriers')}
-                placeholderTextColor={colors.onSurfaceVariant}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-
-            <View style={styles.sheetScroll}>
-              {filteredCarriers.length > 0 ? (
-                <FlatList
-                  data={filteredCarriers}
-                  keyExtractor={(item) => item.id}
-                  numColumns={2}
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: 24, gap: 16 }}
-                  columnWrapperStyle={{ gap: 16, justifyContent: 'space-between' }}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={[styles.carrierGridCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}
-                      onPress={() => {
-                        hapticService.selection();
-                        setSelectedCarrier(item.id);
-                        setSheetVisible(false);
-                        setSearchQuery('');
-                      }}
-                    >
-                      <View style={[styles.carrierGridIconBox, { backgroundColor: colors.surfaceContainer }]}>
-                        <CarrierLogo logo={item.logo} size={36} />
-                      </View>
-                      <Text style={[styles.carrierGridName, { color: colors.onSurface }]}>{item.name}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
-              ) : (
-                <View style={styles.noResultsContainer}>
-                  <MaterialIcons name="search-off" size={32} color={colors.outlineVariant} />
-                  <Text style={[styles.noResultsText, { color: colors.onSurface }]}>{t('noCarriersFound')}</Text>
-                  <Text style={[styles.noResultsSubtext, { color: colors.onSurfaceVariant }]}>{t('tryDifferentSearch')}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        onClose={() => setSheetVisible(false)}
+        carriers={filteredCarriers}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSelectCarrier={(carrierId) => {
+          setSelectedCarrier(carrierId);
+          setSheetVisible(false);
+          setSearchQuery('');
+        }}
+        isLargeScreen={isLargeScreen}
+        bottomInset={insets.bottom}
+      />
 
       <ModernFeedbackModal
         visible={feedback.visible}
@@ -542,355 +438,8 @@ export const AddPackageScreen = () => {
         }}
         onClose={() => setFeedback(prev => ({ ...prev, visible: false }))}
       />
-
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  appBarContent: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    maxWidth: 1280,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  appBarTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 999,
-  },
-  mainContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    maxWidth: 1280,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  headerSection: {
-    marginBottom: 16,
-    gap: 4,
-  },
-  pageTitle: {
-    fontFamily: 'Inter',
-    fontSize: 24,
-    fontWeight: '700',
-    lineHeight: 32,
-    letterSpacing: -0.24,
-  },
-  pageTitleLarge: {
-    fontFamily: 'Inter',
-    fontSize: 32,
-    fontWeight: '700',
-    lineHeight: 40,
-    letterSpacing: -0.64,
-  },
-  pageSubtitle: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  formBlock: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 20,
-    gap: 18,
-    marginTop: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  cardHeader: {
-    marginBottom: 16,
-    gap: 6,
-    zIndex: 10,
-  },
-  title: {
-    fontFamily: 'Inter',
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: -0.24,
-  },
-  subtitle: {
-    fontFamily: 'Inter',
-    fontSize: 15,
-  },
-  clipboardBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 12,
-    zIndex: 10,
-  },
-  clipboardText: {
-    fontSize: 14,
-    flex: 1,
-  },
-  clipboardCode: {
-    fontWeight: '700',
-    fontFamily: 'Courier Prime',
-  },
-  emailSyncCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 14,
-    zIndex: 10,
-  },
-  emailSyncTextWrapper: {
-    flex: 1,
-  },
-  emailSyncTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  emailSyncSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  form: {
-    gap: 18,
-    zIndex: 10,
-  },
-  inputGroup: {
-    gap: 6,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  inputLabel: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 0.4,
-  },
-  requiredAsterisk: {},
-  optionalText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '400',
-  },
-  inputWrapper: {
-    position: 'relative',
-    justifyContent: 'center',
-  },
-  inputIconLeft: {
-    position: 'absolute',
-    left: 14,
-    zIndex: 10,
-  },
-  input: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    borderWidth: 1,
-    borderRadius: 12,
-    height: 52,
-    paddingLeft: 44,
-    paddingRight: 16,
-  },
-  inputMono: {
-    fontFamily: 'Courier Prime',
-    fontSize: 16,
-    borderWidth: 1,
-    borderRadius: 12,
-    height: 52,
-    paddingLeft: 44,
-    paddingRight: 48,
-  },
-  qrButton: {
-    position: 'absolute',
-    right: 8,
-    zIndex: 10,
-    padding: 8,
-    borderRadius: 999,
-  },
-  submitContainer: {
-    paddingTop: 10,
-  },
-  submitButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 999,
-    height: 52,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  submitButtonText: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  carrierSelectorBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 52,
-  },
-  carrierSelectorContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  carrierSelectorLogo: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
-  },
-  carrierSelectorText: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  carrierSelectorPlaceholder: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(11, 28, 48, 0.4)',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  bottomSheetContainer: {
-    width: '100%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 24,
-    maxHeight: '90%',
-    height: 600,
-  },
-  bottomSheetContainerLarge: {
-    maxWidth: 448,
-    height: 600,
-    borderRadius: 24,
-    marginBottom: 16,
-  },
-  dragHandleContainer: {
-    width: '100%',
-    alignItems: 'center',
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  dragHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 999,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  sheetTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  searchContainer: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    position: 'relative',
-  },
-  searchIconContainer: {
-    position: 'absolute',
-    left: 36,
-    top: 30,
-    zIndex: 1,
-  },
-  searchInput: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingLeft: 40,
-    paddingRight: 12,
-    fontFamily: 'Inter',
-    fontSize: 16,
-  },
-  sheetScroll: {
-    flex: 1,
-  },
-  carrierGridCard: {
-    width: '47%',
-    aspectRatio: 1,
-    borderWidth: 1,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  carrierGridIconBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  carrierGridLogo: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
-  },
-  carrierGridName: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  noResultsContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-  },
-  noResultsText: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    marginTop: 12,
-  },
-  noResultsSubtext: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    marginTop: 4,
-  }
-});
 
 export default AddPackageScreen;

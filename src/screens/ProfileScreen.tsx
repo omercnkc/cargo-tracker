@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Image
@@ -21,6 +20,7 @@ import { useNotificationStore } from '../store/notification.store';
 import { ProfileThemeLangSwitchCard } from '../components/profile/ProfileThemeLangSwitchCard';
 import { EditProfileModal } from '../components/profile/EditProfileModal';
 import { hapticService } from '../services/haptics.service';
+import { styles } from './ProfileScreen.styles';
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
@@ -60,26 +60,15 @@ export const ProfileScreen = () => {
           }}>
             <MaterialIcons name="menu" size={24} color={colors.primary} />
           </TouchableOpacity>
-
-          <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('appName')}</Text>
-
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => {
-              hapticService.buttonPress();
-              navigation.navigate('Notifications');
-            }}
-          >
-            <View style={{ position: 'relative' }}>
-              <MaterialIcons name="notifications-none" size={24} color={colors.primary} />
-              {unreadCount > 0 && (
-                <View style={[styles.redDot, { backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center', minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 2, top: -2, right: -4 }]}>
-                  <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: '700' }}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Text>
-                </View>
-              )}
-            </View>
+          <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('myProfile')}</Text>
+          <TouchableOpacity style={styles.iconButton} onPress={() => {
+            hapticService.buttonPress();
+            navigation.navigate('Notifications');
+          }}>
+            <MaterialIcons name="notifications" size={24} color={colors.primary} />
+            {unreadCount > 0 && (
+              <View style={[styles.redDot, { backgroundColor: colors.error }]} />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -88,24 +77,29 @@ export const ProfileScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.mainContent,
-          { paddingBottom: isLargeScreen ? 48 : insets.bottom + 96 }
+          { paddingBottom: isLargeScreen ? 32 : insets.bottom + 96 }
         ]}
       >
-        {/* Profile Info Card */}
+        {/* Profile Card */}
         <View style={[styles.profileCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-          <View style={[styles.avatarBorderContainer, { borderColor: colors.surfaceContainerLowest }]}>
+
+          {/* User Avatar */}
+          <View style={[styles.avatarBorderContainer, { borderColor: colors.surface }]}>
             <Image
               source={{ uri: displayAvatar }}
               style={styles.avatarImage}
+              resizeMode="cover"
             />
           </View>
 
+          {/* User Details */}
           <Text style={[styles.profileName, { color: colors.onSurface }]}>{displayName}</Text>
           <Text style={[styles.profileEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
 
+          {/* Edit Profile Action Button */}
           <TouchableOpacity
             style={[styles.editPillButton, { backgroundColor: colors.primary }]}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={() => {
               hapticService.buttonPress();
               setEditModalVisible(true);
@@ -114,39 +108,36 @@ export const ProfileScreen = () => {
             <MaterialIcons name="edit" size={16} color={colors.onPrimary} />
             <Text style={[styles.editPillButtonText, { color: colors.onPrimary }]}>{t('editProfile')}</Text>
           </TouchableOpacity>
+
         </View>
 
-        {/* Bento Stats Row */}
+        {/* Dynamic Shipment Statistics Row */}
         <View style={[styles.statsCardRow, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
 
-          {/* Item 1: Toplam */}
           <View style={styles.statColItem}>
-            <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff' }]}>
-              <MaterialIcons name="inventory-2" size={18} color={isDarkMode ? '#93c5fd' : '#2563eb'} />
+            <View style={[styles.statIconCircle, { backgroundColor: colors.primaryContainer }]}>
+              <MaterialIcons name="inventory" size={18} color={colors.onPrimaryContainer} />
             </View>
-            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('total')}</Text>
+            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('totalCargo')}</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{totalCount}</Text>
           </View>
 
-          {/* Item 2: Yolda */}
           <View style={styles.statColItem}>
-            <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff' }]}>
-              <MaterialIcons name="local-shipping" size={18} color={isDarkMode ? '#93c5fd' : '#2563eb'} />
+            <View style={[styles.statIconCircle, { backgroundColor: colors.secondaryContainer }]}>
+              <MaterialIcons name="local-shipping" size={18} color={colors.onSecondaryContainer} />
             </View>
             <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('inTransit')}</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{inTransitCount}</Text>
           </View>
 
-          {/* Item 3: Teslim Edildi */}
           <View style={styles.statColItem}>
-            <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#064e3b' : '#f0fdf4' }]}>
-              <MaterialIcons name="check-circle" size={18} color={isDarkMode ? '#6ee7b7' : '#16a34a'} />
+            <View style={[styles.statIconCircle, { backgroundColor: colors.tertiaryContainer }]}>
+              <MaterialIcons name="check-circle" size={18} color={colors.onTertiaryContainer} />
             </View>
-            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('statusDelivered')}</Text>
+            <Text style={[styles.statColLabel, { color: colors.onSurfaceVariant }]}>{t('delivered')}</Text>
             <Text style={[styles.statColValue, { color: colors.onSurface }]}>{deliveredCount}</Text>
           </View>
 
-          {/* Item 4: Sorunlu */}
           <View style={styles.statColItem}>
             <View style={[styles.statIconCircle, { backgroundColor: isDarkMode ? '#7f1d1d' : '#fef2f2' }]}>
               <MaterialIcons name="error" size={18} color={isDarkMode ? '#fca5a5' : '#dc2626'} />
@@ -170,150 +161,5 @@ export const ProfileScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  appBar: {
-    borderBottomWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    zIndex: 40,
-  },
-  appBarContent: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    maxWidth: 1280,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  appBarTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 999,
-  },
-  redDot: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  mainContent: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    maxWidth: 896,
-    alignSelf: 'center',
-    width: '100%',
-    gap: 16,
-  },
-  profileCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  avatarBorderContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-  profileName: {
-    fontFamily: 'Inter',
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    marginBottom: 20,
-  },
-  editPillButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 24,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  editPillButtonText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  statsCardRow: {
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  statColItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  statColLabel: {
-    fontFamily: 'Inter',
-    fontSize: 11,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  statColValue: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-});
 
 export default ProfileScreen;

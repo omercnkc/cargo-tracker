@@ -132,6 +132,8 @@ export const tr = {
   timeDaysAgo: '2 gün önce',
 
   // Profile Screen
+  myProfile: 'Profilim',
+  security: 'Güvenlik',
   editProfile: 'Profili Düzenle',
 
   // Carrier Selection

@@ -1,0 +1,128 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  appBar: {
+    borderBottomWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    zIndex: 40,
+  },
+  appBarContent: {
+    height: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    maxWidth: 1280,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  appBarTitle: {
+    fontFamily: 'Inter',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  iconButton: {
+    padding: 8,
+    borderRadius: 999,
+  },
+  mainContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    maxWidth: 1280,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  section: {
+    marginBottom: 32,
+  },
+  welcomeTitle: {
+    fontFamily: 'Inter',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  welcomeTitleLarge: {
+    fontFamily: 'Inter',
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  welcomeSubtitle: {
+    fontFamily: 'Inter',
+    fontSize: 16,
+    marginTop: 8,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginBottom: 32,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 32,
+  },
+  primaryActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  primaryActionText: {
+    fontFamily: 'Inter',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  secondaryActionText: {
+    fontFamily: 'Inter',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontFamily: 'Inter',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  seeAllLink: {
+    fontFamily: 'Inter',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+});

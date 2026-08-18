@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator
@@ -16,8 +15,9 @@ import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useTranslation } from '../hooks/useTranslation';
+import { useStatisticsAnalytics } from '../hooks/useStatisticsAnalytics';
 import { hapticService } from '../services/haptics.service';
-import { resolveShipmentCarrier } from '../constants/carriers';
+import { styles } from './StatisticsScreen.styles';
 
 export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -29,55 +29,19 @@ export const StatisticsScreen = () => {
   const user = useAuthStore((state) => state.user);
   const { data: dbShipments, isLoading } = useShipments(user?.id);
 
-  const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
   const barScrollRef = useRef<ScrollView>(null);
 
-  const shipments = useMemo(() => dbShipments || [], [dbShipments]);
-
-  // Monthly Bar Chart Data (Last 12 Months)
-  const monthlyBarData = useMemo(() => {
-    const months: { month: string; value: number; year: number; monthIdx: number; key: string; fullLabel: string }[] = [];
-    const now = new Date();
-    const locale = language === 'en' ? 'en-US' : 'tr-TR';
-
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthShort = d.toLocaleDateString(locale, { month: 'short' });
-      const monthLong = d.toLocaleDateString(locale, { month: 'long' });
-      const year = d.getFullYear();
-      const monthIdx = d.getMonth();
-      const key = `${year}-${monthIdx}`;
-
-      months.push({
-        month: monthShort.charAt(0).toUpperCase() + monthShort.slice(1),
-        fullLabel: `${monthLong.charAt(0).toUpperCase() + monthLong.slice(1)} ${year}`,
-        value: 0,
-        year,
-        monthIdx,
-        key,
-      });
-    }
-
-    shipments.forEach((s) => {
-      if (s.created_at) {
-        const date = new Date(s.created_at);
-        const sYear = date.getFullYear();
-        const sMonth = date.getMonth();
-        const found = months.find((m) => m.year === sYear && m.monthIdx === sMonth);
-        if (found) {
-          found.value += 1;
-        }
-      }
-    });
-
-    const maxValue = Math.max(...months.map((m) => m.value), 1);
-
-    return months.map((m) => ({
-      ...m,
-      height: `${Math.max(m.value > 0 ? (m.value / maxValue) * 100 : 8, 8)}%`,
-      isSelected: selectedMonthKey === m.key,
-    }));
-  }, [shipments, selectedMonthKey, language]);
+  const {
+    selectedMonthKey,
+    setSelectedMonthKey,
+    selectedMonthLabel,
+    monthlyBarData,
+    totalCount,
+    deliveredCount,
+    avgDeliveryDaysFormatted,
+    successRate,
+    courierStats,
+  } = useStatisticsAnalytics(dbShipments, language);
 
   // Auto scroll to latest month on mobile
   useEffect(() => {
@@ -87,111 +51,6 @@ export const StatisticsScreen = () => {
       }, 150);
     }
   }, [isLargeScreen]);
-
-  // Selected Month Label
-  const selectedMonthLabel = useMemo(() => {
-    if (!selectedMonthKey) return null;
-    const found = monthlyBarData.find((m) => m.key === selectedMonthKey);
-    return found ? found.fullLabel : null;
-  }, [selectedMonthKey, monthlyBarData]);
-
-  // Filtered Shipments based on Selected Month
-  const filteredShipments = useMemo(() => {
-    if (!selectedMonthKey) return shipments;
-    const [yearStr, monthStr] = selectedMonthKey.split('-');
-    const targetYear = parseInt(yearStr, 10);
-    const targetMonth = parseInt(monthStr, 10);
-
-    return shipments.filter((s) => {
-      if (!s.created_at) return false;
-      const d = new Date(s.created_at);
-      return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
-    });
-  }, [shipments, selectedMonthKey]);
-
-  // KPI Calculations
-  const totalCount = filteredShipments.length;
-
-  const deliveredShipments = useMemo(() => {
-    return filteredShipments.filter(
-      (s) => s.delivered_at || s.current_status === 'delivered' || s.current_status === 'Teslim Edildi'
-    );
-  }, [filteredShipments]);
-
-  const avgDeliveryDaysFormatted = useMemo(() => {
-    let totalDays = 0;
-    let validCount = 0;
-
-    deliveredShipments.forEach((s) => {
-      if (s.created_at && s.delivered_at) {
-        const start = new Date(s.created_at).getTime();
-        const end = new Date(s.delivered_at).getTime();
-        const diffDays = (end - start) / (1000 * 60 * 60 * 24);
-        if (diffDays >= 0) {
-          totalDays += diffDays;
-          validCount++;
-        }
-      }
-    });
-
-    if (validCount === 0) return '0';
-    return (totalDays / validCount).toFixed(1);
-  }, [deliveredShipments]);
-
-  const successRate = useMemo(() => {
-    if (totalCount === 0) return '0';
-    return ((deliveredShipments.length / totalCount) * 100).toFixed(1);
-  }, [totalCount, deliveredShipments]);
-
-const COURIER_CHART_COLORS = [
-  '#3B82F6', // Vibrant Blue
-  '#10B981', // Emerald Green
-  '#F59E0B', // Warm Amber / Orange
-  '#8B5CF6', // Purple / Violet
-  '#EC4899', // Pink / Rose
-  '#06B6D4', // Cyan / Teal
-  '#F97316', // Deep Orange
-  '#6366F1', // Indigo
-  '#14B8A6', // Teal
-  '#EAB308', // Yellow
-];
-
-  // Courier Company Distribution
-  const courierStats = useMemo(() => {
-    if (filteredShipments.length === 0) {
-      return {
-        totalCompanies: 0,
-        breakdown: [],
-      };
-    }
-
-    const map: Record<string, number> = {};
-    filteredShipments.forEach((s) => {
-      const carrier = resolveShipmentCarrier(s);
-      const companyName = carrier.name;
-      map[companyName] = (map[companyName] || 0) + 1;
-    });
-
-    const total = filteredShipments.length;
-    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
-
-    const breakdown = entries.map(([label, count], index) => {
-      const fraction = total > 0 ? count / total : 0;
-      const pct = Math.round(fraction * 100);
-      return {
-        label,
-        count,
-        pct: `%${pct}`,
-        fraction,
-        color: COURIER_CHART_COLORS[index % COURIER_CHART_COLORS.length],
-      };
-    });
-
-    return {
-      totalCompanies: entries.length,
-      breakdown,
-    };
-  }, [filteredShipments]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
@@ -278,7 +137,7 @@ const COURIER_CHART_COLORS = [
                 <View>
                   <Text style={[styles.statValue, { color: colors.primary }]}>{avgDeliveryDaysFormatted} <Text style={[styles.statValueUnit, { color: colors.onSurfaceVariant }]}>Gün</Text></Text>
                   <View style={styles.trendRow}>
-                    <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>{deliveredShipments.length} {t('statusDelivered').toLowerCase()}</Text>
+                    <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>{deliveredCount} {t('statusDelivered').toLowerCase()}</Text>
                   </View>
                 </View>
               </View>
@@ -294,7 +153,7 @@ const COURIER_CHART_COLORS = [
                 <View>
                   <Text style={[styles.statValue, { color: colors.primary }]}>%{successRate}</Text>
                   <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>
-                    {deliveredShipments.length} / {totalCount} {t('statusDelivered').toLowerCase()}
+                    {deliveredCount} / {totalCount} {t('statusDelivered').toLowerCase()}
                   </Text>
                 </View>
               </View>
@@ -418,7 +277,7 @@ const COURIER_CHART_COLORS = [
                         {/* Mathematical Proportional Slices */}
                         {(() => {
                           let accumulatedFraction = 0;
-                          const circumference = 2 * Math.PI * 68; // ~427.256
+                          const circumference = 2 * Math.PI * 68;
                           return courierStats.breakdown.map((item, index) => {
                             const sliceLength = item.fraction * circumference;
                             const strokeDashoffset = -accumulatedFraction * circumference;
@@ -477,314 +336,4 @@ const COURIER_CHART_COLORS = [
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  appBar: {
-    borderBottomWidth: 1,
-    zIndex: 40,
-  },
-  appBarContent: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    maxWidth: 1280,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  appBarTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  networkBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  networkBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  mainContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    maxWidth: 1280,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  pageHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  pageHeaderLeft: {
-    flex: 1,
-  },
-  pageTitle: {
-    fontFamily: 'Inter',
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  pageSubtitle: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    marginTop: 2,
-  },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  filterChipText: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  loadingContainer: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bentoGrid: {
-    gap: 16,
-  },
-  bentoGridDesktop: {
-    gap: 16,
-  },
-  kpiRow: {
-    flexDirection: 'column',
-    gap: 16,
-  },
-  kpiRowDesktop: {
-    flexDirection: 'row',
-  },
-  statCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-    flex: 1,
-  },
-  statCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  statCardLabel: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.7,
-  },
-  iconBox: {
-    padding: 8,
-    borderRadius: 999,
-  },
-  statValue: {
-    fontFamily: 'Inter',
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  statValueUnit: {
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  trendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  trendTextNeutral: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-  },
-  chartsRow: {
-    flexDirection: 'column',
-    gap: 16,
-    marginTop: 8,
-  },
-  chartsRowDesktop: {
-    flexDirection: 'row',
-  },
-  barChartCardDesktop: {
-    flex: 2,
-  },
-  pieChartCardDesktop: {
-    flex: 1,
-  },
-  chartHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  chartTitle: {
-    fontFamily: 'Inter',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  chartSubtitle: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  dropdownPicker: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 4,
-  },
-  dropdownText: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-  },
-  barChartContainer: {
-    height: 200,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    position: 'relative',
-    borderBottomWidth: 1,
-    paddingBottom: 8,
-  },
-  gridLines: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 30,
-    justifyContent: 'space-between',
-    zIndex: 0,
-  },
-  gridLine: {
-    height: 1,
-    opacity: 0.3,
-  },
-  barsArea: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    zIndex: 10,
-    height: '100%',
-  },
-  barsAreaScrollable: {
-    minWidth: 580,
-    paddingHorizontal: 6,
-  },
-  barColumn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    height: '100%',
-  },
-  barColumnScrollable: {
-    width: 46,
-    flex: 0,
-  },
-  barValueText: {
-    fontSize: 10,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  barTrack: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'flex-end',
-    paddingHorizontal: '10%',
-  },
-  barFill: {
-    width: '100%',
-    borderTopLeftRadius: 6,
-    borderTopRightRadius: 6,
-  },
-  barLabelBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 6,
-  },
-  barLabel: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  donutChartContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 16,
-    minHeight: 160,
-  },
-  donutCenterContent: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  donutCenterText: {
-    fontFamily: 'Inter',
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  donutCenterSubtext: {
-    fontFamily: 'Inter',
-    fontSize: 11,
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginVertical: 12,
-    fontFamily: 'Inter',
-    fontSize: 13,
-  },
-  legendContainer: {
-    marginTop: 16,
-    gap: 10,
-  },
-  legendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  legendLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  legendLabel: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-  },
-  legendValue: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
-
 export default StatisticsScreen;
-

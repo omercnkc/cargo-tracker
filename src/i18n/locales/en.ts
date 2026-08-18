@@ -135,6 +135,8 @@ export const en: TranslationKeys = {
   timeDaysAgo: '2 days ago',
 
   // Profile Screen
+  myProfile: 'My Profile',
+  security: 'Security',
   editProfile: 'Edit Profile',
 
   // Carrier Selection

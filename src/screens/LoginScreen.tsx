@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
   TextInput, 
   TouchableOpacity, 
-  StyleSheet, 
   ImageBackground, 
   useWindowDimensions,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  Image
+  ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,6 +17,7 @@ import { GoogleLogo } from '../components/common/GoogleLogo';
 import { useTranslation } from '../hooks/useTranslation';
 import { PasswordInput } from '../components/ui';
 import { hapticService } from '../services/haptics.service';
+import { styles } from './AuthScreens.styles';
 
 export const LoginScreen = ({ navigation }: any) => {
   const { width } = useWindowDimensions();
@@ -131,7 +126,7 @@ export const LoginScreen = ({ navigation }: any) => {
           {!isLargeScreen && (
             <View style={styles.mobileHeader}>
               <View style={[styles.logoBadge, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : colors.primaryContainer }]}>
-                <MaterialIcons name="local-shipping" size={32} color={isDarkMode ? colors.primary : colors.primary} />
+                <MaterialIcons name="local-shipping" size={32} color={colors.primary} />
               </View>
               <Text style={[styles.mobileLogoText, { color: colors.primary }]}>{t('appName')}</Text>
             </View>
@@ -263,257 +258,5 @@ export const LoginScreen = ({ navigation }: any) => {
     </View>
   );
 };
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  leftPane: {
-    width: '50%',
-    height: '100%',
-  },
-  backgroundImage: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  leftPaneContent: {
-    flex: 1,
-    padding: 48,
-    justifyContent: 'space-between',
-    zIndex: 20,
-  },
-  brandingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  brandingLogoText: {
-    fontFamily: 'Inter',
-    fontSize: 32,
-    lineHeight: 40,
-    fontWeight: '700',
-    letterSpacing: -0.64,
-  },
-  brandingCopy: {
-    maxWidth: 400,
-    paddingBottom: 48,
-  },
-  brandingTitle: {
-    fontFamily: 'Inter',
-    fontSize: 32,
-    lineHeight: 40,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  brandingSubtitle: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '400',
-    opacity: 0.9,
-  },
-  rightPane: {
-    height: '100%',
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  formContainer: {
-    width: '100%',
-    maxWidth: 400,
-  },
-  mobileHeader: {
-    alignItems: 'center',
-    marginBottom: 28,
-    gap: 8,
-  },
-  logoBadge: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  mobileLogoText: {
-    fontFamily: 'Inter',
-    fontSize: 24,
-    lineHeight: 32,
-    fontWeight: '700',
-    letterSpacing: -0.24,
-  },
-  welcomeSection: {
-    marginBottom: 28,
-  },
-  welcomeSectionMobile: {
-    alignItems: 'center',
-  },
-  welcomeTitle: {
-    fontFamily: 'Inter',
-    fontSize: 32,
-    lineHeight: 40,
-    fontWeight: '700',
-    letterSpacing: -0.64,
-    marginBottom: 8,
-  },
-  welcomeSubtitle: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '400',
-  },
-  form: {
-    gap: 20,
-  },
-  inputsCard: {
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    gap: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  passwordHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  inputLabel: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  forgotPassword: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-  },
-  errorText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    flex: 1,
-  },
-  inputWrapper: {
-    position: 'relative',
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  inputIconLeft: {
-    position: 'absolute',
-    left: 14,
-    zIndex: 10,
-  },
-  inputIconRight: {
-    position: 'absolute',
-    right: 14,
-    zIndex: 10,
-    padding: 4,
-  },
-  input: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    paddingVertical: 14,
-    paddingLeft: 44,
-    paddingRight: 16,
-  },
-  submitButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginTop: 8,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  submitButtonText: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '500',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginVertical: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  googleButtonText: {
-    fontFamily: 'Inter',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  registerSection: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 32,
-  },
-  registerText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '400',
-  },
-  registerLink: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-  },
-});
 
 export default LoginScreen;

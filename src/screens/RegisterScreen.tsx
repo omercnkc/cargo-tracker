@@ -1,17 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  useWindowDimensions,
   ActivityIndicator,
-  Alert,
-  Image
+  Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,10 +17,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { PasswordInput, PasswordStrengthMeter } from '../components/ui';
 import { validatePassword, validateFullName } from '../utils/validators';
 import { hapticService } from '../services/haptics.service';
+import { styles } from './AuthScreens.styles';
 
 export const RegisterScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const { t } = useTranslation();
   const { theme: colors, isDarkMode } = useTheme();
 
@@ -120,7 +114,7 @@ export const RegisterScreen = ({ navigation }: any) => {
           {/* Header */}
           <View style={styles.header}>
             <View style={[styles.logoBadge, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : colors.primaryContainer }]}>
-              <MaterialIcons name="local-shipping" size={32} color={isDarkMode ? colors.primary : colors.primary} />
+              <MaterialIcons name="local-shipping" size={32} color={colors.primary} />
             </View>
             <Text style={[styles.title, { color: colors.primary }]}>{t('appName')}</Text>
             <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>{t('registerSubtitle')}</Text>
@@ -299,184 +293,5 @@ export const RegisterScreen = ({ navigation }: any) => {
     </View>
   );
 };
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  formContainer: {
-    width: '100%',
-    maxWidth: 448,
-    gap: 24,
-    paddingVertical: 12,
-  },
-  header: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  logoBadge: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  title: {
-    fontFamily: 'Inter',
-    fontSize: 32,
-    fontWeight: '700',
-    letterSpacing: -0.64,
-  },
-  subtitle: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-  },
-  form: {
-    gap: 20,
-  },
-  inputsCard: {
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    gap: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 4,
-    borderWidth: 1,
-  },
-  errorText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    flex: 1,
-  },
-  inputGroup: {
-    gap: 6,
-  },
-  inputLabel: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  inputWrapper: {
-    position: 'relative',
-    justifyContent: 'center',
-    borderRadius: 4,
-  },
-  inputIconLeft: {
-    position: 'absolute',
-    left: 12,
-    zIndex: 10,
-  },
-  inputIconRight: {
-    position: 'absolute',
-    right: 12,
-    zIndex: 10,
-    padding: 4,
-  },
-  input: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    height: 48,
-    paddingLeft: 40,
-    paddingRight: 16,
-  },
-  actionsContainer: {
-    gap: 16,
-    marginTop: 8,
-  },
-  submitButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 4,
-    height: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  submitButtonText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginVertical: 4,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderRadius: 4,
-    height: 48,
-  },
-  googleButtonText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  loginLinkContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginLinkText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-  },
-  loginLinkHighlight: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
-  termsContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  termsText: {
-    fontFamily: 'Inter',
-    fontSize: 11,
-    lineHeight: 16,
-    textAlign: 'center',
-  },
-});
 
 export default RegisterScreen;

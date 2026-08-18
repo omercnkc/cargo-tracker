@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { 
   View, 
   Text, 
-  StyleSheet, 
   TouchableOpacity, 
   FlatList,
   ActivityIndicator
@@ -22,25 +21,8 @@ import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { hapticService } from '../services/haptics.service';
 import { resolveShipmentCarrier } from '../constants/carriers';
-
-interface DisplayPackage {
-  id: string;
-  name: string;
-  code: string;
-  status: string;
-  icon: keyof typeof MaterialIcons.glyphMap;
-}
-
-const fallbackPackages: DisplayPackage[] = [
-  { id: 'mock-1', name: 'Kablosuz Kulaklık', code: 'Trendyol Express • TY7382910482', status: 'out_for_delivery', icon: 'local-shipping' },
-  { id: 'mock-2', name: 'Mekanik Klavye', code: 'Hepsijet • HJ9482019384', status: 'transit', icon: 'local-shipping' },
-  { id: 'mock-3', name: 'Deri Sırt Çantası', code: 'Yurtiçi Kargo • YK8473920194', status: 'destination', icon: 'store' },
-  { id: 'mock-4', name: 'Koşu Ayakkabısı', code: 'Aras Kargo • AR2948103947', status: 'delivered', icon: 'check-circle' },
-  { id: 'mock-5', name: 'Tasarım Kitapları', code: 'Sürat Kargo • SK1928374650', status: 'created', icon: 'pending' },
-  { id: 'mock-6', name: 'Filtre Kahve Çekirdeği', code: 'Kargoist • KG8392019381', status: 'received', icon: 'inventory' },
-  { id: 'mock-7', name: 'Geliştirici Kiti', code: 'DHL Express • DHL9382019283', status: 'transit', icon: 'local-shipping' },
-  { id: 'mock-8', name: 'Akıllı Ev Sensörü', code: 'FedEx • FDX0928374619', status: 'delivered', icon: 'check-circle' },
-];
+import { FALLBACK_HOME_PACKAGES, DisplayPackage } from '../mock/fallbackPackages';
+import { styles } from './HomeScreen.styles';
 
 export const HomeScreen = () => {
   const navigation = useNavigation<any>();
@@ -68,7 +50,7 @@ export const HomeScreen = () => {
         };
       });
     }
-    return fallbackPackages;
+    return FALLBACK_HOME_PACKAGES;
   }, [dbShipments]);
 
   const stats = useMemo(() => {
@@ -184,132 +166,5 @@ export const HomeScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  appBar: {
-    borderBottomWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    zIndex: 40,
-  },
-  appBarContent: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    maxWidth: 1280,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  appBarTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 999,
-  },
-  mainContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-    maxWidth: 1280,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  section: {
-    marginBottom: 32,
-  },
-  welcomeTitle: {
-    fontFamily: 'Inter',
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  welcomeTitleLarge: {
-    fontFamily: 'Inter',
-    fontSize: 32,
-    fontWeight: '700',
-  },
-  welcomeSubtitle: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    marginTop: 8,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 32,
-  },
-  quickActionsRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  primaryActionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  primaryActionText: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryActionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  secondaryActionText: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  seeAllLink: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});
 
 export default HomeScreen;

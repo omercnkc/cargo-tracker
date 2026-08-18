@@ -4,7 +4,6 @@ import {
   Text, 
   TextInput, 
   TouchableOpacity, 
-  StyleSheet, 
   ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -13,6 +12,7 @@ import { useTheme } from '../theme/useTheme';
 import { useAuthStore } from '../store/auth.store';
 import { useTranslation } from '../hooks/useTranslation';
 import { KeyboardAwareContainer } from '../components/common/KeyboardAwareContainer';
+import { styles } from './AuthScreens.styles';
 
 export const ForgotPasswordScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
@@ -163,135 +163,5 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
     </View>
   );
 };
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 448,
-    borderRadius: 12,
-    padding: 24,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    gap: 24,
-  },
-  header: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  title: {
-    fontFamily: 'Inter',
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: -0.24,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  form: {
-    gap: 20,
-  },
-  messageBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  messageText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    flex: 1,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  inputLabel: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  inputWrapper: {
-    position: 'relative',
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  inputIconLeft: {
-    position: 'absolute',
-    left: 12,
-    zIndex: 10,
-  },
-  input: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    borderRadius: 8,
-    height: 48,
-    paddingLeft: 40,
-    paddingRight: 12,
-  },
-  submitButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 8,
-    height: 48,
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  submitButtonText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  backLinkContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
-  },
-  backLinkText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-});
 
 export default ForgotPasswordScreen;
