@@ -81,21 +81,160 @@ export const PackageDetailScreen = () => {
     return savedAddresses.find((a) => a.isDefault) || savedAddresses[0] || DEFAULT_ACTIVE_ADDRESS;
   }, [savedAddresses]);
 
+  // Dynamic mock map for all sample packages
+  const mockShipmentDetailsMap = useMemo<Record<string, any>>(() => {
+    const receiverName = activeDefaultAddress?.fullName || 'Ahmet Yılmaz';
+    const receiverAddr = activeDefaultAddress ? `${activeDefaultAddress.fullName}\n${activeDefaultAddress.fullAddress}` : 'Ahmet Yılmaz\nBeşiktaş, İstanbul';
+    const currentLoc = `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`;
+
+    return {
+      'mock-1': {
+        id: 'mock-1',
+        tracking_number: 'TY7382910482',
+        title: 'Kablosuz Kulaklık & Koruma Kılıfı',
+        current_status: 'out_for_delivery',
+        sender: 'Trendyol Tech Mağazası',
+        receiver: receiverAddr,
+        last_location: currentLoc,
+        estimated_delivery: 'Bugün, 14:00 - 18:00',
+        courier_companies: { name: 'Trendyol Express' },
+        shipment_events: [
+          { id: 'e1', status: 'Kurye Dağıtımda', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Merkezi`, event_time: 'Bugün, 10:30' },
+          { id: 'e2', status: 'Varış Şubesinde', description: 'Paket dağıtım şubesine ulaştı ve zimmetlendi.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Bugün, 07:45' },
+          { id: 'e3', status: 'Transfer Merkezinde', description: 'Ana aktarma merkezinden varış şubesine sevk edildi.', location: 'İstanbul Aktarma', event_time: 'Dün, 23:10' },
+          { id: 'e4', status: 'Kargo Kabul Edildi', description: 'Gönderici kargoyu teslim etti.', location: 'İzmir Şube', event_time: 'Dün, 14:20' },
+        ]
+      },
+      'mock-2': {
+        id: 'mock-2',
+        tracking_number: 'HJ9482019384',
+        title: 'Mekanik Oyuncu Klavyesi',
+        current_status: 'transit',
+        sender: 'Hepsiburada Satıcısı',
+        receiver: receiverAddr,
+        last_location: 'Bolu - Düzce Otoyol Hattı',
+        estimated_delivery: 'Yarın, 10:00 - 14:00',
+        courier_companies: { name: 'Hepsijet' },
+        shipment_events: [
+          { id: 'e1', status: 'Yolda', description: 'Transfer tırı varış merkezine hareket etti.', location: 'Bolu Aktarma', event_time: 'Bugün, 06:15' },
+          { id: 'e2', status: 'Transfer Merkezinde', description: 'Paket ayrıştırma bandından geçirildi.', location: 'Ankara Lojistik Merkezi', event_time: 'Dün, 21:30' },
+          { id: 'e3', status: 'Çıkış Şubesinde', description: 'Paket kurye tarafından teslim alındı.', location: 'Ankara Çankaya', event_time: 'Dün, 16:00' },
+        ]
+      },
+      'mock-3': {
+        id: 'mock-3',
+        tracking_number: 'YK8473920194',
+        title: 'Deri Sırt Çantası & Cüzdan',
+        current_status: 'destination',
+        sender: 'Moda Deri Tasarım A.Ş.',
+        receiver: receiverAddr,
+        last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`,
+        estimated_delivery: 'Bugün Dağıtım Bekliyor',
+        courier_companies: { name: 'Yurtiçi Kargo' },
+        shipment_events: [
+          { id: 'e1', status: 'Varış Şubesinde', description: 'Paket varış şubesinde teslimat sırasına alındı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Bugün, 08:20' },
+          { id: 'e2', status: 'Transfer Merkezinde', description: 'Marmara Aktarma Merkezinden şubeye ulaştı.', location: 'İstanbul Aktarma', event_time: 'Bugün, 03:40' },
+          { id: 'e3', status: 'Gönderici Şubede', description: 'Kargo kabulü yapıldı.', location: 'Bursa Heykel Şubesi', event_time: 'Dün, 17:15' },
+        ]
+      },
+      'mock-4': {
+        id: 'mock-4',
+        tracking_number: 'AR2948103947',
+        title: 'Koşu Ayakkabısı (42 Numara)',
+        current_status: 'delivered',
+        sender: 'SporStore Online',
+        receiver: receiverAddr,
+        last_location: 'Teslim Edildi',
+        estimated_delivery: 'Dün, 16:30',
+        delivered_at: 'Dün, 16:30',
+        courier_companies: { name: 'Aras Kargo' },
+        shipment_events: [
+          { id: 'e1', status: 'Teslim Edildi', description: `Alıcıya teslim edildi: ${receiverName}`, location: `${activeDefaultAddress?.district || 'Beşiktaş'}`, event_time: 'Dün, 16:30' },
+          { id: 'e2', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat için adrese yöneldi.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Dün, 11:00' },
+          { id: 'e3', status: 'Varış Şubesinde', description: 'Paket şubeye giriş yaptı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Dün, 08:30' },
+          { id: 'e4', status: 'Sipariş Alındı', description: 'Gönderici kargoyu teslim etti.', location: 'İstanbul Kadıköy', event_time: '2 Gün Önce, 15:45' },
+        ]
+      },
+      'mock-5': {
+        id: 'mock-5',
+        tracking_number: 'SK1928374650',
+        title: 'Yazılım & Tasarım Kitapları',
+        current_status: 'created',
+        sender: 'Akademi Kitabevi',
+        receiver: receiverAddr,
+        last_location: 'Gönderici Hazırlık Aşamasında',
+        estimated_delivery: 'Sipariş Hazırlanıyor',
+        courier_companies: { name: 'Sürat Kargo' },
+        shipment_events: [
+          { id: 'e1', status: 'Sipariş Oluşturuldu', description: 'Kargo barkodu oluşturuldu, kurye alımı bekleniyor.', location: 'Ankara Kızılay', event_time: 'Bugün, 11:20' },
+        ]
+      },
+      'mock-6': {
+        id: 'mock-6',
+        tracking_number: 'KG8392019381',
+        title: 'Filtre Kahve Çekirdeği 1KG',
+        current_status: 'received',
+        sender: 'Roastery Coffee Co.',
+        receiver: receiverAddr,
+        last_location: 'İstanbul Levent Şubesi',
+        estimated_delivery: '2 Gün İçinde',
+        courier_companies: { name: 'Kargoist' },
+        shipment_events: [
+          { id: 'e1', status: 'Şubede Kabul Edildi', description: 'Gönderi şube tarafından teslim alındı.', location: 'İstanbul Levent Şubesi', event_time: 'Dün, 17:50' },
+          { id: 'e2', status: 'Sipariş Onaylandı', description: 'Satıcı kargo kaydını açtı.', location: 'İstanbul', event_time: 'Dün, 15:10' },
+        ]
+      },
+      'mock-7': {
+        id: 'mock-7',
+        tracking_number: 'DHL9382019283',
+        title: 'Yurt Dışı Yazılım Geliştirici Kiti',
+        current_status: 'transit',
+        sender: 'DevHardware Europe GmbH',
+        receiver: receiverAddr,
+        last_location: 'İstanbul Havalimanı Gümrük Noktası',
+        estimated_delivery: '3 Gün İçinde',
+        courier_companies: { name: 'DHL Express' },
+        shipment_events: [
+          { id: 'e1', status: 'Gümrük İşlemleri Tamamlandı', description: 'Paket gümrükten geçti ve iç hat sevkiyatına verildi.', location: 'İstanbul Havalimanı (IST)', event_time: 'Bugün, 07:10' },
+          { id: 'e2', status: 'Uçuş Gerçekleşti', description: 'Frankfurt - İstanbul kargo uçuşu tamamlandı.', location: 'Frankfurt Hub (FRA)', event_time: 'Dün, 22:30' },
+          { id: 'e3', status: 'Uluslararası Çıkış Yapıldı', description: 'Kargo tesisinde çıkış taraması yapıldı.', location: 'Almanya', event_time: '2 Gün Önce, 14:00' },
+        ]
+      },
+      'mock-8': {
+        id: 'mock-8',
+        tracking_number: 'FDX0928374619',
+        title: 'Akıllı Ev Sensör Paketi',
+        current_status: 'delivered',
+        sender: 'SmartHome Global BV',
+        receiver: receiverAddr,
+        last_location: 'Teslim Edildi',
+        estimated_delivery: '3 Gün Önce Teslim Edildi',
+        delivered_at: '3 Gün Önce',
+        courier_companies: { name: 'FedEx' },
+        shipment_events: [
+          { id: 'e1', status: 'Teslim Edildi', description: `Teslim Alan: ${receiverName} (İmza ile teslim edildi)`, location: `${activeDefaultAddress?.district || 'Beşiktaş'}`, event_time: '3 Gün Önce, 14:15' },
+          { id: 'e2', status: 'Dağıtıma Çıkarıldı', description: 'Kurye aracı adrese yöneldi.', location: 'İstanbul FedEx Dağıtım', event_time: '3 Gün Önce, 09:40' },
+          { id: 'e3', status: 'Gümrükten Çıktı', description: 'İthalat gümrükleme onaylandı.', location: 'İstanbul Havalimanı', event_time: '4 Gün Önce, 16:00' },
+        ]
+      },
+    };
+  }, [activeDefaultAddress]);
+
   // Fallback mock detail if not found or demo preview
-  const displayShipment = shipment || {
+  const displayShipment = shipment || (shipmentId && mockShipmentDetailsMap[shipmentId]) || mockShipmentDetailsMap['mock-1'] || {
     id: 'demo',
-    tracking_number: shipmentId || '24B392Q',
-    title: 'Aras Kargo Paketim',
-    current_status: 'transit',
-    sender: 'TechStore Elektronik A.Ş.',
+    tracking_number: shipmentId || 'TY7382910482',
+    title: 'Trendyol Express Paketim',
+    current_status: 'out_for_delivery',
+    sender: 'Trendyol Satıcısı',
     receiver: activeDefaultAddress ? `${activeDefaultAddress.fullName}\n${activeDefaultAddress.fullAddress}` : 'Ahmet Yılmaz\nBeşiktaş, İstanbul',
     last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
     estimated_delivery: 'Bugün, 14:00 - 18:00',
-    courier_companies: { name: 'Aras Kargo' },
+    courier_companies: { name: 'Trendyol Express' },
     shipment_events: [
       { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Bugün, 09:15' },
       { id: 'e2', status: 'Transfer Merkezinde', description: 'Avrupa Yakası Aktarma Merkezi', location: activeDefaultAddress?.city || 'İstanbul', event_time: 'Dün, 22:45' },
-      { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'Ankara', event_time: 'Dün, 14:10' },
+      { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'İzmir', event_time: 'Dün, 14:10' },
     ]
   };
 

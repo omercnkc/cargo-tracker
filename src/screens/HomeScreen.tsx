@@ -32,12 +32,14 @@ interface DisplayPackage {
 }
 
 const fallbackPackages: DisplayPackage[] = [
-  { id: 'mock-1', name: 'Hepsiburada', code: 'HB782910234', status: 'created', icon: 'pending' },
-  { id: 'mock-2', name: 'Trendyol Express', code: 'TY482019381', status: 'received', icon: 'inventory' },
-  { id: 'mock-3', name: 'Aras Kargo', code: 'TR1234567890', status: 'transit', icon: 'local-shipping' },
-  { id: 'mock-4', name: 'MNG Kargo', code: 'MN928301928', status: 'destination', icon: 'store' },
-  { id: 'mock-5', name: 'Sürat Kargo', code: 'SK382910392', status: 'out_for_delivery', icon: 'local-shipping' },
-  { id: 'mock-6', name: 'Yurtiçi Kargo', code: 'YK9876543210', status: 'delivered', icon: 'check-circle' },
+  { id: 'mock-1', name: 'Kablosuz Kulaklık', code: 'Trendyol Express • TY7382910482', status: 'out_for_delivery', icon: 'local-shipping' },
+  { id: 'mock-2', name: 'Mekanik Klavye', code: 'Hepsijet • HJ9482019384', status: 'transit', icon: 'local-shipping' },
+  { id: 'mock-3', name: 'Deri Sırt Çantası', code: 'Yurtiçi Kargo • YK8473920194', status: 'destination', icon: 'store' },
+  { id: 'mock-4', name: 'Koşu Ayakkabısı', code: 'Aras Kargo • AR2948103947', status: 'delivered', icon: 'check-circle' },
+  { id: 'mock-5', name: 'Tasarım Kitapları', code: 'Sürat Kargo • SK1928374650', status: 'created', icon: 'pending' },
+  { id: 'mock-6', name: 'Filtre Kahve Çekirdeği', code: 'Kargoist • KG8392019381', status: 'received', icon: 'inventory' },
+  { id: 'mock-7', name: 'Geliştirici Kiti', code: 'DHL Express • DHL9382019283', status: 'transit', icon: 'local-shipping' },
+  { id: 'mock-8', name: 'Akıllı Ev Sensörü', code: 'FedEx • FDX0928374619', status: 'delivered', icon: 'check-circle' },
 ];
 
 export const HomeScreen = () => {
@@ -53,8 +55,7 @@ export const HomeScreen = () => {
   const { data: dbShipments, isLoading: isShipmentsLoading } = useShipments(user?.id);
 
   const displayPackages: DisplayPackage[] = useMemo(() => {
-    const isTestUser = user?.email?.toLowerCase() === 'omercnkc123@gmail.com';
-    if (dbShipments && dbShipments.length > 0 && !isTestUser) {
+    if (dbShipments && dbShipments.length > 0) {
       return dbShipments.map(s => {
         const carrier = resolveShipmentCarrier(s);
         const hasCustomTitle = s.title && s.title !== carrier.name;
@@ -68,7 +69,7 @@ export const HomeScreen = () => {
       });
     }
     return fallbackPackages;
-  }, [dbShipments, user]);
+  }, [dbShipments]);
 
   const stats = useMemo(() => {
     const delivered = displayPackages.filter(p => p.status === 'delivered').length;

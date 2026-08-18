@@ -384,6 +384,21 @@ export class ShipmentRepository {
     return { synced: false, queued: true, mutationId: mutation.id };
   }
 
+  async getCourierCompanies(): Promise<{ companies: CourierCompany[]; error: Error | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('courier_companies')
+        .select('*')
+        .eq('active', true)
+        .order('name', { ascending: true });
+
+      if (error) return { companies: [], error };
+      return { companies: data || [], error: null };
+    } catch (err) {
+      return { companies: [], error: err instanceof Error ? err : new Error('Failed to fetch courier companies') };
+    }
+  }
+
   /**
    * Supabase Edge Function üzerinden kargo şirketinden canlı takip verisini çeker.
    */
@@ -408,4 +423,5 @@ export class ShipmentRepository {
 }
 
 export const shipmentRepository = new ShipmentRepository();
+
 

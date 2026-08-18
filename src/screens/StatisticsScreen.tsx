@@ -378,11 +378,11 @@ const COURIER_CHART_COLORS = [
                         </View>
                         <View style={[
                           styles.barLabelBadge,
-                          item.isSelected && { backgroundColor: colors.primaryContainer }
+                          item.isSelected && { backgroundColor: colors.primary }
                         ]}>
                           <Text style={[
                             styles.barLabel,
-                            { color: item.isSelected ? colors.primary : colors.onSurfaceVariant },
+                            { color: item.isSelected ? colors.onPrimary : colors.onSurfaceVariant },
                             item.isSelected && { fontWeight: '700' }
                           ]}>
                             {item.month}
