@@ -2,13 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Modal,
   TouchableOpacity,
   ScrollView,
-  Alert,
   Animated,
   PanResponder,
+  StyleSheet
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,22 +17,11 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { AddAddressModal, UserAddress } from './AddAddressModal';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
 import { hapticService } from '../../services/haptics.service';
-
-const ADDRESSES_STORAGE_KEY = '@cargo_tracker_user_addresses';
+import { USER_ADDRESSES_STORAGE_KEY, DEFAULT_ACTIVE_ADDRESS } from '../../hooks/useUserAddresses';
+import { styles } from './AddressManagementModal.styles';
 
 const DEFAULT_ADDRESSES: UserAddress[] = [
-  {
-    id: 'addr_default_1',
-    title: 'Ev Adresim',
-    fullName: 'Ahmet Yılmaz',
-    phone: '0555 123 45 67',
-    city: 'İstanbul',
-    district: 'Beşiktaş',
-    fullAddress: 'Cihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul',
-    latitude: 41.0425,
-    longitude: 29.0068,
-    isDefault: true,
-  },
+  DEFAULT_ACTIVE_ADDRESS,
   {
     id: 'addr_default_2',
     title: 'İş Yeri (Ofis)',
@@ -78,6 +66,17 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
 
   const translateY = useRef(new Animated.Value(0)).current;
 
+  const loadAddresses = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(USER_ADDRESSES_STORAGE_KEY);
+      if (stored) {
+        setAddresses(JSON.parse(stored));
+      }
+    } catch (err) {
+      console.error('Adresler yüklenemedi:', err);
+    }
+  };
+
   useEffect(() => {
     if (visible) {
       translateY.setValue(0);
@@ -120,21 +119,10 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
     })
   ).current;
 
-  const loadAddresses = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(ADDRESSES_STORAGE_KEY);
-      if (stored) {
-        setAddresses(JSON.parse(stored));
-      }
-    } catch (err) {
-      console.error('Adresler yüklenemedi:', err);
-    }
-  };
-
   const handleSaveNewAddress = async (newAddress: UserAddress) => {
     const updated = [newAddress, ...addresses];
     setAddresses(updated);
-    await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
+    await AsyncStorage.setItem(USER_ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
     hapticService.success();
     setFeedback({
       visible: true,
@@ -158,7 +146,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
       onPrimaryAction: async () => {
         const updated = addresses.filter((a) => a.id !== item.id);
         setAddresses(updated);
-        await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
+        await AsyncStorage.setItem(USER_ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
         hapticService.success();
         setFeedback({
           visible: true,
@@ -179,7 +167,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
       isDefault: a.id === id,
     }));
     setAddresses(updated);
-    await AsyncStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
+    await AsyncStorage.setItem(USER_ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
   };
 
   if (!visible) return null;
@@ -321,118 +309,4 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    width: '100%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    maxHeight: '85%',
-  },
-  dragHandleContainer: {
-    width: '100%',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  dragHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 999,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingTop: 4,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  addAddressBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  addAddressBtnText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  listContent: {
-    gap: 12,
-    paddingBottom: 24,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-    gap: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-  },
-  addressCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardTitleBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  defaultBadge: {
-    backgroundColor: '#dbeafe',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  defaultBadgeText: {
-    color: '#1e40af',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  deleteBtn: {
-    padding: 4,
-  },
-  addressBodyText: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginVertical: 4,
-  },
-  cardFooterRow: {
-    marginTop: 6,
-  },
-  contactText: {
-    fontSize: 12,
-  },
-});
+export default AddressManagementModal;

@@ -8,7 +8,10 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList, MainTabParamList } from '../navigation/types';
 
 import useResponsive from '../hooks/useResponsive';
 import { PackageCard } from '../components/home/PackageCard';
@@ -24,8 +27,13 @@ import { resolveShipmentCarrier } from '../constants/carriers';
 import { FALLBACK_HOME_PACKAGES, DisplayPackage } from '../mock/fallbackPackages';
 import { styles } from './HomeScreen.styles';
 
+type HomeScreenNav = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, 'Home'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
 export const HomeScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<HomeScreenNav>();
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const { profile, user } = useAuthStore();
@@ -84,7 +92,7 @@ export const HomeScreen = () => {
           activeOpacity={0.8}
           onPress={() => {
             hapticService.buttonPress();
-            navigation.navigate('MainTabs', { screen: 'AddPackage' });
+            navigation.navigate('AddPackage');
           }}
         >
           <MaterialIcons name="add-box" size={24} color={colors.onPrimary} />

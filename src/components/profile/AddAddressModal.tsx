@@ -2,15 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Modal,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
-  Alert,
   ScrollView,
   PanResponder,
   Animated,
+  StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -19,6 +18,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useAuthStore } from '../../store/auth.store';
 import { PhoneInput } from '../ui';
 import { AddressSelectModal, SelectOption } from './AddressSelectModal';
+import { styles } from './AddAddressModal.styles';
 import {
   getProvinces,
   getDistrictsByCityId,
@@ -1002,156 +1002,4 @@ export function AddAddressModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    maxHeight: '90%',
-  },
-  dragHandleArea: {
-    width: '100%',
-    paddingTop: 10,
-    paddingBottom: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sheetHandle: {
-    width: 44,
-    height: 5,
-    borderRadius: 3,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  formContent: {
-    gap: 16,
-    paddingBottom: 24,
-  },
-  gpsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    borderRadius: 10,
-    paddingVertical: 12,
-  },
-  gpsButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#00236f',
-  },
-  gpsSuccessBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 12,
-    gap: 10,
-  },
-  gpsSuccessIconWrapper: {
-    padding: 4,
-    borderRadius: 8,
-  },
-  gpsSuccessTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#065F46',
-  },
-  gpsSuccessSubtext: {
-    fontSize: 12,
-    color: '#047857',
-    marginBottom: 4,
-  },
-  gpsLocationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    marginTop: 2,
-  },
-  gpsLocationBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#065F46',
-  },
-  gpsSuccessDismiss: {
-    padding: 4,
-  },
-  inputGroup: {
-    gap: 6,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-  },
-  selectButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  selectButtonText: {
-    fontSize: 14,
-    flex: 1,
-  },
-  inputMulti: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginTop: 8,
-  },
-  saveButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+export default AddAddressModal;

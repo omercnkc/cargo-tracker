@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, Animated, Easing } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
+import { styles } from './CargoStatusTracker.styles';
 import { getShipmentProgress, TRACKING_STEPS } from '../../utils/shipmentUtils';
 
 interface CargoStatusTrackerProps {
@@ -219,142 +220,5 @@ export const CargoStatusTracker: React.FC<CargoStatusTrackerProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 8,
-    width: '100%',
-  },
-  containerCompact: {
-    marginVertical: 4,
-  },
-  compactHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  compactStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  compactStatusText: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  compactPercentText: {
-    fontFamily: 'Courier Prime',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  trackerWrapper: {
-    height: 36,
-    justifyContent: 'center',
-    position: 'relative',
-    width: '100%',
-  },
-  roadTrack: {
-    height: 10,
-    borderRadius: 5,
-    overflow: 'hidden',
-    position: 'relative',
-    width: '100%',
-    justifyContent: 'center',
-  },
-  dashContainer: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
-    justifyContent: 'center',
-  },
-  dashRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '180%',
-    gap: 6,
-  },
-  dashStripe: {
-    width: 10,
-    height: 2.5,
-    borderRadius: 1.25,
-  },
-  progressFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  nodesContainer: {
-    ...StyleSheet.absoluteFillObject,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 2,
-    zIndex: 10,
-  },
-  nodeWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 18,
-    height: 18,
-  },
-  nodeDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nodeDotCurrent: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 3,
-  },
-  innerCurrentDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  truckBadge: {
-    position: 'absolute',
-    top: -2,
-    zIndex: 20,
-  },
-  truckBadgeInner: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  labelsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    paddingHorizontal: 0,
-  },
-  labelWrapper: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  labelText: {
-    fontFamily: 'Inter',
-    fontSize: 10,
-    textAlign: 'center',
-    lineHeight: 12,
-  },
-});
 
 export default CargoStatusTracker;

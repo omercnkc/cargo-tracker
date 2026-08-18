@@ -1,0 +1,81 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  labelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexShrink: 1,
+  },
+  labelTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    fontFamily: 'Inter',
+  },
+  switchTrack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 36,
+    borderRadius: 18,
+    padding: 2,
+    borderWidth: 1,
+  },
+  switchPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    height: '100%',
+    borderRadius: 15,
+  },
+  switchPillActiveLight: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  switchPillActiveDark: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  switchPillActiveBlue: {
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  pillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Inter',
+  },
+  flagIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  },
+});

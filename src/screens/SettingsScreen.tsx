@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
 import useResponsive from '../hooks/useResponsive';
 import { useAuthStore } from '../store/auth.store';
@@ -17,15 +16,16 @@ import { useTheme } from '../theme/useTheme';
 import { useSettingsStore } from '../store/settings.store';
 import { useTranslation } from '../hooks/useTranslation';
 import { EmailConnectModal } from '../components/import/EmailConnectModal';
+import { useModalStore } from '../store/modal.store';
 import { hapticService } from '../services/haptics.service';
 import { styles } from './SettingsScreen.styles';
 
 export const SettingsScreen = () => {
-  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const openDrawer = useDrawerStore((state) => state.openDrawer);
   const signOut = useAuthStore((state) => state.signOut);
+  const { openChangePasswordModal } = useModalStore();
 
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
@@ -44,11 +44,6 @@ export const SettingsScreen = () => {
   const handleSignOut = async () => {
     hapticService.buttonPress();
     await signOut();
-  };
-
-  const openChangePasswordModal = () => {
-    hapticService.buttonPress();
-    navigation.navigate('ForgotPassword');
   };
 
   return (
