@@ -90,6 +90,7 @@ export const en: TranslationKeys = {
   totalCargo: 'Total Packages',
   avgDeliveryTime: 'Avg. Delivery Time',
   deliverySuccess: 'Delivery Success',
+  daysUnit: 'Days',
   monthlyDistribution: 'Monthly Distribution',
   courierBreakdown: 'Courier Distribution',
   filterByMonth: 'Filter',
@@ -376,6 +377,8 @@ export const en: TranslationKeys = {
   gpsUnavailableMsg: 'GPS data is currently unavailable. Please check that location services are enabled and try again.',
   gpsPermissionDeniedTitle: 'Location Permission Required',
   gpsPermissionDeniedMsg: 'Location permission is required to fetch your current GPS position.',
+  reverseGeocodeOfflineTitle: 'Offline Location Saved',
+  reverseGeocodeOfflineWarning: 'GPS coordinates recorded. Since you are offline, address details could not be resolved automatically. Please select province/district and enter your address.',
 
   // Errors & Warnings
   errorGenericTitle: 'An Error Occurred',

@@ -88,6 +88,7 @@ export const tr = {
   totalCargo: 'Toplam Kargo',
   avgDeliveryTime: 'Ort. Teslimat Süresi',
   deliverySuccess: 'Teslimat Başarısı',
+  daysUnit: 'Gün',
   monthlyDistribution: 'Aylık Dağılım',
   courierBreakdown: 'Kargo Şirketleri Dağılımı',
   filterByMonth: 'Filtre',
@@ -373,6 +374,8 @@ export const tr = {
   gpsUnavailableMsg: 'GPS verisi şu an kullanılamıyor. Lütfen konum servisinizin açık olduğunu ve izin verildiğini kontrol edip tekrar deneyin.',
   gpsPermissionDeniedTitle: 'Konum İzni Reddedildi',
   gpsPermissionDeniedMsg: 'Anlık konumunuzu alabilmek için cihazınızdan konum izni vermeniz gerekmektedir.',
+  reverseGeocodeOfflineTitle: 'Çevrimdışı Konum Kaydedildi',
+  reverseGeocodeOfflineWarning: 'GPS koordinatlarınız alındı. Çevrimdışı olduğunuz için adres detayları otomatik doldurulamadı, lütfen il ve ilçe seçerek açık adresinizi girin.',
 
   // Errors & Warnings
   errorGenericTitle: 'Bir Hata Oluştu',

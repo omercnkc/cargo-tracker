@@ -49,7 +49,17 @@ class ErrorHandlerService {
     if (errMsg.includes('Location permission') || errMsg.includes('permission denied')) {
       return this.getErrorPayloadByCode(AppErrorCode.LOCATION_PERMISSION_DENIED, errObj);
     }
-    if (errMsg.includes('Network request failed') || errMsg.includes('offline') || errMsg.includes('Internet')) {
+    if (
+      errMsg.includes('Network request failed') ||
+      errMsg.includes('offline') ||
+      errMsg.includes('Internet') ||
+      errMsg.includes('reverseGeocodeAsync') ||
+      errMsg.includes('reverseGeocode') ||
+      errMsg.includes('UNAVAILABLE') ||
+      errMsg.includes('IOException') ||
+      errMsg.includes('Geocoder') ||
+      errMsg.includes('jsqv')
+    ) {
       return this.getErrorPayloadByCode(AppErrorCode.NETWORK_OFFLINE, errObj);
     }
     if (errMsg.includes('Camera') && errMsg.includes('permission')) {

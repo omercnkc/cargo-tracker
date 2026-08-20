@@ -135,7 +135,7 @@ export const StatisticsScreen = () => {
                   </View>
                 </View>
                 <View>
-                  <Text style={[styles.statValue, { color: colors.primary }]}>{avgDeliveryDaysFormatted} <Text style={[styles.statValueUnit, { color: colors.onSurfaceVariant }]}>Gün</Text></Text>
+                  <Text style={[styles.statValue, { color: colors.primary }]}>{avgDeliveryDaysFormatted} <Text style={[styles.statValueUnit, { color: colors.onSurfaceVariant }]}>{t('daysUnit')}</Text></Text>
                   <View style={styles.trendRow}>
                     <Text style={[styles.trendTextNeutral, { color: colors.onSurfaceVariant }]}>{deliveredCount} {t('statusDelivered').toLowerCase()}</Text>
                   </View>

@@ -226,10 +226,16 @@ export function AddAddressModal({
         longitude: position.coords.longitude,
       });
 
-      const geocode = await Location.reverseGeocodeAsync({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      });
+      let geocode: Location.LocationGeocodedAddress[] | null = null;
+      try {
+        geocode = await Location.reverseGeocodeAsync({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      } catch {
+        // Reverse geocoding requires internet. If offline, keep coordinates and notify user gracefully.
+        geocode = null;
+      }
 
       if (geocode && geocode.length > 0) {
         const item = geocode[0];
@@ -305,9 +311,13 @@ export function AddAddressModal({
           street: detectedStreet,
         });
       } else {
-        hapticService.error();
-        const payload = ErrorHandler.handleError(AppErrorCode.GPS_UNAVAILABLE, 'AddAddressModal', { mode: 'none' });
-        setGpsInlineError({ title: payload.title, message: payload.message, type: payload.isWarning ? 'warning' : 'error' });
+        if (!title) setTitle(t('myCurrentLocation'));
+        hapticService.warning();
+        setGpsInlineError({
+          title: t('reverseGeocodeOfflineTitle'),
+          message: t('reverseGeocodeOfflineWarning'),
+          type: 'warning',
+        });
       }
     } catch (error) {
       hapticService.error();
