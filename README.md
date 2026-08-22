@@ -1,550 +1,1404 @@
 <p align="center">
-  <img src="./assets/icon.png" alt="Cargo Tracker Logo" width="120" height="120" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/banner.png" alt="Cargo Tracker Banner" width="100%" />
+  <img src="./assets/icon.png" alt="Cargo Tracker Logo" width="120" />
 </p>
 
 <h1 align="center">Cargo Tracker</h1>
 
 <p align="center">
-  <b>A modern, cross-platform mobile shipment tracking and delivery management solution.</b>
+  <strong>Modern, offline-first, cross-platform shipment tracking application.</strong>
 </p>
 
 <p align="center">
-  Cargo Tracker empowers users to manage, track, and monitor all their parcel deliveries in real-time across multiple courier services in a single unified mobile dashboard. Built with React Native, Expo, TypeScript, and Supabase, it provides intelligent OCR tracking number extraction, real-time live map routing, and instant notification updates.
+  Track, organize and monitor shipments from multiple courier companies
+  through a single mobile experience.
 </p>
 
 <p align="center">
-  <a href="https://reactnative.dev"><img src="https://img.shields.io/badge/React_Native-0.81.5-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React Native" /></a>
-  <a href="https://expo.dev"><img src="https://img.shields.io/badge/Expo-~54.0.0-000000?style=for-the-badge&logo=expo&logoColor=white" alt="Expo" /></a>
-  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-~5.9.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
-  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-v20.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
-  <a href="https://supabase.com"><img src="https://img.shields.io/badge/Supabase-v2.110-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" /></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" /></a>
-  <a href="#"><img src="https://img.shields.io/badge/Version-1.0.0-blue.svg?style=for-the-badge" alt="Version" /></a>
-  <a href="#"><img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web-brightgreen.svg?style=for-the-badge" alt="Platform" /></a>
+
+![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB?style=for-the-badge\&logo=react\&logoColor=black)
+![Expo](https://img.shields.io/badge/Expo-54-000020?style=for-the-badge\&logo=expo\&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge\&logo=typescript\&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=for-the-badge\&logo=supabase\&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Offline%20Storage-003B57?style=for-the-badge\&logo=sqlite\&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+
 </p>
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [About](#-about)
-- [Features](#-features)
-- [Screenshots](#-screenshots)
-- [Demo](#-demo)
-- [Architecture](#-architecture)
-- [Tech Stack](#-tech-stack)
-- [Folder Structure](#-folder-structure)
-- [Database](#-database)
-- [API](#-api)
-- [Installation](#-installation)
-- [Environment Variables](#-environment-variables)
-- [Build](#-build)
-- [Deployment](#-deployment)
-- [Project Workflow](#-project-workflow)
-- [Coding Standards](#-coding-standards)
-- [Security](#-security)
-- [Performance](#-performance)
-- [Roadmap](#-roadmap)
-- [Testing](#-testing)
-- [Known Limitations](#-known-limitations)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Credits](#-credits)
-- [Author](#-author)
-- [Acknowledgements](#-acknowledgements)
+* [Overview](#overview)
+* [Core Principles](#core-principles)
+* [Features](#features)
+* [Offline-First Architecture](#offline-first-architecture)
+* [Application Architecture](#application-architecture)
+* [Technology Stack](#technology-stack)
+* [Project Structure](#project-structure)
+* [Data Architecture](#data-architecture)
+* [Synchronization Model](#synchronization-model)
+* [Authentication & Security](#authentication--security)
+* [User Experience](#user-experience)
+* [Localization](#localization)
+* [Testing](#testing)
+* [Performance](#performance)
+* [Development](#development)
+* [Environment Configuration](#environment-configuration)
+* [Build & Deployment](#build--deployment)
+* [Development Workflow](#development-workflow)
+* [Current Status](#current-status)
+* [Known Limitations](#known-limitations)
+* [Contributing](#contributing)
+* [License](#license)
 
 ---
 
-## 🎯 About
+# Overview
 
-### What Problem It Solves
-Tracking multiple online orders across different courier services (Aras Kargo, Yurtiçi Kargo, PTT Kargo, Trendyol Express, Hepsijet, DHL, FedEx, etc.) requires users to check multiple websites and apps individually. **Cargo Tracker** centralizes all shipment updates into one real-time dashboard.
+**Cargo Tracker** is a cross-platform mobile shipment tracking application designed to bring shipments from multiple courier companies into a single unified experience.
 
-### Why It Exists
-Consumers need an effortless, secure, and privacy-focused hub to monitor delivery statuses, scan barcodes or tracking numbers from delivery slips, view courier routes on interactive maps, and receive instant push notifications when delivery statuses change.
+Instead of requiring users to visit different courier websites and applications, Cargo Tracker provides a centralized environment for:
 
-### Who It Is For
-- **Online Shoppers**: Individuals who frequently order products from multiple e-commerce platforms.
-- **Logistics Managers & Sellers**: Small business owners monitoring outbound or inbound packages.
-- **Couriers & Recipients**: Users seeking clear timeline histories and map delivery estimates.
+* Adding shipments
+* Tracking shipment status
+* Viewing shipment timelines
+* Managing courier information
+* Searching and filtering packages
+* Viewing shipment locations on maps
+* Scanning tracking labels
+* Receiving notifications
+* Managing delivery addresses
+* Viewing shipment statistics
+* Working without an internet connection
+* Synchronizing local changes with the backend when connectivity returns
 
-### How It Works
-1. **Add Shipment**: Manually enter tracking details, scan a QR/barcode via the camera, or auto-detect tracking numbers copied to the clipboard.
-2. **Real-time Sync**: Cargo Tracker queries Supabase backend services and listens to WebSocket channels for live event updates.
-3. **Interactive Tracking**: View status progress bars, delivery timeline histories, and live maps rendering courier locations.
-4. **Instant Alerts**: Receive automated device notifications when shipments advance to delivery or completion.
+The application is built around an **offline-first architecture**, meaning the local device is not treated merely as a cache.
 
----
-
-## ✨ Features
-
-### 🔐 Authentication & Security
-- **Email & Password Authentication**: Secure user registration, login, and session persistence via Supabase Auth.
-- **OAuth Social Login**: Google Sign-In integration via `expo-auth-session` and `expo-web-browser`.
-- **Biometric Security**: Optional Local Authentication (Fingerprint / Face ID) via `expo-local-authentication`.
-
-### 📦 Shipment Tracking & Management
-- **Universal Parcel Tracking**: Track shipments from top courier companies (Aras, Yurtiçi, PTT, Sürat, Trendyol Express, Hepsijet, Kargoist, DHL Express, FedEx).
-- **Offline Carrier Logos**: Native SVG and vector logo rendering using `react-native-svg` and `SvgXml`.
-- **Barcode & QR Scanner**: Integrated camera scanner powered by `expo-camera` to instantly scan tracking labels.
-- **Clipboard Auto-Detection**: Smart pattern recognition detects copied tracking codes from clipboard upon opening the screen.
-- **Package Details & Timeline**: Comprehensive status histories, sender/receiver info, estimated delivery dates, and detailed step-by-step event logs.
-
-### 🗺️ Maps & Live Tracking
-- **Interactive Route Map**: Powered by `react-native-maps`, rendering origin, current courier position, and destination pins with custom markers (`ShipmentMapView`).
-- **Real-Time WebSockets**: Live shipment position and status updates using Supabase Realtime channels (`useShipmentRealtime`).
-
-### 📊 Analytics & Reporting
-- **Dynamic KPI Dashboard**: Instant summary statistics (Total Shipments, Average Delivery Time, Delivery Success Rate).
-- **Interactive Monthly Bar Charts**: Filter metrics dynamically by tapping specific calendar months on custom bar charts.
-- **Courier Breakdown Distribution**: Visual breakdown of packages categorized per carrier company.
-
-### 🔔 Notifications & Alerts
-- **In-App & Push Notifications**: Instant notification feeds powered by `expo-notifications` for status state changes.
-
-### ⚙️ Settings & Customization
-- **Theme Support**: Seamless Light Mode and Dark Mode dynamic color palettes.
-- **Multi-Language Support (i18n)**: Instant switching between Turkish (`tr`) and English (`en`).
+Local persistence is an integral part of the application data flow.
 
 ---
 
-## 📸 Screenshots
+# Core Principles
 
-| Home Dashboard | Package Details & Map | Scanner Screen |
-| :---: | :---: | :---: |
-| ![Home Dashboard](https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/screenshots/home.png) | ![Package Details](https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/screenshots/detail.png) | ![Scanner Screen](https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/screenshots/scanner.png) |
+Cargo Tracker is designed around several architectural principles.
 
-| Statistics & Analytics | Carrier Selection | Profile & Settings |
-| :---: | :---: | :---: |
-| ![Statistics](https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/screenshots/statistics.png) | ![Carrier Selection](https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/screenshots/carriers.png) | ![Settings](https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/screenshots/settings.png) |
+### Offline First
 
-> [!NOTE]
-> *If screenshots do not load, inspect the `/assets/screenshots` folder or refer to the demo below.*
+The application should remain useful when connectivity is unavailable.
+
+Local SQLite storage is used as the persistent offline data layer, while synchronization with Supabase occurs when connectivity becomes available.
+
+### Local-First User Experience
+
+User interactions should not unnecessarily wait for a remote request.
+
+The application uses local state, persistence, optimistic UI and synchronization mechanisms to minimize perceived latency.
+
+### Repository-Based Data Access
+
+Screens should not directly depend on Supabase or SQLite implementation details.
+
+Data access is abstracted through repository and service layers.
+
+### Separation of Concerns
+
+The codebase separates:
+
+* UI
+* Feature logic
+* State management
+* Persistence
+* Synchronization
+* Networking
+* Authentication
+* Localization
+* Theme management
+* Validation
+* Utility functions
+
+### Secure by Default
+
+Authentication tokens, user data and database access are handled with security boundaries appropriate for a mobile application.
 
 ---
 
-## 🎥 Demo
+# Features
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/omercnkc/cargo-tracker/main/assets/demo.gif" alt="Cargo Tracker Demo Animation" width="360" />
-</p>
+## Authentication
 
-> *Demo GIF placeholder.*
+* [x] Email/password authentication
+* [x] Supabase Auth integration
+* [x] Persistent authentication session
+* [x] Google OAuth authentication
+* [x] Profile synchronization
+* [x] Secure session storage
+* [x] Biometric authentication support
+* [x] Password recovery flow
 
 ---
 
-## 🏗️ Architecture
+## Shipment Management
+
+* [x] Add shipment manually
+* [x] Select courier company
+* [x] Shipment detail screen
+* [x] Shipment timeline
+* [x] Shipment status tracking
+* [x] Sender information
+* [x] Receiver information
+* [x] Delivery address management
+* [x] Shipment search
+* [x] Shipment filtering
+* [x] Shipment pagination
+* [x] All-packages bottom sheet
+* [x] Shipment archiving
+* [x] Courier-specific tracking data
+
+---
+
+## Courier Support
+
+The application contains built-in support for multiple courier companies, including:
+
+* Aras Kargo
+* Yurtiçi Kargo
+* PTT Kargo
+* Sürat Kargo
+* Trendyol Express
+* Hepsijet
+* Kargoist
+* DHL Express
+* FedEx
+
+Courier branding is stored locally where possible to reduce unnecessary network requests and improve offline rendering.
+
+---
+
+## Barcode & QR Scanning
+
+* [x] Camera-based barcode scanning
+* [x] QR code scanning
+* [x] Tracking number extraction from scanned labels
+* [x] Camera permission handling
+* [x] Tracking number validation
+* [x] Clipboard-based tracking number detection
+
+---
+
+## Maps & Location
+
+* [x] Interactive shipment map
+* [x] Origin location
+* [x] Destination location
+* [x] Shipment location markers
+* [x] Receiver-specific destination coordinates
+* [x] Reverse geocoding
+* [x] Graceful offline reverse-geocoding fallback
+* [x] Courier route visualization
+* [x] Shipment location isolation
+
+---
+
+## Statistics & Analytics
+
+* [x] Total shipment statistics
+* [x] Delivery success statistics
+* [x] Average delivery duration
+* [x] Monthly statistics
+* [x] Courier distribution
+* [x] Interactive statistics UI
+* [x] Localized statistics labels
+* [x] Dynamic analytics calculations
+
+---
+
+## Notifications
+
+* [x] Notification infrastructure
+* [x] In-app notification support
+* [x] Shipment-related notification model
+* [ ] Complete production-grade remote notification pipeline
+* [ ] Advanced notification preferences
+
+---
+
+# Offline-First Architecture
+
+One of the most important architectural characteristics of Cargo Tracker is its offline-first infrastructure.
+
+The offline system was developed incrementally through multiple dedicated implementation stages.
+
+## Offline Architecture Evolution
+
+```text
+V6.0
+SQLite Storage
+    │
+    ▼
+V6.1
+Modular Offline Architecture
+    │
+    ▼
+V6.2
+Single-Flight Lock + Sync Engine
+    │
+    ▼
+V6.3
+Repository Integration + Rehydration
+    │
+    ▼
+V6.4
+Local POD Media Storage
+    │
+    ▼
+V6.5
+Optimistic UI + Offline UI Components
+    │
+    ▼
+V6.6
+Migration + Legacy Cleanup + E2E Validation
+```
+
+---
+
+## Local Persistence
+
+Cargo Tracker uses `expo-sqlite` as its primary offline database.
+
+The local database includes:
+
+* Shipment data
+* Mutation queue
+* Synchronization metadata
+* Local media references
+* Offline state
+
+The database is implemented as a singleton and enables SQLite foreign-key enforcement.
+
+---
+
+## Database Versioning
+
+The offline database uses:
+
+```text
+PRAGMA user_version
+```
+
+to manage schema versions.
+
+This provides a foundation for future migrations:
+
+```text
+Database V1
+   ↓
+Migration
+   ↓
+Database V2
+   ↓
+Migration
+   ↓
+Database V3
+```
+
+Database corruption recovery is also implemented through schema reset and recreation.
+
+---
+
+## Offline Mutation Queue
+
+Offline write operations are represented as mutations.
+
+A mutation contains information such as:
+
+```text
+id
+user_id
+idempotency_key
+parent_mutation_id
+type
+payload
+status
+retry_count
+max_retries
+processing_started_at
+last_error
+server_data
+created_at
+```
+
+Supported mutation states include:
+
+```text
+pending
+processing
+failed
+dead
+conflict
+blocked
+```
+
+This provides a foundation for reliable synchronization instead of blindly retrying network requests.
+
+---
+
+# Synchronization Model
+
+The synchronization engine is responsible for moving local changes toward the remote backend.
+
+Conceptually:
+
+```text
+                ┌─────────────────┐
+                │   React Native  │
+                │       UI        │
+                └────────┬────────┘
+                         │
+                         ▼
+                ┌─────────────────┐
+                │ Zustand / Query │
+                │     State       │
+                └────────┬────────┘
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+              ▼                     ▼
+      ┌───────────────┐     ┌────────────────┐
+      │ Local SQLite  │     │ Repository     │
+      │   Database    │     │    Layer       │
+      └───────┬───────┘     └────────┬───────┘
+              │                      │
+              │ Mutation Queue       │
+              ▼                      ▼
+      ┌────────────────────────────────────┐
+      │          Sync Engine               │
+      │                                    │
+      │ • Single-flight locking            │
+      │ • Retry handling                   │
+      │ • Mutation processing              │
+      │ • Conflict handling                │
+      │ • Rehydration                      │
+      └────────────────┬───────────────────┘
+                       │
+                       ▼
+               ┌─────────────────┐
+               │    Supabase     │
+               │ PostgreSQL/Auth │
+               └─────────────────┘
+```
+
+---
+
+## Single-Flight Synchronization
+
+The synchronization layer uses a single-flight strategy to prevent multiple concurrent synchronization processes from operating on the same local queue.
+
+This reduces:
+
+* Duplicate requests
+* Race conditions
+* Concurrent mutation processing
+* Unnecessary network traffic
+
+---
+
+## Optimistic UI
+
+The application does not always wait for backend confirmation before updating the interface.
+
+The general flow is:
+
+```text
+User Action
+    ↓
+Local State Update
+    ↓
+SQLite Persistence
+    ↓
+Mutation Queue
+    ↓
+UI Reflects New State
+    ↓
+Network Available
+    ↓
+Sync Engine
+    ↓
+Supabase
+    ↓
+Server Confirmation
+```
+
+This creates a faster and more resilient user experience.
+
+---
+
+# Application Architecture
+
+The application follows a modular feature-oriented architecture combined with repository and service abstractions.
 
 ```mermaid
 graph TD
-    subgraph Client [Mobile Client - Expo / React Native]
-        UI[UI Screens & Navigation]
-        Store[Zustand Stores & State]
-        RQ[React Query Cache]
-        Repo[Shipment Repository]
-    end
 
-    subgraph Hardware [Device Hardware & APIs]
-        Cam[Expo Camera / OCR]
-        Bio[Expo Local Authentication]
-        Clip[Expo Clipboard]
-        Map[React Native Maps]
-    end
+    UI[React Native UI]
 
-    subgraph Backend [Backend Service - Supabase BaaS]
-        Auth[Supabase Auth]
-        DB[(PostgreSQL Database)]
-        RLS[Row Level Security]
-        Realtime[Supabase Realtime WebSockets]
-    end
+    Screens[Screens]
+    Components[Reusable Components]
+    Hooks[Custom Hooks]
+    Store[Zustand Stores]
 
-    UI --> Store
-    UI --> RQ
-    RQ --> Repo
-    UI --> Cam
-    UI --> Bio
-    UI --> Clip
-    UI --> Map
+    Repository[Repository Layer]
+    Services[Service Layer]
 
-    Repo --> Auth
-    Repo --> RLS
-    RLS --> DB
-    DB --> Realtime
-    Realtime -. Live Sync .-> UI
+    SQLite[(SQLite)]
+    Supabase[(Supabase PostgreSQL)]
+    Auth[Supabase Auth]
+    Realtime[Supabase Realtime]
+
+    UI --> Screens
+    UI --> Components
+
+    Screens --> Hooks
+    Screens --> Store
+
+    Hooks --> Repository
+    Store --> Repository
+
+    Repository --> Services
+
+    Services --> SQLite
+    Services --> Supabase
+    Services --> Auth
+
+    Supabase --> Realtime
+    Realtime --> Store
 ```
 
 ---
 
-## 🛠️ Tech Stack
+# Technology Stack
 
-| Category | Technology | Description |
-| :--- | :--- | :--- |
-| **Frontend Framework** | React Native (`v0.81.5`) | Cross-platform UI runtime |
-| **Tooling & Engine** | Expo SDK (`v54.0.0`) | Development workflow & native APIs |
-| **Language** | TypeScript (`v5.9.2`) | End-to-end static type safety |
-| **State Management** | Zustand (`v5.0.14`) | Lightweight global client state |
-| **Data Fetching & Cache** | TanStack React Query (`v5.101.4`) | Async server state caching |
-| **Database & Backend** | Supabase (`v2.110.8`) | Managed PostgreSQL, Auth & Realtime |
-| **Authentication** | Supabase Auth & Expo SecureStore | Encrypted storage & session tokens |
-| **Navigation** | React Navigation (`v7.x`) | Native stack & bottom tabs navigation |
-| **Maps & Location** | React Native Maps & Expo Location | Map rendering & geolocation |
-| **Scanner & Camera** | Expo Camera | Live barcode / QR code capture |
-| **Styling & Assets** | Vanilla StyleSheet & react-native-svg | Dynamic theme tokens & SVG graphics |
+| Category         | Technology              |
+| ---------------- | ----------------------- |
+| Framework        | React Native            |
+| Runtime          | Expo SDK 54             |
+| Language         | TypeScript              |
+| UI               | React Native StyleSheet |
+| Navigation       | React Navigation 7      |
+| Global State     | Zustand 5               |
+| Server State     | TanStack React Query 5  |
+| Remote Backend   | Supabase                |
+| Database         | PostgreSQL              |
+| Offline Database | SQLite                  |
+| Authentication   | Supabase Auth           |
+| Secure Storage   | Expo SecureStore        |
+| Maps             | React Native Maps       |
+| Location         | Expo Location           |
+| Camera           | Expo Camera             |
+| Notifications    | Expo Notifications      |
+| File System      | Expo File System        |
+| Haptics          | Expo Haptics            |
+| Localization     | Custom TR/EN i18n       |
+| Forms            | React Hook Form         |
+| SVG              | React Native SVG        |
+| Animation        | React Native Reanimated |
+| Testing          | Jest                    |
+| Build            | Expo / EAS              |
+
+The current dependency configuration uses React Native 0.81.5, Expo 54, TypeScript 5.9.x, Zustand 5, TanStack Query 5, Supabase JS 2.110.x and Expo SQLite.
 
 ---
 
-## 📂 Folder Structure
+# Project Structure
 
 ```text
 cargo-tracker/
-├── assets/                  # App icons, splash screens, logos, and screenshots
-├── src/                     # Source application code
-│   ├── app/                 # Root application entry components
-│   ├── assets/              # Carrier SVG & PNG brand icons
-│   ├── components/          # Reusable UI component modules
-│   │   ├── auth/            # Auth forms & social buttons
-│   │   ├── common/          # CarrierLogo, HeaderRightActions, Modals
-│   │   ├── feedback/        # Loading & alert components
-│   │   ├── home/            # Package cards & stat items
-│   │   ├── import/          # Email connect modals
-│   │   ├── layout/          # Screen wrappers & headers
-│   │   ├── map/             # ShipmentMapView & CustomMarker
-│   │   ├── package/         # Package details UI helpers
-│   │   ├── profile/         # Profile avatar & info views
-│   │   └── ui/              # Buttons, inputs, badges
-│   ├── config/              # App environment & Supabase configuration
-│   ├── constants/           # Carrier defaults, exclusions & colors
-│   ├── features/            # Feature modules (Shipment repositories & hooks)
-│   │   └── shipment/        # Hooks (`useShipments`) & Repositories
-│   ├── hooks/               # Custom hooks (Theme, i18n, Biometrics, Realtime)
-│   ├── i18n/                # Localization locales (`tr.ts`, `en.ts`)
-│   ├── navigation/          # React Navigation stacks & tab bar
-│   ├── providers/           # React Query & Theme providers
-│   ├── screens/             # Top-level screen views (Home, Details, Stats, etc.)
-│   ├── services/            # API, Auth, OCR, Offline, & Storage services
-│   ├── store/               # Zustand stores (Auth, Theme, Language, Shipment)
-│   ├── theme/               # Light/Dark tokens, typography, and spacing
-│   ├── types/               # TypeScript interfaces & database schemas
-│   └── utils/               # Helper utilities & loggers
-├── supabase/                # PostgreSQL schema SQL migration files
-├── app.json                 # Expo project configuration
-├── eas.json                 # Expo Application Services build config
-├── package.json             # Dependencies and scripts manifest
-├── tsconfig.json            # TypeScript compiler configuration
-└── LICENSE                  # MIT License
+│
+├── .agents/
+│   └── skills/
+│
+├── .claude/
+│
+├── .github/
+│   └── workflows/
+│
+├── assets/
+│   ├── screenshots/
+│   ├── icon.png
+│   ├── banner.png
+│   └── ...
+│
+├── src/
+│   │
+│   ├── app/
+│   │   ├── App.tsx
+│   │   ├── config/
+│   │   ├── navigation/
+│   │   └── providers/
+│   │
+│   ├── assets/
+│   │
+│   ├── components/
+│   │   ├── auth/
+│   │   ├── common/
+│   │   ├── feedback/
+│   │   ├── home/
+│   │   ├── import/
+│   │   ├── layout/
+│   │   ├── map/
+│   │   ├── package/
+│   │   ├── profile/
+│   │   └── ui/
+│   │
+│   ├── constants/
+│   │
+│   ├── features/
+│   │   ├── auth/
+│   │   ├── offline/
+│   │   │   ├── database/
+│   │   │   ├── repositories/
+│   │   │   ├── services/
+│   │   │   ├── store/
+│   │   │   └── __tests__/
+│   │   │
+│   │   └── shipment/
+│   │       ├── repositories/
+│   │       └── ...
+│   │
+│   ├── hooks/
+│   │
+│   ├── i18n/
+│   │   └── locales/
+│   │       ├── en.ts
+│   │       └── tr.ts
+│   │
+│   ├── mock/
+│   │   └── fallbackPackages.ts
+│   │
+│   ├── navigation/
+│   │
+│   ├── providers/
+│   │
+│   ├── screens/
+│   │   ├── AddPackageScreen.tsx
+│   │   ├── HomeScreen.tsx
+│   │   ├── PackageDetailScreen.tsx
+│   │   ├── PackagesScreen.tsx
+│   │   ├── SearchScreen.tsx
+│   │   ├── StatisticsScreen.tsx
+│   │   ├── ProfileScreen.tsx
+│   │   └── SettingsScreen.tsx
+│   │
+│   ├── services/
+│   │   ├── api/
+│   │   ├── auth/
+│   │   ├── error/
+│   │   ├── repositories/
+│   │   ├── storage/
+│   │   └── ...
+│   │
+│   ├── store/
+│   │
+│   ├── theme/
+│   │
+│   ├── types/
+│   │
+│   └── utils/
+│
+├── supabase/
+│   └── schema.sql
+│
+├── .env.example
+├── AGENTS.md
+├── CLAUDE.md
+├── app.json
+├── eas.json
+├── index.ts
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── LICENSE
+```
+
+The repository currently reflects a significantly more modular structure than the original README described, including dedicated offline database/repository/service layers, feature modules, custom hooks and extracted screen styles.
+
+---
+
+# Data Architecture
+
+The remote backend is based on Supabase/PostgreSQL.
+
+Core entities include:
+
+```text
+users
+    │
+    ├── user_settings
+    │
+    ├── notifications
+    │
+    └── shipments
+             │
+             ├── courier_company
+             │
+             └── shipment_events
+```
+
+### Main entities
+
+#### Users
+
+Stores application-level user information associated with Supabase Auth.
+
+#### Courier Companies
+
+Contains:
+
+* Courier name
+* Courier code
+* Logo
+* Website
+* Tracking URL
+* Active status
+
+#### Shipments
+
+Contains:
+
+* Tracking number
+* Courier
+* Sender
+* Receiver
+* Current status
+* Last known location
+* Estimated delivery date
+* Delivery timestamp
+* Archive state
+* Ownership information
+
+#### Shipment Events
+
+Represents the historical timeline of a shipment.
+
+#### Notifications
+
+Stores shipment-related notification information.
+
+#### User Settings
+
+Stores:
+
+* Language
+* Theme
+* Notification preferences
+* Biometric preference
+
+---
+
+# Authentication & Security
+
+Security is enforced at multiple layers.
+
+## Supabase RLS
+
+Row Level Security is used to ensure users can access only records belonging to their account.
+
+Conceptually:
+
+```text
+Authenticated User
+        │
+        ▼
+    auth.uid()
+        │
+        ▼
+ user_id ownership
+        │
+   ┌────┴────┐
+   │         │
+ Allow     Deny
 ```
 
 ---
 
-## 🗄️ Database
+## Secure Session Storage
 
-### Entity Relationship & Tables
+Authentication sessions are stored using:
 
-```sql
--- 1. users
-public.users (
-    id uuid primary key references auth.users(id) on delete cascade,
-    full_name text,
-    avatar_url text,
-    phone text,
-    created_at timestamptz default now(),
-    updated_at timestamptz default now()
-);
-
--- 2. courier_companies
-public.courier_companies (
-    id uuid default gen_random_uuid() primary key,
-    name text not null,
-    code text unique not null,
-    logo_url text,
-    website text,
-    tracking_url text,
-    active boolean default true,
-    created_at timestamptz default now()
-);
-
--- 3. shipments
-public.shipments (
-    id uuid default gen_random_uuid() primary key,
-    user_id uuid references public.users(id) on delete cascade,
-    company_id uuid references public.courier_companies(id),
-    tracking_number text not null,
-    title text,
-    sender text,
-    receiver text,
-    current_status text,
-    last_location text,
-    estimated_delivery date,
-    delivered_at timestamptz,
-    is_archived boolean default false,
-    created_at timestamptz default now(),
-    updated_at timestamptz default now()
-);
-
--- 4. shipment_events
-public.shipment_events (
-    id uuid default gen_random_uuid() primary key,
-    shipment_id uuid references public.shipments(id) on delete cascade,
-    status text not null,
-    description text,
-    location text,
-    event_time timestamptz,
-    created_at timestamptz default now()
-);
-
--- 5. notifications
-public.notifications (
-    id uuid default gen_random_uuid() primary key,
-    user_id uuid references public.users(id) on delete cascade,
-    shipment_id uuid references public.shipments(id) on delete cascade,
-    title text,
-    body text,
-    is_read boolean default false,
-    created_at timestamptz default now()
-);
-
--- 6. user_settings
-public.user_settings (
-    id uuid default gen_random_uuid() primary key,
-    user_id uuid unique references public.users(id) on delete cascade,
-    language text default 'tr',
-    theme text default 'system',
-    notifications_enabled boolean default true,
-    biometric_enabled boolean default false,
-    created_at timestamptz default now(),
-    updated_at timestamptz default now()
-);
+```text
+expo-secure-store
 ```
 
-### Database Indexes & RLS
-- **Indexes**: `idx_shipments_user`, `idx_shipments_tracking`, `idx_shipments_company`, `idx_events_shipment`, `idx_notifications_user`.
-- **Row Level Security (RLS)**: Enforced on all tables restricting access strictly to `auth.uid() = user_id`.
+rather than relying solely on unencrypted local persistence.
 
 ---
 
-## 📡 API
+## Offline SQLite Security
 
-### Authentication API (Supabase Auth)
-- `signUpWithPassword(email, password, fullName)`: Registers a new user.
-- `signInWithPassword(email, password)`: Logs in user and stores session in SecureStore.
-- `signOut()`: Terminates active user session.
-
-### Shipment API Methods (`ShipmentRepository`)
-- `getShipments(userId)`: Fetches user shipments with courier details.
-- `getShipmentDetail(shipmentId)`: Fetches complete shipment info and event timeline.
-- `createShipment(shipmentData)`: Inserts a new shipment into PostgreSQL.
-- `updateShipmentStatus(shipmentId, status)`: Updates current status.
-- `deleteShipment(shipmentId)`: Removes shipment record.
+Offline SQL operations use parameterized queries rather than constructing SQL statements directly from user input.
 
 ---
 
-## 📥 Installation
+## Security Audit
 
-### Prerequisites
-- [Node.js](https://nodejs.org) (v18.0 or higher)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- [Expo Go app](https://expo.dev/go) on mobile device OR Android Studio / Xcode simulators
+The latest development cycle included a dedicated security audit covering:
 
-### Step 1: Clone Repository
+* Secret leakage
+* Session/token storage
+* SQLite SQL injection
+* Unsafe dynamic code execution
+* Sensitive logging
+* Supabase RLS
+* Dependency security
+
+The audit reported no critical runtime security findings and confirmed the absence of service-role secrets in the client codebase.
+
+---
+
+# User Experience
+
+## Dark Mode
+
+The application supports dynamic light and dark themes.
+
+Theme changes also synchronize the native system status bar so the application does not visually conflict with the operating system UI.
+
+---
+
+## Offline Network Banner
+
+A global network status component provides immediate feedback when connectivity changes.
+
+```text
+Online
+  │
+  ├── Normal Application
+  │
+  ▼
+Offline
+  │
+  ├── Floating Network Banner
+  ├── Local Data Available
+  ├── Local Mutations Allowed
+  │
+  ▼
+Connection Restored
+  │
+  └── Synchronization
+```
+
+---
+
+## Pagination
+
+The latest UI architecture includes a reusable pagination system.
+
+Pagination is used for large shipment collections and supports:
+
+* Current page
+* Total pages
+* Total item count
+* Configurable page size
+* Previous/next navigation
+* Haptic feedback
+* Localized labels
+
+The latest implementation uses a five-item-per-page presentation for the relevant package views.
+
+---
+
+## Haptic Feedback
+
+Haptic feedback is integrated into relevant interactions such as:
+
+* Buttons
+* Pagination
+* Selection
+* Important UI actions
+
+---
+
+# Localization
+
+Cargo Tracker supports:
+
+```text
+🇹🇷 Turkish
+🇬🇧 English
+```
+
+Localization has been progressively expanded across:
+
+* Screens
+* Buttons
+* Navigation
+* Bottom tabs
+* Modal dialogs
+* Statistics
+* Carrier selection
+* Settings
+* Validation messages
+* Offline UI
+* Dynamic text interpolation
+
+The current architecture keeps translation dictionaries under:
+
+```text
+src/i18n/locales/
+├── tr.ts
+└── en.ts
+```
+
+---
+
+# Testing
+
+Testing infrastructure has been expanded significantly alongside the offline architecture.
+
+## Current Test Coverage
+
+The latest development cycle reports:
+
+```text
+13 test suites
+43 / 43 tests passing
+```
+
+The test system covers areas including:
+
+* SQLite storage engine
+* Database migrations
+* Offline queue
+* Synchronization
+* Rehydration
+* POD storage
+* Offline E2E flows
+* Migration behavior
+
+The latest commit also added Jest scripts directly to `package.json`.
+
+---
+
+## Run Tests
+
 ```bash
-git clone https://github.com/omercnkc/cargo-tracker.git
+npm test
+```
+
+Watch mode:
+
+```bash
+npm run test:watch
+```
+
+---
+
+# Performance
+
+Several performance-oriented techniques are used throughout the application.
+
+### React Query Caching
+
+TanStack React Query is used for server-state caching and reducing redundant remote requests.
+
+### Local Assets
+
+Courier logos are rendered locally where possible.
+
+This reduces:
+
+* Network dependency
+* Image loading delays
+* UI flickering
+* Repeated downloads
+
+### Pagination
+
+Large shipment collections are not unnecessarily rendered as a single massive list.
+
+### Memoization
+
+Expensive calculations and callbacks are selectively memoized.
+
+### Offline Persistence
+
+Frequently accessed data can be retrieved locally instead of waiting for the network.
+
+### Repository Abstraction
+
+Data access logic is centralized, reducing duplicated queries and inconsistent data-handling behavior.
+
+---
+
+# Development
+
+## Requirements
+
+Recommended development environment:
+
+```text
+Node.js 18+
+npm
+Expo SDK 54
+Android Studio / Android Emulator
+Xcode / iOS Simulator
+Supabase project
+```
+
+---
+
+## Installation
+
+Clone the repository and enter the project directory:
+
+```bash
+git clone <repository-url>
 cd cargo-tracker
 ```
 
-### Step 2: Install Dependencies
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-### Step 3: Configure Environment Variables
-Create a `.env` file in the root directory:
+Create the environment file:
+
 ```bash
 cp .env.example .env
 ```
-Fill in your Supabase credentials:
-```env
-EXPO_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
-EXPO_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+
+Configure the required Supabase variables.
+
+Start the development server:
+
+```bash
+npm start
 ```
 
-### Step 4: Run Application
+---
+
+## Android
+
 ```bash
-# Start Metro Bundler
-npm start
-
-# Run on Android Emulator
 npm run android
+```
 
-# Run on iOS Simulator
+---
+
+## iOS
+
+```bash
 npm run ios
+```
 
-# Run on Web Browser
+---
+
+## Web
+
+```bash
 npm run web
 ```
 
 ---
 
-## 🔑 Environment Variables
+# Environment Configuration
 
-| Variable Name | Required | Description | Example |
-| :--- | :---: | :--- | :--- |
-| `EXPO_PUBLIC_SUPABASE_URL` | **Yes** | Public HTTPS URL of your Supabase project | `https://xyzcompany.supabase.co` |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | **Yes** | Anonymous API access key for Supabase client | `eyJhbGciOiJIUzI1NiIsInR5c...` |
+Create:
+
+```text
+.env
+```
+
+based on:
+
+```text
+.env.example
+```
+
+Required variables:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL="your-supabase-project-url"
+EXPO_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+Do not place:
+
+```text
+SUPABASE_SERVICE_ROLE_KEY
+private API keys
+OAuth client secrets
+production credentials
+```
+
+inside client-side source code.
 
 ---
 
-## 📦 Build
+# Build & Deployment
 
-### Building APK for Android (Preview)
+Cargo Tracker uses Expo Application Services for native builds.
+
+## Android Preview
+
 ```bash
 npx eas-cli build --platform android --profile preview
 ```
 
-### Building Production App Bundle (AAB)
+## Android Production
+
 ```bash
 npx eas-cli build --platform android --profile production
 ```
 
-### Building for iOS
+## iOS Production
+
 ```bash
 npx eas-cli build --platform ios --profile production
 ```
 
 ---
 
-## 🚀 Deployment
+# Development Workflow
 
-1. **Database Deployment**: Apply SQL migrations located in `/supabase/schema.sql` to your Supabase project dashboard.
-2. **App Publishing**: Publish OTA updates or submit native builds using Expo Application Services (EAS):
-```bash
-npx eas-cli submit --platform android
-```
-
----
-
-## 🔄 Project Workflow
+The project follows a feature-oriented Git workflow.
 
 ```text
-[ Feature Request / Bug Fix ]
-          │
-          ▼
-[ Create Branch: feature/xxx or fix/xxx ]
-          │
-          ▼
-[ Write TypeScript Code & Components ]
-          │
-          ▼
-[ Test via Expo Dev Client / Metro ]
-          │
-          ▼
-[ Push & Merge to main ]
-          │
-          ▼
-[ Automated EAS Build & OTA Deployment ]
+Feature / Bug
+     │
+     ▼
+Create Branch
+     │
+     ▼
+Implement
+     │
+     ├── UI
+     ├── Feature Logic
+     ├── Repository
+     ├── Offline Layer
+     └── Tests
+     │
+     ▼
+Run Tests
+     │
+     ▼
+Manual Verification
+     │
+     ▼
+Commit
+     │
+     ▼
+Merge
+```
+
+Recommended branch naming:
+
+```text
+feature/<feature-name>
+fix/<bug-name>
+refactor/<area>
+docs/<documentation-change>
+test/<test-area>
 ```
 
 ---
 
-## 📐 Coding Standards
+# Current Status
 
-- **Naming Conventions**:
-  - Components & Screens: `PascalCase.tsx` (e.g., `AddPackageScreen.tsx`)
-  - Utility Files & Hooks: `camelCase.ts` (e.g., `useShipments.ts`)
-  - Constants & Types: `SCREAMING_SNAKE_CASE` or `PascalCase`
-- **Folder Conventions**: Modular directory grouping (`features/`, `components/`, `screens/`).
-- **File Conventions**: Single component per file, explicit TypeScript interface typing for props.
+## Architecture
 
----
+* [x] React Native + Expo foundation
+* [x] TypeScript architecture
+* [x] Feature-oriented project structure
+* [x] Repository layer
+* [x] Service layer
+* [x] Zustand state management
+* [x] TanStack Query
+* [x] Supabase integration
+* [x] SQLite offline persistence
+* [x] Database migrations
+* [x] Offline mutation queue
+* [x] Sync Engine
+* [x] Single-flight synchronization
+* [x] Repository ↔ offline integration
+* [x] Rehydration
+* [x] Local POD storage
+* [x] Optimistic UI
+* [x] Offline network UI
+* [x] Legacy offline migration
+* [x] Offline E2E verification
 
-## 🛡️ Security
+## UI / UX
 
-- **Row Level Security (RLS)**: Enforced across PostgreSQL tables preventing unauthorized data leaks between users.
-- **Secure Credentials**: Sensitive tokens and biometrics handled securely using `expo-secure-store`.
-- **Sanitized Inputs**: Validation powered by `react-hook-form` preventing SQL/scripting injection.
+* [x] Light mode
+* [x] Dark mode
+* [x] TR / EN localization
+* [x] Bottom tab navigation
+* [x] Hamburger navigation
+* [x] Package pagination
+* [x] All-packages bottom sheet
+* [x] Carrier selection sheet
+* [x] Address management
+* [x] Profile editing
+* [x] Haptic feedback
+* [x] Dynamic status bar handling
 
----
+## Shipment Features
 
-## ⚡ Performance
+* [x] Manual tracking
+* [x] Barcode / QR scanning
+* [x] Clipboard tracking detection
+* [x] Shipment timeline
+* [x] Courier selection
+* [x] Map visualization
+* [x] Receiver address management
+* [x] Shipment statistics
+* [x] Search and filtering
 
-- **Vector SVG Optimization**: Courier company logos rendered locally using `react-native-svg` and `SvgXml` strings to prevent network overhead and image flicker.
-- **TanStack React Query Caching**: Automatic query caching (`staleTime: 1 hour`) prevents redundant HTTP requests.
-- **Dynamic Memoization**: Heavy list items and compute hooks memoized using `useMemo` and `useCallback`.
+## Security
 
----
+* [x] Supabase RLS
+* [x] Secure session storage
+* [x] Parameterized SQLite queries
+* [x] Secret-leak audit
+* [x] Static unsafe-code audit
+* [x] Dependency audit
+* [x] Sensitive logging review
 
-## 🗺️ Roadmap
+## Testing
 
-- [x] Email & Password Authentication with Supabase
-- [x] Barcode & QR Code Camera Scanner
-- [x] Local SVG/PNG Courier Logo Support (Aras, Yurtiçi, PTT, Sürat, Trendyol Express, Hepsijet, Kargoist, DHL, FedEx)
-- [x] Real-time Interactive Route Maps
-- [x] Interactive Monthly Statistics Bar Chart Filtering
-- [ ] Multi-Carrier Auto Email Sync (Gmail Integration)
-- [ ] Push Notification Triggers via Supabase Edge Functions
-- [ ] PDF & CSV Export Reports
-
----
-
-## 🧪 Testing
-
-### Unit & Integration Testing
-> Coming Soon
-
-### Manual Verification
-- Verified barcode scanning against real delivery receipts.
-- Verified offline carrier logo rendering on Android and iOS devices.
-- Tested light and dark mode palette rendering across all screens.
-
----
-
-## ⚠️ Known Limitations
-
-- Real-time map location updates rely on simulated courier location coordinates when live GPS hardware data is not provided by third-party APIs.
-- Auto-syncing tracking emails requires user authorization for external OAuth scopes.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the Repository.
-2. Create a Feature Branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the Branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
-
----
-
-## 📄 License
-
-Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
+* [x] Jest infrastructure
+* [x] SQLite tests
+* [x] Migration tests
+* [x] Offline tests
+* [x] E2E offline validation
+* [x] 43/43 tests passing in latest validated cycle
 
 ---
 
-## 💳 Credits
 
-- **[React Native](https://reactnative.dev)** & **[Expo](https://expo.dev)**
-- **[Supabase](https://supabase.com)**
-- **[Lucide & Material Icons](https://icons.expo.fyi)**
-- **[React Native Maps](https://github.com/react-native-maps/react-native-maps)**
+# Known Limitations
+
+### Third-Party Tracking Data
+
+Real-time shipment information depends on the availability and quality of external carrier data.
+
+### GPS
+
+Where real carrier GPS data is unavailable, route/location visualization may rely on simulated or derived coordinates.
+
+### OAuth
+
+Email integrations require appropriate OAuth permissions and user authorization.
+
+### Background Synchronization
+
+True production-grade background synchronization remains an area for further hardening.
+
+### Push Notifications
+
+The application contains notification infrastructure, but a complete production-grade remote notification trigger pipeline remains part of the roadmap.
 
 ---
 
-## 👤 Author
+# Architectural Decisions
+
+Several architectural decisions were made deliberately.
+
+## Why SQLite?
+
+Because offline functionality requires more than transient state.
+
+SQLite provides:
+
+* Structured persistence
+* Transactions
+* Querying
+* Migration support
+* Reliable local storage
+* Mutation queue persistence
+
+---
+
+## Why Zustand?
+
+Zustand provides lightweight application state without introducing unnecessary architectural overhead.
+
+It is used for state such as:
+
+```text
+Authentication
+Theme
+Language
+Shipment state
+Offline synchronization state
+```
+
+---
+
+## Why TanStack Query?
+
+TanStack Query handles server-state concerns separately from local application state.
+
+This creates a useful distinction:
+
+```text
+Zustand
+    ↓
+Client/Application State
+
+TanStack Query
+    ↓
+Server State / Cache
+
+SQLite
+    ↓
+Persistent Offline State
+
+Supabase
+    ↓
+Remote Source of Truth
+```
+
+---
+
+## Why Supabase?
+
+Supabase provides:
+
+* PostgreSQL
+* Authentication
+* Row Level Security
+* Realtime
+* Storage
+* Edge Functions
+
+without requiring a custom backend infrastructure for the initial product architecture.
+
+---
+
+# Recent Development History
+
+The current architecture is the result of a concentrated refactoring and offline-first development cycle.
+
+### August 22, 2026
+
+**11bed2e — All Packages, Pagination & Security**
+
+* Added reusable pagination hook
+* Added reusable pagination controls
+* Added All Packages bottom sheet
+* Added live search
+* Improved theme contrast
+* Improved native status-bar synchronization
+* Fixed Expo FileSystem and Supabase TypeScript issues
+* Added safer error handling
+* Added Jest scripts
+* Added security audit documentation
+* Added test documentation
+* Validated 13 test suites
+
+### August 22, 2026
+
+**a12c4f0 — Offline UX & UI**
+
+* Added global offline network banner
+* Added reconnect animation
+* Improved phone number formatting
+* Added dynamic receiver addresses
+* Added isolated destination coordinates
+* Improved Sync Engine compatibility
+* Improved dark-mode system status bar
+* Improved localization interpolation
+
+### August 20, 2026
+
+**cc4eb7f — GPS & Localization**
+
+* Improved offline reverse geocoding
+* Improved statistics localization
+* Continued clean architecture migration
+
+### August 18, 2026
+
+**b1f1b6c — Clean Code Refactor**
+
+* Extracted screen styles
+* Extracted address logic
+* Added statistics analytics hook
+* Added reusable carrier selection sheet
+* Centralized fallback package data
+* Reduced screen complexity substantially
+
+### August 15, 2026
+
+**Offline-First V6.0 → V6.6**
+
+The project progressed through:
+
+```text
+V6.0  SQLite foundation
+V6.1  Modular offline architecture
+V6.2  Sync Engine + single-flight lock
+V6.3  Repository integration + rehydration
+V6.4  POD storage + idempotency
+V6.5  Optimistic UI + offline UI
+V6.6  Migration + legacy cleanup + E2E validation
+```
+
+The V6.6 stage migrated legacy AsyncStorage data into SQLite, removed legacy offline code and validated the complete offline architecture with automated tests.
+
+---
+
+# Contributing
+
+Contributions are welcome.
+
+Before submitting a change:
+
+1. Create a dedicated branch.
+2. Keep changes focused.
+3. Follow the existing architecture.
+4. Avoid placing business logic directly inside screens.
+5. Add tests for important logic.
+6. Verify both online and offline behavior when applicable.
+7. Verify light and dark themes.
+8. Verify Turkish and English localization.
+9. Run the test suite.
+10. Submit a pull request with a clear description.
+
+---
+
+# License
+
+This project is distributed under the MIT License.
+
+See `LICENSE` for the complete license text.
+
+---
+
+# Author
 
 **Ömer Çanakçı**
 
-- **GitHub**: [@omercnkc](https://github.com/omercnkc)
-- **LinkedIn**: [Ömer Çanakçı](https://linkedin.com)
-- **Email**: omercnkc@gmail.com
+Software Engineer / Mobile Developer
+
+Cargo Tracker is developed as a personal engineering project focused on:
+
+* Mobile application architecture
+* Offline-first systems
+* React Native
+* TypeScript
+* Supabase
+* SQLite
+* Synchronization engines
+* Clean architecture
+* Production-oriented mobile development
 
 ---
 
-## 🙏 Acknowledgements
-
-Special thanks to the open-source React Native and Expo communities for providing exceptional tooling and documentation.
+<p align="center">
+  <strong>Cargo Tracker</strong>
+  <br />
+  Track smarter. Stay synchronized. Work offline.
+</p>
