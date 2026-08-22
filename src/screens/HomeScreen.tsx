@@ -165,7 +165,13 @@ export const HomeScreen = () => {
               isLargeScreen={isLargeScreen}
               onPress={() => {
                 hapticService.buttonPress();
-                navigation.navigate('PackageDetail', { id: item.id });
+                const trackingPart = item.code?.includes('•') ? item.code.split('•')[1].trim() : item.code;
+                navigation.navigate('PackageDetail', { 
+                  id: item.id, 
+                  shipmentId: item.id,
+                  trackingNumber: trackingPart,
+                  title: item.name,
+                });
               }}
             />
           )}

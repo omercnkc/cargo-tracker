@@ -78,7 +78,7 @@ export class SyncEngineService {
         setTimeout(() => store.setSyncStatus('idle'), 2000);
       }
     } catch (error) {
-      console.error('[SyncEngine Hatası]:', error);
+      console.warn('[SyncEngine Hatası]:', error);
       store.setSyncStatus('error');
     } finally {
       this.isSyncing = false;
@@ -121,12 +121,12 @@ export class SyncEngineService {
         useOfflineSyncStore.getState().setConflictState(item.id, result.serverData);
         return false;
       } else {
-        console.error(`[SyncEngine] Mutasyon ${item.id} başarısız oldu:`, result.error);
+        console.warn(`[SyncEngine] Mutasyon ${item.id} senkronizasyon uyarısı:`, result.error);
         OfflineQueueRepository.updateMutationStatus(item.id, 'failed', result.error);
         return false;
       }
     } catch (err: any) {
-      console.error(`[SyncEngine Istisna] Mutasyon ${item.id}:`, err);
+      console.warn(`[SyncEngine Uyarı] Mutasyon ${item.id}:`, err?.message || err);
       OfflineQueueRepository.updateMutationStatus(item.id, 'failed', err.message || 'Bilinmeyen hata');
       return false;
     }
@@ -145,20 +145,30 @@ export class SyncEngineService {
     switch (type) {
       case 'ADD_SHIPMENT': {
         const p = payload as AddShipmentPayload;
+        const insertPayload: any = {
+          user_id: userId,
+          tracking_number: p.trackingNumber,
+          title: p.title,
+          current_status: 'transit',
+          created_at: p.createdAt || new Date().toISOString(),
+          updated_at: p.createdAt || new Date().toISOString(),
+        };
+
+        // If clientShipmentId is a valid UUID, pass it, otherwise let Supabase generate default gen_random_uuid()
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.clientShipmentId || '');
+        if (isUuid) {
+          insertPayload.id = p.clientShipmentId;
+        }
+
+        // Supabase company_id is a foreign key UUID. Only assign if valid UUID (e.g. not 'general' string)
+        const isCarrierUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.carrierId || '');
+        if (isCarrierUuid) {
+          insertPayload.company_id = p.carrierId;
+        }
+
         const { data, error } = await client
           .from('shipments')
-          .insert({
-            id: p.clientShipmentId,
-            idempotency_key: item.idempotencyKey,
-            user_id: userId,
-            tracking_number: p.trackingNumber,
-            carrier_id: p.carrierId,
-            title: p.title,
-            status: 'pending',
-            base_version: 1,
-            created_at: p.createdAt,
-            updated_at: p.createdAt,
-          })
+          .insert(insertPayload)
           .select()
           .single();
 
@@ -171,66 +181,32 @@ export class SyncEngineService {
 
       case 'UPDATE_SHIPMENT_STATUS': {
         const p = payload as UpdateShipmentStatusPayload;
-        const { data: currentServerData } = await client
-          .from('shipments')
-          .select('*')
-          .eq('id', p.shipmentId)
-          .single();
-
-        if (currentServerData && currentServerData.base_version !== p.baseVersion) {
-          return { success: false, conflict: true, serverData: currentServerData };
-        }
-
         const { data, error } = await client
           .from('shipments')
           .update({
-            status: p.status,
-            base_version: (p.baseVersion || 1) + 1,
-            updated_at: p.updatedAt,
-            last_idempotency_key: item.idempotencyKey,
+            current_status: p.status,
+            updated_at: p.updatedAt || new Date().toISOString(),
           })
           .eq('id', p.shipmentId)
-          .eq('base_version', p.baseVersion)
           .select();
 
         if (error) return { success: false, error: error.message };
-        if (!data || data.length === 0) {
-          return { success: false, conflict: true, serverData: currentServerData };
-        }
-
-        return { success: true, serverData: data[0] };
+        return { success: true, serverData: data?.[0] };
       }
 
       case 'UPDATE_SHIPMENT_DETAILS': {
         const p = payload as UpdateShipmentDetailsPayload;
-        const { data: currentServerData } = await client
-          .from('shipments')
-          .select('*')
-          .eq('id', p.shipmentId)
-          .single();
-
-        if (currentServerData && currentServerData.base_version !== p.baseVersion) {
-          return { success: false, conflict: true, serverData: currentServerData };
-        }
-
         const { data, error } = await client
           .from('shipments')
           .update({
             title: p.title,
-            base_version: (p.baseVersion || 1) + 1,
-            updated_at: p.updatedAt,
-            last_idempotency_key: item.idempotencyKey,
+            updated_at: p.updatedAt || new Date().toISOString(),
           })
           .eq('id', p.shipmentId)
-          .eq('base_version', p.baseVersion)
           .select();
 
         if (error) return { success: false, error: error.message };
-        if (!data || data.length === 0) {
-          return { success: false, conflict: true, serverData: currentServerData };
-        }
-
-        return { success: true, serverData: data[0] };
+        return { success: true, serverData: data?.[0] };
       }
 
       case 'ARCHIVE_SHIPMENT': {
@@ -238,8 +214,8 @@ export class SyncEngineService {
         const { data, error } = await client
           .from('shipments')
           .update({
-            updated_at: p.updatedAt,
-            last_idempotency_key: item.idempotencyKey,
+            is_archived: true,
+            updated_at: p.updatedAt || new Date().toISOString(),
           })
           .eq('id', p.shipmentId)
           .select();

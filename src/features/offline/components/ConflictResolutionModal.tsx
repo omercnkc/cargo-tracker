@@ -22,7 +22,7 @@ export const handleResolveConflictUserChoice = async (
 
   OfflineQueueRepository.updateConflictResolution({
     mutationId: conflictMutation.id,
-    updatedMutation: updatedPayload,
+    updatedMutation: updatedPayload as any,
     newIdempotencyKey: newResolutionIdempotencyKey,
     status: 'pending',
   });

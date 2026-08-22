@@ -103,7 +103,13 @@ export const SearchScreen = () => {
               status={item.current_status || 'transit'}
               icon="local-shipping"
               isLargeScreen={isLargeScreen}
-              onPress={() => navigation.navigate('PackageDetail', { id: item.id })}
+              onPress={() => navigation.navigate('PackageDetail', { 
+                id: item.id, 
+                shipmentId: item.id,
+                trackingNumber: item.tracking_number,
+                title: item.title || undefined,
+                shipment: item,
+              })}
             />
           )}
         />

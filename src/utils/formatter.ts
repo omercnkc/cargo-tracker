@@ -4,8 +4,8 @@
  */
 
 /**
- * Formats a raw phone string into standard TR format: 0 (5XX) XXX XX XX
- * Handles incremental typing and strips non-numeric characters.
+ * Formats a raw phone string into standard TR national format: (5XX) XXX XX XX
+ * Handles incremental typing, strips leading 0/+90 since +90 badge is used.
  */
 export function formatPhoneNumber(value: string): string {
   if (!value) return '';
@@ -18,36 +18,42 @@ export function formatPhoneNumber(value: string): string {
     digits = digits.slice(2);
   }
 
-  // Prepend 0 if user starts typing 5 directly
-  if (digits.startsWith('5')) {
-    digits = '0' + digits;
+  // Strip leading 0 since country code +90 is prefixed in UI
+  while (digits.startsWith('0')) {
+    digits = digits.slice(1);
   }
 
-  // Limit to maximum 11 digits (e.g., 05551234567)
-  digits = digits.slice(0, 11);
+  // Limit to maximum 10 digits (e.g., 5551234567)
+  digits = digits.slice(0, 10);
 
   if (digits.length === 0) return '';
 
-  // Format: 0 (5XX) XXX XX XX
-  let formatted = digits[0]; // '0'
-
-  if (digits.length > 1) {
-    formatted += ' (' + digits.slice(1, 4);
-  }
-  if (digits.length >= 4) {
+  // Format: (5XX) XXX XX XX
+  let formatted = '(' + digits.slice(0, Math.min(3, digits.length));
+  if (digits.length >= 3) {
     formatted += ')';
   }
-  if (digits.length > 4) {
-    formatted += ' ' + digits.slice(4, 7);
+  if (digits.length > 3) {
+    formatted += ' ' + digits.slice(3, Math.min(6, digits.length));
   }
-  if (digits.length > 7) {
-    formatted += ' ' + digits.slice(7, 9);
+  if (digits.length > 6) {
+    formatted += ' ' + digits.slice(6, Math.min(8, digits.length));
   }
-  if (digits.length > 9) {
-    formatted += ' ' + digits.slice(9, 11);
+  if (digits.length > 8) {
+    formatted += ' ' + digits.slice(8, Math.min(10, digits.length));
   }
 
   return formatted;
+}
+
+/**
+ * Checks if raw user input starts with leading 0 or +900
+ */
+export function startsWithLeadingZero(value: string): boolean {
+  if (!value) return false;
+  const digits = value.replace(/\D/g, '');
+  if (digits.startsWith('900')) return true;
+  return value.trim().startsWith('0');
 }
 
 /**

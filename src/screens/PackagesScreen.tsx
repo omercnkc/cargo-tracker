@@ -485,7 +485,14 @@ export const PackagesScreen = () => {
                   style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]}
                   onPress={() => {
                     hapticService.buttonPress();
-                    navigation.navigate('PackageDetail', { shipmentId: pkg.id });
+                    navigation.navigate('PackageDetail', { 
+                      id: pkg.id, 
+                      shipmentId: pkg.id,
+                      trackingNumber: pkg.trackingNumber,
+                      title: pkg.customTitle || undefined,
+                      companyName: pkg.companyName,
+                      package: pkg,
+                    });
                   }}
                   activeOpacity={0.8}
                 >

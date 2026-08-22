@@ -17,6 +17,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { AddAddressModal, UserAddress } from './AddAddressModal';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
 import { hapticService } from '../../services/haptics.service';
+import { useAuthStore } from '../../store/auth.store';
 import { USER_ADDRESSES_STORAGE_KEY, DEFAULT_ACTIVE_ADDRESS } from '../../hooks/useUserAddresses';
 import { styles } from './AddressManagementModal.styles';
 
@@ -25,7 +26,7 @@ const DEFAULT_ADDRESSES: UserAddress[] = [
   {
     id: 'addr_default_2',
     title: 'İş Yeri (Ofis)',
-    fullName: 'Ahmet Yılmaz',
+    fullName: 'Kullanıcı',
     phone: '0555 987 65 43',
     city: 'İstanbul',
     district: 'Levent',
@@ -45,8 +46,18 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
   const insets = useSafeAreaInsets();
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
+  const profile = useAuthStore((state) => state.profile);
+  const user = useAuthStore((state) => state.user);
+  const currentUserName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
 
-  const [addresses, setAddresses] = useState<UserAddress[]>(DEFAULT_ADDRESSES);
+  const initialAddresses = React.useMemo(() => {
+    return DEFAULT_ADDRESSES.map(addr => ({
+      ...addr,
+      fullName: currentUserName || addr.fullName,
+    }));
+  }, [currentUserName]);
+
+  const [addresses, setAddresses] = useState<UserAddress[]>(initialAddresses);
   const [addModalVisible, setAddModalVisible] = useState(false);
 
   const [feedback, setFeedback] = useState<{
@@ -70,10 +81,22 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
     try {
       const stored = await AsyncStorage.getItem(USER_ADDRESSES_STORAGE_KEY);
       if (stored) {
-        setAddresses(JSON.parse(stored));
+        const parsed: UserAddress[] = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const normalized = parsed.map(addr => {
+            if (currentUserName && (addr.fullName === 'Ahmet Yılmaz' || addr.fullName === 'Ahmet Yıldız' || !addr.fullName)) {
+              return { ...addr, fullName: currentUserName };
+            }
+            return addr;
+          });
+          setAddresses(normalized);
+          return;
+        }
       }
+      setAddresses(initialAddresses);
     } catch (err) {
       console.error('Adresler yüklenemedi:', err);
+      setAddresses(initialAddresses);
     }
   };
 

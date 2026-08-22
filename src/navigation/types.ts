@@ -4,7 +4,14 @@ export type RootStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   MainTabs: { screen?: string; params?: any } | undefined;
-  PackageDetail: { id?: string };
+  PackageDetail: { 
+    id?: string; 
+    shipmentId?: string; 
+    trackingNumber?: string; 
+    title?: string;
+    shipment?: any;
+    package?: any;
+  };
   AddPackage: { scannedTrackingNumber?: string } | undefined;
   Search: undefined;
   Notifications: undefined;

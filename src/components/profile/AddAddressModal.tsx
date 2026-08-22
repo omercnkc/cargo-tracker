@@ -27,6 +27,7 @@ import {
 import { ErrorHandler, AppErrorCode } from '../../services/error/errorHandler.service';
 import { InlineErrorBanner } from '../common/InlineErrorBanner';
 import { formatTitleCaseTR, formatPhoneClean } from '../../utils/stringFormatters';
+import { formatPhoneNumber } from '../../utils/formatter';
 import { validateFullName, validatePhone } from '../../utils/validators';
 import { hapticService } from '../../services/haptics.service';
 
@@ -166,6 +167,11 @@ export function AddAddressModal({
 
       if (userFullName && !fullName) {
         setFullName(userFullName);
+      }
+
+      const userPhone = profile?.phone || user?.user_metadata?.phone || user?.phone || '';
+      if (userPhone && !phone) {
+        setPhone(formatPhoneNumber(userPhone));
       }
     }
   }, [visible, user, profile]);
@@ -996,6 +1002,13 @@ export function AddAddressModal({
       <AddressSelectModal
         visible={pickerModalType !== null}
         title={pickerTitle}
+        searchPlaceholder={
+          pickerModalType === 'city'
+            ? t('searchCity')
+            : pickerModalType === 'district'
+            ? t('searchDistrict')
+            : t('searchNeighborhood')
+        }
         options={pickerOptions}
         selectedValue={
           pickerModalType === 'city'

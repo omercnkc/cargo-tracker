@@ -128,19 +128,26 @@ export class ShipmentRepository {
 
     if (isOnline) {
       try {
+        const insertPayload: any = {
+          user_id: userId,
+          tracking_number: payload.trackingNumber,
+          title: payload.title,
+          current_status: 'transit',
+          created_at: payload.createdAt || new Date().toISOString(),
+        };
+
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.clientShipmentId || '');
+        if (isUuid) {
+          insertPayload.id = payload.clientShipmentId;
+        }
+
+        if (payload.carrierId) {
+          insertPayload.company_id = payload.carrierId;
+        }
+
         const { data, error } = await supabase
           .from('shipments')
-          .insert({
-            id: payload.clientShipmentId,
-            idempotency_key: `idemp_add_${payload.clientShipmentId}`,
-            user_id: userId,
-            tracking_number: payload.trackingNumber,
-            carrier_id: payload.carrierId,
-            title: payload.title,
-            current_status: 'pending',
-            base_version: 1,
-            created_at: payload.createdAt || new Date().toISOString(),
-          } as any)
+          .insert(insertPayload)
           .select()
           .single();
 
@@ -180,46 +187,14 @@ export class ShipmentRepository {
           .from('shipments')
           .update({
             current_status: payload.status,
-            base_version: payload.baseVersion + 1,
             updated_at: payload.updatedAt || new Date().toISOString(),
           } as any)
           .eq('id', payload.shipmentId)
-          .eq('base_version', payload.baseVersion)
           .select()
           .single();
 
         if (!error && data) {
           return { synced: true, data: data as Shipment };
-        }
-
-        // Conflict detection (Version mismatch or conflict)
-        if (error && (error.code === 'PGRST116' || error.status === 409)) {
-          const mutationId = `mut_conf_${Date.now()}`;
-          const { data: serverData } = await supabase
-            .from('shipments')
-            .select('*')
-            .eq('id', payload.shipmentId)
-            .single();
-
-          OfflineQueueRepository.saveConflictMutation({
-            id: mutationId,
-            userId,
-            idempotencyKey: `idemp_conf_${mutationId}`,
-            mutation: { type: 'UPDATE_SHIPMENT_STATUS', payload },
-            createdAt: new Date().toISOString(),
-            retryCount: 0,
-            maxRetries: 5,
-            status: 'conflict',
-            serverData: serverData ? JSON.stringify(serverData) : null,
-          });
-
-          return {
-            synced: false,
-            conflict: true,
-            mutationId,
-            serverData: (serverData as Shipment) || ({} as Shipment),
-            serverVersion: (serverData as any)?.base_version || payload.baseVersion + 1,
-          };
         }
       } catch (err) {
         // Fallback to queue
@@ -233,7 +208,7 @@ export class ShipmentRepository {
       mutation: {
         type: 'UPDATE_SHIPMENT_STATUS',
         payload,
-      },
+      } as any,
     });
 
     return { synced: false, queued: true, mutationId: mutation.id };
@@ -254,46 +229,14 @@ export class ShipmentRepository {
           .from('shipments')
           .update({
             ...(payload.title ? { title: payload.title } : {}),
-            ...(payload.notes ? { notes: payload.notes } : {}),
-            base_version: payload.baseVersion + 1,
             updated_at: payload.updatedAt || new Date().toISOString(),
           } as any)
           .eq('id', payload.shipmentId)
-          .eq('base_version', payload.baseVersion)
           .select()
           .single();
 
         if (!error && data) {
           return { synced: true, data: data as Shipment };
-        }
-
-        if (error && (error.code === 'PGRST116' || error.status === 409)) {
-          const mutationId = `mut_conf_${Date.now()}`;
-          const { data: serverData } = await supabase
-            .from('shipments')
-            .select('*')
-            .eq('id', payload.shipmentId)
-            .single();
-
-          OfflineQueueRepository.saveConflictMutation({
-            id: mutationId,
-            userId,
-            idempotencyKey: `idemp_conf_${mutationId}`,
-            mutation: { type: 'UPDATE_SHIPMENT_DETAILS', payload },
-            createdAt: new Date().toISOString(),
-            retryCount: 0,
-            maxRetries: 5,
-            status: 'conflict',
-            serverData: serverData ? JSON.stringify(serverData) : null,
-          });
-
-          return {
-            synced: false,
-            conflict: true,
-            mutationId,
-            serverData: (serverData as Shipment) || ({} as Shipment),
-            serverVersion: (serverData as any)?.base_version || payload.baseVersion + 1,
-          };
         }
       } catch (err) {
         // Fallback to offline queue
@@ -306,14 +249,14 @@ export class ShipmentRepository {
       mutation: {
         type: 'UPDATE_SHIPMENT_DETAILS',
         payload,
-      },
+      } as any,
     });
 
     return { synced: false, queued: true, mutationId: mutation.id };
   }
 
   /**
-   * Archives or un-archives a shipment with 3-way mutation result.
+   * Archives a shipment with offline support.
    */
   async archiveShipment(
     payload: ArchiveShipmentPayload,
@@ -327,45 +270,14 @@ export class ShipmentRepository {
           .from('shipments')
           .update({
             is_archived: payload.isArchived,
-            base_version: payload.baseVersion + 1,
             updated_at: payload.updatedAt || new Date().toISOString(),
           } as any)
           .eq('id', payload.shipmentId)
-          .eq('base_version', payload.baseVersion)
           .select()
           .single();
 
         if (!error && data) {
           return { synced: true, data: data as Shipment };
-        }
-
-        if (error && (error.code === 'PGRST116' || error.status === 409)) {
-          const mutationId = `mut_conf_${Date.now()}`;
-          const { data: serverData } = await supabase
-            .from('shipments')
-            .select('*')
-            .eq('id', payload.shipmentId)
-            .single();
-
-          OfflineQueueRepository.saveConflictMutation({
-            id: mutationId,
-            userId,
-            idempotencyKey: `idemp_conf_${mutationId}`,
-            mutation: { type: 'ARCHIVE_SHIPMENT', payload },
-            createdAt: new Date().toISOString(),
-            retryCount: 0,
-            maxRetries: 5,
-            status: 'conflict',
-            serverData: serverData ? JSON.stringify(serverData) : null,
-          });
-
-          return {
-            synced: false,
-            conflict: true,
-            mutationId,
-            serverData: (serverData as Shipment) || ({} as Shipment),
-            serverVersion: (serverData as any)?.base_version || payload.baseVersion + 1,
-          };
         }
       } catch (err) {
         // Fallback to queue
@@ -378,7 +290,7 @@ export class ShipmentRepository {
       mutation: {
         type: 'ARCHIVE_SHIPMENT',
         payload,
-      },
+      } as any,
     });
 
     return { synced: false, queued: true, mutationId: mutation.id };

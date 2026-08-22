@@ -8,7 +8,8 @@ import {
   Platform,
   ScrollView,
   useWindowDimensions,
-  ActivityIndicator
+  ActivityIndicator,
+  Modal
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,7 +43,7 @@ export const AddPackageScreen = () => {
 
   const { data: dbCouriers } = useCourierCompanies();
   const addShipmentMutation = useAddShipment();
-  const { defaultAddress } = useUserAddresses();
+  const { addresses, defaultAddress } = useUserAddresses();
 
   // Always use local DEFAULT_CARRIERS for UI (guaranteed icons)
   const carriers = DEFAULT_CARRIERS;
@@ -65,11 +66,21 @@ export const AddPackageScreen = () => {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [addressSheetVisible, setAddressSheetVisible] = useState(false);
   const [clipboardDetected, setClipboardDetected] = useState<string | null>(null);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ trackingNumber?: string; selectedCarrier?: string }>({});
+
+  const activeAddress = useMemo(() => {
+    if (selectedAddressId) {
+      const found = addresses.find(a => a.id === selectedAddressId);
+      if (found) return found;
+    }
+    return defaultAddress || addresses[0];
+  }, [selectedAddressId, addresses, defaultAddress]);
 
   const [feedback, setFeedback] = useState<{
     visible: boolean;
@@ -165,11 +176,14 @@ export const AddPackageScreen = () => {
       const carrierName = activeCarrier?.name || 'Kargo';
       const dbCompanyId = selectedCarrier ? getDbCompanyId(selectedCarrier) : null;
 
-      const receiverText = defaultAddress
-        ? `${defaultAddress.fullName}\n${defaultAddress.fullAddress}`
-        : 'Ahmet Yılmaz\nCihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul';
-      const lastLocText = defaultAddress
-        ? `${defaultAddress.district} Dağıtım Bölgesi, ${defaultAddress.city}`
+      const profile = useAuthStore.getState().profile;
+      const chosenAddress = activeAddress || defaultAddress;
+      const userFullName = profile?.full_name || user?.user_metadata?.full_name || chosenAddress?.fullName || 'Kullanıcı';
+      const receiverText = chosenAddress
+        ? `${userFullName}\n[${chosenAddress.title}] ${chosenAddress.fullAddress}`
+        : `${userFullName}\nCihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul`;
+      const lastLocText = chosenAddress
+        ? `${chosenAddress.district} Dağıtım Bölgesi, ${chosenAddress.city}`
         : 'Beşiktaş Dağıtım Bölgesi, İstanbul';
 
       await addShipmentMutation.mutateAsync({
@@ -353,6 +367,31 @@ export const AddPackageScreen = () => {
               )}
             </View>
 
+            {/* Delivery Address Selection */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: colors.onSurface }]}>
+                {t('deliveryAddressLabel') || 'TESLİMAT ADRESİ'}
+              </Text>
+              <TouchableOpacity
+                style={[styles.carrierSelectorBtn, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}
+                onPress={() => setAddressSheetVisible(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.carrierSelectorContent}>
+                  <MaterialIcons name="location-on" size={24} color={colors.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.carrierSelectorText, { color: colors.onSurface }]} numberOfLines={1}>
+                      {activeAddress?.title || 'Teslimat Adresi'}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }} numberOfLines={1}>
+                      {activeAddress?.district ? `${activeAddress.district}, ${activeAddress.city}` : (activeAddress?.fullAddress || '')}
+                    </Text>
+                  </View>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
+              </TouchableOpacity>
+            </View>
+
             {/* Package Nickname */}
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
@@ -422,6 +461,82 @@ export const AddPackageScreen = () => {
         isLargeScreen={isLargeScreen}
         bottomInset={insets.bottom}
       />
+
+      {/* Address Selection Modal */}
+      <Modal
+        visible={addressSheetVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAddressSheetVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <TouchableOpacity 
+            style={{ flex: 1 }} 
+            activeOpacity={1} 
+            onPress={() => setAddressSheetVisible(false)} 
+          />
+          <View style={{
+            backgroundColor: colors.surface,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            padding: 20,
+            paddingBottom: Math.max(insets.bottom, 20),
+            maxHeight: '60%',
+          }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.onSurface }}>
+                {t('deliveryAddressLabel') || 'Teslimat Adresi Seçin'}
+              </Text>
+              <TouchableOpacity onPress={() => setAddressSheetVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <MaterialIcons name="close" size={24} color={colors.outline} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {addresses.map((addr) => {
+                const isSelected = activeAddress?.id === addr.id;
+                return (
+                  <TouchableOpacity
+                    key={addr.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      padding: 14,
+                      borderRadius: 12,
+                      borderWidth: isSelected ? 2 : 1,
+                      borderColor: isSelected ? colors.primary : colors.outlineVariant,
+                      backgroundColor: isSelected ? colors.primary + '10' : colors.surfaceContainerLowest,
+                      marginBottom: 10,
+                      gap: 12,
+                    }}
+                    onPress={() => {
+                      setSelectedAddressId(addr.id);
+                      setAddressSheetVisible(false);
+                    }}
+                  >
+                    <MaterialIcons 
+                      name={addr.title.toLowerCase().includes('iş') || addr.title.toLowerCase().includes('ofis') ? 'business' : 'home'} 
+                      size={24} 
+                      color={isSelected ? colors.primary : colors.outline} 
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: isSelected ? colors.primary : colors.onSurface }}>
+                        {addr.title}
+                      </Text>
+                      <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 2 }} numberOfLines={2}>
+                        {addr.fullAddress}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <MaterialIcons name="check-circle" size={22} color={colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <ModernFeedbackModal
         visible={feedback.visible}

@@ -20,10 +20,45 @@ export const FALLBACK_HOME_PACKAGES: DisplayPackage[] = [
   { id: 'mock-8', name: 'Akıllı Ev Sensörü', code: 'FedEx • FDX0928374619', status: 'delivered', icon: 'check-circle' },
 ];
 
-export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | null): Record<string, any> => {
-  const receiverName = activeDefaultAddress?.fullName || 'Ahmet Yılmaz';
-  const receiverAddr = activeDefaultAddress ? `${activeDefaultAddress.fullName}\n${activeDefaultAddress.fullAddress}` : 'Ahmet Yılmaz\nBeşiktaş, İstanbul';
-  const currentLoc = `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`;
+export const getMockShipmentDetailsMap = (
+  savedAddressesOrActive?: UserAddress[] | UserAddress | null,
+  userName?: string | null
+): Record<string, any> => {
+  const addressesList = Array.isArray(savedAddressesOrActive)
+    ? savedAddressesOrActive
+    : savedAddressesOrActive
+      ? [savedAddressesOrActive]
+      : [];
+
+  const addrA = addressesList[0] || {
+    id: 'addr_default_1',
+    title: 'Ev Adresim',
+    fullName: 'Kullanıcı',
+    city: 'İstanbul',
+    district: 'Beşiktaş',
+    fullAddress: 'Cihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul',
+    latitude: 41.0425,
+    longitude: 29.0068,
+  };
+
+  const addrB = addressesList[1] || {
+    id: 'addr_default_2',
+    title: 'İş Yeri (Ofis)',
+    fullName: 'Kullanıcı',
+    city: 'İstanbul',
+    district: 'Levent',
+    fullAddress: 'Büyükdere Cad. No:199 K:12, Levent / İstanbul',
+    latitude: 41.0778,
+    longitude: 29.0112,
+  };
+
+  const receiverName = userName || (addrA.fullName && addrA.fullName !== 'Ahmet Yılmaz' ? addrA.fullName : null) || 'Kullanıcı';
+
+  const receiverAddrA = `${receiverName}\n${addrA.title ? `${addrA.title} - ` : ''}${addrA.fullAddress}`;
+  const receiverAddrB = `${receiverName}\n${addrB.title ? `${addrB.title} - ` : ''}${addrB.fullAddress}`;
+
+  const currentLocA = `${addrA.district || 'Beşiktaş'} Dağıtım Bölgesi, ${addrA.city || 'İstanbul'}`;
+  const currentLocB = `${addrB.district || 'Levent'} Dağıtım Bölgesi, ${addrB.city || 'İstanbul'}`;
 
   return {
     'mock-1': {
@@ -32,13 +67,13 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Kablosuz Kulaklık & Koruma Kılıfı',
       current_status: 'out_for_delivery',
       sender: 'Trendyol Tech Mağazası',
-      receiver: receiverAddr,
-      last_location: currentLoc,
+      receiver: receiverAddrA,
+      last_location: currentLocA,
       estimated_delivery: 'Bugün, 14:00 - 18:00',
       courier_companies: { name: 'Trendyol Express' },
       events: [
-        { id: 'e1-1', title: 'Kurye Dağıtıma Çıktı', description: 'Kurye Mehmet K. paketinizi teslim etmek üzere yola çıktı.', location: currentLoc, event_time: '2026-08-18T09:30:00Z', status: 'out_for_delivery' },
-        { id: 'e1-2', title: 'Varış Dağıtım Merkezinde', description: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi - Araçtan İndirildi`, location: currentLoc, event_time: '2026-08-18T06:15:00Z', status: 'destination' },
+        { id: 'e1-1', title: 'Kurye Dağıtıma Çıktı', description: 'Kurye Mehmet K. paketinizi teslim etmek üzere yola çıktı.', location: currentLocA, event_time: '2026-08-18T09:30:00Z', status: 'out_for_delivery' },
+        { id: 'e1-2', title: 'Varış Dağıtım Merkezinde', description: `${addrA.district || 'Beşiktaş'} Şubesi - Araçtan İndirildi`, location: currentLocA, event_time: '2026-08-18T06:15:00Z', status: 'destination' },
         { id: 'e1-3', title: 'Hat Aracında / Transfer Merkezinde', description: 'İzmir Transfer Merkezi -> İstanbul Ana Dağıtım Merkezi', location: 'Gebze Transfer Merkezi, Kocaeli', event_time: '2026-08-17T21:40:00Z', status: 'transit' },
         { id: 'e1-4', title: 'Kargo Kabul Edildi', description: 'İzmir Alsancak Şubesi gönderiyi teslim aldı.', location: 'Alsancak Şube, İzmir', event_time: '2026-08-17T14:20:00Z', status: 'received' },
       ]
@@ -49,7 +84,7 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Mekanik Oyuncu Klavyesi',
       current_status: 'transit',
       sender: 'Hepsiburada Satıcısı',
-      receiver: receiverAddr,
+      receiver: receiverAddrB,
       last_location: 'Bolu Geçiş Noktası Transfer Hattı',
       estimated_delivery: 'Yarın, 10:00 - 14:00',
       courier_companies: { name: 'Hepsijet' },
@@ -65,12 +100,12 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Deri Sırt Çantası & Cüzdan',
       current_status: 'destination',
       sender: 'Derimod Online',
-      receiver: receiverAddr,
-      last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
+      receiver: receiverAddrA,
+      last_location: `${addrA.district || 'Beşiktaş'} Şubesi, ${addrA.city || 'İstanbul'}`,
       estimated_delivery: 'Bugün Dağıtım Bekliyor',
       courier_companies: { name: 'Yurtiçi Kargo' },
       events: [
-        { id: 'e3-1', title: 'Varış Dağıtım Merkezinde', description: 'Paket şubeye ulaştı, gün içi dağıtım planına eklendi.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi, ${activeDefaultAddress?.city || 'İstanbul'}`, event_time: '2026-08-18T08:00:00Z', status: 'destination' },
+        { id: 'e3-1', title: 'Varış Dağıtım Merkezinde', description: 'Paket şubeye ulaştı, gün içi dağıtım planına eklendi.', location: `${addrA.district || 'Beşiktaş'} Şubesi, ${addrA.city || 'İstanbul'}`, event_time: '2026-08-18T08:00:00Z', status: 'destination' },
         { id: 'e3-2', title: 'Transfer Merkezinden Çıktı', description: 'Bursa Nilüfer Transfer -> İstanbul Anadolu TM', location: 'Tuzla Transfer Merkezi, İstanbul', event_time: '2026-08-17T04:20:00Z', status: 'transit' },
         { id: 'e3-3', title: 'Kargo Kabul Edildi', description: 'Bursa Nilüfer Şubesinde kaydı açıldı.', location: 'Nilüfer Şube, Bursa', event_time: '2026-08-15T11:00:00Z', status: 'received' },
       ]
@@ -81,13 +116,13 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Koşu Ayakkabısı (42 Numara)',
       current_status: 'delivered',
       sender: 'Nike Türkiye',
-      receiver: receiverAddr,
-      last_location: `Teslim Edildi - ${activeDefaultAddress?.fullName || 'Ahmet Yılmaz'} (Kendisi)`,
+      receiver: receiverAddrB,
+      last_location: `Teslim Edildi - ${receiverName} (Kendisi)`,
       estimated_delivery: 'Teslim Edildi (14 Ağustos)',
       courier_companies: { name: 'Aras Kargo' },
       events: [
-        { id: 'e4-1', title: 'Teslim Edildi', description: `Gönderi alıcı ${receiverName} şahsına imza karşılığı teslim edildi.`, location: activeDefaultAddress?.district || 'Beşiktaş, İstanbul', event_time: '2026-08-14T16:30:00Z', status: 'delivered' },
-        { id: 'e4-2', title: 'Kurye Dağıtıma Çıktı', description: 'Kurye dağıtım rotasında.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: '2026-08-14T10:15:00Z', status: 'out_for_delivery' },
+        { id: 'e4-1', title: 'Teslim Edildi', description: `Gönderi alıcı ${receiverName} şahsına imza karşılığı teslim edildi.`, location: addrB.district || 'Levent, İstanbul', event_time: '2026-08-14T16:30:00Z', status: 'delivered' },
+        { id: 'e4-2', title: 'Kurye Dağıtıma Çıktı', description: 'Kurye dağıtım rotasında.', location: `${addrB.district || 'Levent'} Şubesi`, event_time: '2026-08-14T10:15:00Z', status: 'out_for_delivery' },
         { id: 'e4-3', title: 'Kargo Kabul Edildi', description: 'İstanbul İkitelli Şubesi teslim aldı.', location: 'İkitelli Şube, İstanbul', event_time: '2026-08-13T09:00:00Z', status: 'received' },
       ]
     },
@@ -97,7 +132,7 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Yazılım & Tasarım Kitapları',
       current_status: 'created',
       sender: 'Kitapyurdu Dağıtım',
-      receiver: receiverAddr,
+      receiver: receiverAddrA,
       last_location: 'Sipariş Hazırlanıyor, Barkod Oluşturuldu',
       estimated_delivery: 'Kargoya Veriliş Bekleniyor',
       courier_companies: { name: 'Sürat Kargo' },
@@ -111,7 +146,7 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Filtre Kahve Çekirdeği 1KG',
       current_status: 'received',
       sender: 'Kronotrop Coffee Roasters',
-      receiver: receiverAddr,
+      receiver: receiverAddrB,
       last_location: 'Maslak Şubesi, İstanbul',
       estimated_delivery: '2 Gün İçinde',
       courier_companies: { name: 'Kargoist' },
@@ -125,7 +160,7 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Yurt Dışı Yazılım Geliştirici Kiti',
       current_status: 'transit',
       sender: 'GitHub Store US/EU',
-      receiver: receiverAddr,
+      receiver: receiverAddrA,
       last_location: 'İstanbul Havalimanı Gümrük Noktası',
       estimated_delivery: '3 Gün İçinde (Gümrük Geçildi)',
       courier_companies: { name: 'DHL Express' },
@@ -140,12 +175,12 @@ export const getMockShipmentDetailsMap = (activeDefaultAddress?: UserAddress | n
       title: 'Akıllı Ev Sensör Paketi',
       current_status: 'delivered',
       sender: 'Philips Hue EU Store',
-      receiver: receiverAddr,
-      last_location: `Teslim Edildi - ${activeDefaultAddress?.fullName || 'Ahmet Yılmaz'} (Resepsiyon)`,
+      receiver: receiverAddrB,
+      last_location: `Teslim Edildi - ${receiverName} (Resepsiyon)`,
       estimated_delivery: 'Teslim Edildi (13 Ağustos)',
       courier_companies: { name: 'FedEx' },
       events: [
-        { id: 'e8-1', title: 'Teslim Edildi', description: 'Güvenlik görevlisine teslim edildi.', location: activeDefaultAddress?.district || 'Beşiktaş, İstanbul', event_time: '2026-08-13T14:10:00Z', status: 'delivered' }
+        { id: 'e8-1', title: 'Teslim Edildi', description: 'Güvenlik görevlisine teslim edildi.', location: addrB.district || 'Levent, İstanbul', event_time: '2026-08-13T14:10:00Z', status: 'delivered' }
       ]
     }
   };

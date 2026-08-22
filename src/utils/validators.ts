@@ -76,25 +76,25 @@ export function validateFullName(name: string): FullNameValidationResult {
 }
 
 /**
- * Formats a raw phone string to 0 (5XX) XXX XX XX
+ * Formats a raw phone string to (5XX) XXX XX XX (without leading 0 since +90 is handled)
  */
 export function formatPhoneTR(phone: string): string {
   const digits = phone.replace(/\D/g, '');
   let clean = digits;
   if (clean.startsWith('90')) clean = clean.slice(2);
-  if (clean.startsWith('0')) clean = clean.slice(1);
+  while (clean.startsWith('0')) clean = clean.slice(1);
   clean = clean.slice(0, 10);
 
   if (clean.length === 0) return '';
-  if (clean.length <= 3) return `0 (${clean}`;
-  if (clean.length <= 6) return `0 (${clean.slice(0, 3)}) ${clean.slice(3)}`;
-  if (clean.length <= 8) return `0 (${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6)}`;
-  return `0 (${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6, 8)} ${clean.slice(8, 10)}`;
+  if (clean.length <= 3) return `(${clean}`;
+  if (clean.length <= 6) return `(${clean.slice(0, 3)}) ${clean.slice(3)}`;
+  if (clean.length <= 8) return `(${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6)}`;
+  return `(${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6, 8)} ${clean.slice(8, 10)}`;
 }
 
 /**
  * Validates a Turkish phone number
- * Expected raw or formatted digits: 10 digits starting with 5 (e.g. 5551234567) or 11 digits starting with 05
+ * Expected raw or formatted digits: 10 digits starting with 5 (e.g. 5551234567)
  */
 export function validatePhone(phone: string): PhoneValidationResult {
   if (!phone || !phone.trim()) {
@@ -107,7 +107,7 @@ export function validatePhone(phone: string): PhoneValidationResult {
     return { isValid: false, error: 'Telefon numarası geçersizdir.' };
   }
 
-  // TR mobile numbers: 05XX... (11 digits) or 5XX... (10 digits) or +905XX... (12 digits)
+  // Check if raw input had leading 0
   let cleanDigits = digits;
   if (cleanDigits.startsWith('90') && cleanDigits.length === 12) {
     cleanDigits = cleanDigits.slice(2);
@@ -117,11 +117,11 @@ export function validatePhone(phone: string): PhoneValidationResult {
   }
 
   if (cleanDigits.length !== 10) {
-    return { isValid: false, error: 'Telefon numarası 10 haneli olmalıdır (05XX...)' };
+    return { isValid: false, error: 'Telefon numarası 10 haneli olmalıdır (5XX...)' };
   }
 
   if (!cleanDigits.startsWith('5')) {
-    return { isValid: false, error: 'Geçerli bir cep telefonu numarası giriniz (05XX...)' };
+    return { isValid: false, error: 'Geçerli bir cep telefonu numarası giriniz (5XX...)' };
   }
 
   return { isValid: true };

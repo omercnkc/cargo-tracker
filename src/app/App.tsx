@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
@@ -16,6 +16,8 @@ import { supabase } from '../services/supabase/supabase';
 import { authRepository } from '../features/auth/repositories/auth.repository';
 
 import { OfflinePersistProvider } from '../providers/OfflinePersistProvider';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { OfflineNetworkBanner } from '../components/common/OfflineNetworkBanner';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -23,8 +25,21 @@ const queryClient = new QueryClient();
 
 
 const AppContent = () => {
+  useNetworkStatus();
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, theme: colors } = useTheme();
+
+  const navigationTheme = {
+    ...(isDarkMode ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDarkMode ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.background,
+      card: colors.surface,
+      text: colors.onSurface,
+      border: colors.outlineVariant,
+      primary: colors.primary,
+    },
+  };
 
   useEffect(() => {
     initializeAuth();
@@ -95,10 +110,15 @@ const AppContent = () => {
 
   return (
     <>
-      <StatusBar style={isDarkMode ? 'light' : 'dark'} animated />
-      <NavigationContainer>
+      <StatusBar
+        style={isDarkMode ? 'light' : 'dark'}
+        backgroundColor={colors.background}
+        animated
+      />
+      <NavigationContainer theme={navigationTheme}>
         <RootNavigator />
       </NavigationContainer>
+      <OfflineNetworkBanner />
     </>
   );
 };

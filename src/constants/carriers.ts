@@ -179,27 +179,52 @@ export const getCarrierByName = (
 ): Carrier | undefined => {
   if (name && !isCarrierAllowed(name)) return undefined;
 
-  const text = `${name || ''} ${trackingNumber || ''}`.toLowerCase().trim();
-  if (!text) return undefined;
+  const rawName = (name || '').toLowerCase().trim();
+  const rawTrack = (trackingNumber || '').toLowerCase().trim();
 
-  const found = DEFAULT_CARRIERS.find((c) => {
-    const cName = c.name.toLowerCase();
-    const cCode = c.code.toLowerCase();
-    return (
-      text.includes(cName) ||
-      cName.includes(text) ||
-      text.includes(cCode) ||
-      (c.id === 'aras' && (text.includes('aras') || text.startsWith('aras') || text.startsWith('24b'))) ||
-      (c.id === 'yurtici' && (text.includes('yk') || text.includes('yurtic') || text.startsWith('tr'))) ||
-      (c.id === 'trendyol' && (text.includes('ty') || text.includes('trendyol') || text.startsWith('ty'))) ||
-      (c.id === 'hepsijet' && (text.includes('hj') || text.includes('hepsi') || text.startsWith('hb'))) ||
-      (c.id === 'surat' && (text.includes('surat') || text.includes('sürat') || text.startsWith('sut'))) ||
-      (c.id === 'dhl' && (text.includes('dhl') || text.startsWith('dhl'))) ||
-      (c.id === 'fedex' && (text.includes('fedex') || text.startsWith('fdx')))
-    );
-  });
+  // 1. Direct match on carrier name or code first
+  if (rawName) {
+    const directMatch = DEFAULT_CARRIERS.find((c) => {
+      const cName = c.name.toLowerCase();
+      const cCode = c.code.toLowerCase();
+      return rawName === cName || rawName === cCode || rawName.includes(cName) || cName.includes(rawName);
+    });
+    if (directMatch) return directMatch;
+  }
 
-  return found;
+  // 2. Specific prefix/keyword rules
+  const combined = `${rawName} ${rawTrack}`.trim();
+  if (!combined) return undefined;
+
+  if (combined.includes('trendyol') || rawTrack.startsWith('ty') || combined.startsWith('ty')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'trendyol');
+  }
+  if (combined.includes('hepsijet') || combined.includes('hepsi') || rawTrack.startsWith('hj') || rawTrack.startsWith('hb')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'hepsijet');
+  }
+  if (combined.includes('yurtici') || combined.includes('yurtiçi') || rawTrack.startsWith('yk') || combined.startsWith('yk')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'yurtici');
+  }
+  if (combined.includes('aras') || rawTrack.startsWith('aras') || rawTrack.startsWith('ar') || rawTrack.startsWith('24b')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'aras');
+  }
+  if (combined.includes('sürat') || combined.includes('surat') || rawTrack.startsWith('sk') || rawTrack.startsWith('sut')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'surat');
+  }
+  if (combined.includes('ptt') || rawTrack.startsWith('ptt') || rawTrack.startsWith('kp')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'ptt');
+  }
+  if (combined.includes('kargoist') || rawTrack.startsWith('kg')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'kargoist');
+  }
+  if (combined.includes('dhl') || rawTrack.startsWith('dhl')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'dhl');
+  }
+  if (combined.includes('fedex') || rawTrack.startsWith('fdx') || rawTrack.startsWith('fedex')) {
+    return DEFAULT_CARRIERS.find((c) => c.id === 'fedex');
+  }
+
+  return undefined;
 };
 
 export const resolveShipmentCarrier = (

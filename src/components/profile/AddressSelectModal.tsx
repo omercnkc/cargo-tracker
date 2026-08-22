@@ -27,6 +27,7 @@ interface AddressSelectModalProps {
   onSelect: (option: SelectOption) => void;
   onClose: () => void;
   loading?: boolean;
+  searchPlaceholder?: string;
 }
 
 export function AddressSelectModal({
@@ -37,10 +38,26 @@ export function AddressSelectModal({
   onSelect,
   onClose,
   loading = false,
+  searchPlaceholder,
 }: AddressSelectModalProps) {
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const computedPlaceholder = React.useMemo(() => {
+    if (searchPlaceholder) return searchPlaceholder;
+    const lowerTitle = (title || '').toLocaleLowerCase('tr-TR');
+    if (lowerTitle.includes('ilçe') || lowerTitle.includes('district')) {
+      return t('searchDistrict') || 'İlçe ara...';
+    }
+    if (lowerTitle.includes('mahalle') || lowerTitle.includes('neighborhood')) {
+      return t('searchNeighborhood') || 'Mahalle ara...';
+    }
+    if (lowerTitle.includes('il') || lowerTitle.includes('city') || lowerTitle.includes('province')) {
+      return t('searchCity') || 'İl ara...';
+    }
+    return t('searchPlaceholderAddress') || 'Arama yapın...';
+  }, [searchPlaceholder, title, t]);
 
   const filteredOptions = searchQuery.trim()
     ? options.filter((item) =>
@@ -95,7 +112,7 @@ export function AddressSelectModal({
             <MaterialIcons name="search" size={20} color={colors.onSurfaceVariant} />
             <TextInput
               style={[styles.searchInput, { color: colors.onSurface }]}
-              placeholder={t('searchPlaceholder')}
+              placeholder={computedPlaceholder}
               placeholderTextColor={colors.onSurfaceVariant}
               value={searchQuery}
               onChangeText={setSearchQuery}

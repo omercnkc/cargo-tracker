@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
-import { formatPhoneNumber, cleanPhoneNumber } from '../../utils/formatter';
+import { formatPhoneNumber, cleanPhoneNumber, startsWithLeadingZero } from '../../utils/formatter';
 import { useTranslation } from '../../hooks/useTranslation';
+import { hapticService } from '../../services/haptics.service';
 
 export interface PhoneInputProps {
   value: string;
@@ -34,16 +35,29 @@ export function PhoneInput({
 }: PhoneInputProps) {
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
+  const [leadingZeroNotice, setLeadingZeroNotice] = useState(false);
 
   const handleTextChange = (text: string) => {
+    const hasLeadingZero = startsWithLeadingZero(text);
+    if (hasLeadingZero) {
+      setLeadingZeroNotice(true);
+      hapticService.warning();
+    } else if (leadingZeroNotice) {
+      setLeadingZeroNotice(false);
+    }
+
     const formatted = formatPhoneNumber(text);
     const clean = cleanPhoneNumber(formatted);
     onChangeText(formatted, clean);
   };
 
   const handleClear = () => {
+    setLeadingZeroNotice(false);
     onChangeText('', '');
   };
+
+  const hasError = !!error;
+  const isWarningOnly = !hasError && leadingZeroNotice;
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -58,8 +72,12 @@ export function PhoneInput({
           styles.inputWrapper,
           {
             backgroundColor: colors.surfaceContainerLowest || colors.surface,
-            borderColor: error ? colors.error : colors.outlineVariant,
-            borderWidth: error ? 1.5 : 1,
+            borderColor: hasError
+              ? colors.error
+              : isWarningOnly
+                ? '#f59e0b'
+                : colors.outlineVariant,
+            borderWidth: hasError || isWarningOnly ? 1.5 : 1,
           },
         ]}
       >
@@ -82,7 +100,7 @@ export function PhoneInput({
               color: colors.onSurface,
             },
           ]}
-          placeholder={placeholder || t('phonePlaceholder') || '0 (5XX) XXX XX XX'}
+          placeholder={placeholder || t('phonePlaceholder') || '(5XX) XXX XX XX'}
           placeholderTextColor={colors.outlineVariant}
           value={value}
           onChangeText={handleTextChange}
@@ -105,11 +123,19 @@ export function PhoneInput({
         )}
       </View>
 
-      {!!error && (
+      {/* Error or Warning Message */}
+      {hasError ? (
         <Text style={[styles.errorText, { color: colors.error }]}>
           {error}
         </Text>
-      )}
+      ) : isWarningOnly ? (
+        <View style={styles.warningRow}>
+          <MaterialIcons name="info-outline" size={14} color="#d97706" />
+          <Text style={[styles.warningText, { color: '#d97706' }]}>
+            {t('phoneLeadingZeroWarning') || 'Numaranızı başında 0 olmadan giriniz (örn: 5XX XXX XX XX).'}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -158,6 +184,16 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12,
     marginTop: 4,
+    fontWeight: '500',
+  },
+  warningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  warningText: {
+    fontSize: 12,
     fontWeight: '500',
   },
 });

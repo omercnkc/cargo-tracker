@@ -11,7 +11,6 @@ import Svg, { G, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import useResponsive from '../hooks/useResponsive';
-import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useTranslation } from '../hooks/useTranslation';
@@ -22,7 +21,6 @@ import { styles } from './StatisticsScreen.styles';
 export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
-  const { isOnline, pendingCount } = useNetworkStatus();
   const { theme: colors, isDarkMode } = useTheme();
   const { t, language } = useTranslation();
 
@@ -58,14 +56,6 @@ export const StatisticsScreen = () => {
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.outlineVariant }]}>
         <View style={styles.appBarContent}>
           <Text style={[styles.appBarTitle, { flex: 1, color: colors.primary }]}>{t('analyticsAndReporting')}</Text>
-
-          {/* Network Status Badge */}
-          <View style={[styles.networkBadge, { backgroundColor: isOnline ? (isDarkMode ? '#064e3b' : '#dcfce7') : (isDarkMode ? '#7f1d1d' : '#fee2e2') }]}>
-            <MaterialIcons name={isOnline ? "wifi" : "wifi-off"} size={14} color={isOnline ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b')} />
-            <Text style={[styles.networkBadgeText, { color: isOnline ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b') }]}>
-              {isOnline ? t('online') : `${t('offline')} (${pendingCount})`}
-            </Text>
-          </View>
         </View>
       </View>
 

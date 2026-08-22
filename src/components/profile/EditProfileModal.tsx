@@ -262,7 +262,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
                 <MaterialIcons name="phone" size={20} color={colors.onSurfaceVariant} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: colors.onSurface }]}
-                  placeholder="0 (5XX) XXX XX XX"
+                  placeholder={t('phonePlaceholder') || '(5XX) XXX XX XX'}
                   placeholderTextColor={colors.outline}
                   keyboardType="phone-pad"
                   maxLength={17}

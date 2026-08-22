@@ -13,12 +13,13 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
-import { useShipmentDetail } from '../features/shipment/hooks/useShipments';
+import { useShipmentDetail, useShipments } from '../features/shipment/hooks/useShipments';
+import { useAuthStore } from '../store/auth.store';
 import { useUserAddresses } from '../hooks/useUserAddresses';
 import { ShipmentMapView } from '../components/map/ShipmentMapView';
 import { useShipmentRealtime } from '../hooks/useShipmentRealtime';
 import { LocationPoint } from '../types/location';
-import { resolveShipmentCarrier } from '../constants/carriers';
+import { resolveShipmentCarrier, getCarrierByName } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { getShipmentProgress, translateTimelineEvent } from '../utils/shipmentUtils';
 import { hapticService } from '../services/haptics.service';
@@ -35,35 +36,96 @@ export const PackageDetailScreen = () => {
   const { t } = useTranslation();
   const isLargeScreen = width >= 768;
 
-  const shipmentId = route.params?.id;
-  const { data: shipment, isLoading } = useShipmentDetail(shipmentId);
+  const user = useAuthStore((state) => state.user);
+  const profile = useAuthStore((state) => state.profile);
+  const currentUserName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+
+  const shipmentId = route.params?.id || route.params?.shipmentId;
+  const { data: shipment, isLoading } = useShipmentDetail(shipmentId, user?.id);
+  const { data: allUserShipments } = useShipments(user?.id);
   const { addresses: savedAddresses, defaultAddress: activeDefaultAddress } = useUserAddresses();
 
   // Supabase Realtime Canlı Takip Hook'u
   useShipmentRealtime(shipmentId);
 
-  // Dynamic mock map for all sample packages
+  // Dynamic mock map for all sample packages with logged in user's name and independent addresses
   const mockShipmentDetailsMap = useMemo(() => {
-    return getMockShipmentDetailsMap(activeDefaultAddress);
-  }, [activeDefaultAddress]);
+    return getMockShipmentDetailsMap(savedAddresses, currentUserName);
+  }, [savedAddresses, currentUserName]);
+
+  const defaultReceiverAddr = useMemo(() => {
+    const name = currentUserName || activeDefaultAddress?.fullName || 'Kullanıcı';
+    if (activeDefaultAddress?.fullAddress) {
+      return `${name}\n${activeDefaultAddress.fullAddress}`;
+    }
+    return `${name}\n${activeDefaultAddress?.district || 'Beşiktaş'}, ${activeDefaultAddress?.city || 'İstanbul'}`;
+  }, [currentUserName, activeDefaultAddress]);
+
+  const userDbShipment = useMemo(() => {
+    if (!allUserShipments || allUserShipments.length === 0 || !shipmentId) return null;
+    return allUserShipments.find(s => s.id === shipmentId || s.tracking_number === shipmentId);
+  }, [allUserShipments, shipmentId]);
 
   // Fallback mock detail if not found or demo preview
-  const displayShipment = shipment || (shipmentId && mockShipmentDetailsMap[shipmentId]) || mockShipmentDetailsMap['mock-1'] || {
-    id: 'demo',
-    tracking_number: shipmentId || 'TY7382910482',
-    title: 'Trendyol Express Paketim',
-    current_status: 'out_for_delivery',
-    sender: 'Trendyol Satıcısı',
-    receiver: activeDefaultAddress ? `${activeDefaultAddress.fullName}\n${activeDefaultAddress.fullAddress}` : 'Ahmet Yılmaz\nBeşiktaş, İstanbul',
-    last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
-    estimated_delivery: 'Bugün, 14:00 - 18:00',
-    courier_companies: { name: 'Trendyol Express' },
-    shipment_events: [
-      { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Bugün, 09:15' },
-      { id: 'e2', status: 'Transfer Merkezinde', description: 'Avrupa Yakası Aktarma Merkezi', location: activeDefaultAddress?.city || 'İstanbul', event_time: 'Dün, 22:45' },
-      { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'İzmir', event_time: 'Dün, 14:10' },
-    ]
-  };
+  const displayShipment = useMemo(() => {
+    if (shipment) return shipment;
+    if (userDbShipment) return userDbShipment;
+    if (shipmentId && mockShipmentDetailsMap[shipmentId]) {
+      return mockShipmentDetailsMap[shipmentId];
+    }
+    if (route.params?.shipment) return route.params.shipment;
+    if (route.params?.package) {
+      const p = route.params.package;
+      return {
+        id: p.id || shipmentId,
+        tracking_number: p.trackingNumber || p.tracking_number || shipmentId,
+        title: p.customTitle || p.title || p.companyName,
+        current_status: p.status || p.current_status || 'transit',
+        sender: p.origin || 'Gönderici',
+        receiver: defaultReceiverAddr,
+        last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
+        estimated_delivery: p.deliveryDateValue || 'Yakında',
+        courier_companies: { name: p.companyName || 'Kargo' },
+      };
+    }
+
+    if (shipmentId && shipmentId !== 'demo' && !mockShipmentDetailsMap[shipmentId]) {
+      const trackingCode = route.params?.trackingNumber || shipmentId;
+      const carrierMatch = getCarrierByName(route.params?.companyName || '', trackingCode);
+      return {
+        id: shipmentId,
+        tracking_number: trackingCode,
+        title: route.params?.title || `${carrierMatch?.name || 'Kargo'} Paketi`,
+        current_status: 'transit',
+        sender: 'Satıcı / Gönderici Firma',
+        receiver: defaultReceiverAddr,
+        last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
+        estimated_delivery: '1-2 Gün İçinde',
+        courier_companies: { name: carrierMatch?.name || route.params?.companyName || 'Kargo Firması' },
+        shipment_events: [
+          { id: 'e1', status: 'Transfer Merkezinde', description: 'Transfer merkezinde işlem görüyor.', location: activeDefaultAddress?.city || 'İstanbul', event_time: 'Bugün, 10:30' },
+          { id: 'e2', status: 'Kargo Kabul Edildi', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'Çıkış Şubesi', event_time: 'Dün, 16:00' },
+        ]
+      };
+    }
+
+    return mockShipmentDetailsMap['mock-1'] || {
+      id: 'demo',
+      tracking_number: shipmentId || 'TY7382910482',
+      title: 'Trendyol Express Paketim',
+      current_status: 'out_for_delivery',
+      sender: 'Trendyol Satıcısı',
+      receiver: defaultReceiverAddr,
+      last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
+      estimated_delivery: 'Bugün, 14:00 - 18:00',
+      courier_companies: { name: 'Trendyol Express' },
+      shipment_events: [
+        { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Bugün, 09:15' },
+        { id: 'e2', status: 'Transfer Merkezinde', description: 'Avrupa Yakası Aktarma Merkezi', location: activeDefaultAddress?.city || 'İstanbul', event_time: 'Dün, 22:45' },
+        { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'İzmir', event_time: 'Dün, 14:10' },
+      ]
+    };
+  }, [shipment, userDbShipment, shipmentId, mockShipmentDetailsMap, defaultReceiverAddr, activeDefaultAddress, route.params]);
 
   // Bu spesifik kargoya atanmış alıcı teslimat adresini ve koordinatlarını çözümle
   const shipmentReceiverAddress = useMemo(() => {
@@ -77,15 +139,45 @@ export const PackageDetailScreen = () => {
         return (
           receiverText.includes(full) ||
           full.includes(receiverText) ||
-          (dist && receiverText.includes(dist)) ||
-          (ttl && receiverText.includes(ttl))
+          (ttl && receiverText.includes(ttl)) ||
+          (dist && receiverText.includes(dist))
         );
       });
       if (matched) return matched;
     }
 
+    if (receiverText.includes('levent')) {
+      return {
+        id: 'addr_levent',
+        title: 'İş Yeri (Ofis)',
+        fullName: currentUserName || 'Kullanıcı',
+        phone: '',
+        city: 'İstanbul',
+        district: 'Levent',
+        fullAddress: 'Büyükdere Cad. No:199 K:12, Levent / İstanbul',
+        latitude: 41.0778,
+        longitude: 29.0112,
+        isDefault: false,
+      };
+    }
+
+    if (receiverText.includes('beşiktaş') || receiverText.includes('besiktas')) {
+      return {
+        id: 'addr_besiktas',
+        title: 'Ev Adresim',
+        fullName: currentUserName || 'Kullanıcı',
+        phone: '',
+        city: 'İstanbul',
+        district: 'Beşiktaş',
+        fullAddress: 'Cihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul',
+        latitude: 41.0425,
+        longitude: 29.0068,
+        isDefault: false,
+      };
+    }
+
     return activeDefaultAddress;
-  }, [displayShipment.receiver, savedAddresses, activeDefaultAddress]);
+  }, [displayShipment.receiver, savedAddresses, currentUserName, activeDefaultAddress]);
 
   const nowMs = Date.now();
 
@@ -93,9 +185,10 @@ export const PackageDetailScreen = () => {
   const mapDestination: LocationPoint = useMemo(() => {
     const lat = shipmentReceiverAddress?.latitude || 41.0425;
     const lng = shipmentReceiverAddress?.longitude || 29.0068;
+    const receiverFullName = currentUserName || (shipmentReceiverAddress?.fullName !== 'Ahmet Yılmaz' ? shipmentReceiverAddress?.fullName : null) || 'Kullanıcı';
     const destTitle = shipmentReceiverAddress?.title
-      ? `${shipmentReceiverAddress.title} - ${shipmentReceiverAddress.fullName}`
-      : (shipmentReceiverAddress?.fullName || 'Teslimat Adresi');
+      ? `${shipmentReceiverAddress.title} - ${receiverFullName}`
+      : (receiverFullName || 'Teslimat Adresi');
 
     return {
       latitude: lat,
@@ -104,7 +197,7 @@ export const PackageDetailScreen = () => {
       description: shipmentReceiverAddress?.fullAddress || displayShipment.receiver || 'Beşiktaş, İstanbul',
       recordedAt: new Date(nowMs).toISOString(),
     };
-  }, [shipmentReceiverAddress, displayShipment.receiver, nowMs]);
+  }, [shipmentReceiverAddress, displayShipment.receiver, currentUserName, nowMs]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -138,26 +231,63 @@ export const PackageDetailScreen = () => {
         >
           {/* Summary Header */}
           <View style={[styles.summaryHeader, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-              {(() => {
-                const carrier = resolveShipmentCarrier(displayShipment);
-                return carrier.logo ? <CarrierLogo logo={carrier.logo} size={32} /> : null;
-              })()}
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.trackingLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
-                  {displayShipment.title ? `${displayShipment.title} (${resolveShipmentCarrier(displayShipment).name})` : resolveShipmentCarrier(displayShipment).name}
+            {/* Top Row: Carrier Company Section on Left, Status Badge on Right */}
+            <View style={styles.summaryTopRow}>
+              {/* Left: Kargo Firması */}
+              <View style={styles.summaryCarrierCol}>
+                <Text style={[styles.summarySectionLabel, { color: colors.outline }]}>
+                  {t('carrierLabel') || 'KARGO FİRMASI'}
                 </Text>
-                <Text style={[styles.trackingNumber, { color: colors.primary }]}>{displayShipment.tracking_number}</Text>
+                <View style={styles.summaryCarrierInfo}>
+                  {(() => {
+                    const carrier = resolveShipmentCarrier(displayShipment);
+                    return (
+                      <>
+                        {carrier.logo ? <CarrierLogo logo={carrier.logo} size={24} /> : null}
+                        <Text style={[styles.carrierNameText, { color: colors.onSurface }]} numberOfLines={1}>
+                          {carrier.name}
+                        </Text>
+                      </>
+                    );
+                  })()}
+                </View>
+              </View>
+
+              {/* Right: Kargo Durumu */}
+              <View style={styles.summaryStatusCol}>
+                <Text style={[styles.summarySectionLabel, { color: colors.outline }]}>
+                  {t('statusLabel') || 'DURUM'}
+                </Text>
+                <View style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}>
+                  <MaterialIcons name="notifications-active" size={13} color={colors.secondary} />
+                  <Text style={[styles.statusBadgeText, { color: colors.onSecondaryFixedVariant }]}>
+                    {(() => {
+                      const progressInfo = getShipmentProgress(displayShipment.current_status);
+                      return t(progressInfo.titleKey as any) || progressInfo.stepTitle;
+                    })()}
+                  </Text>
+                </View>
               </View>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: colors.secondaryFixed }]}>
-              <MaterialIcons name="notifications-active" size={18} color={colors.secondary} />
-              <Text style={[styles.statusBadgeText, { color: colors.onSecondaryFixedVariant }]}>
-                {(() => {
-                  const progressInfo = getShipmentProgress(displayShipment.current_status);
-                  return t(progressInfo.titleKey as any) || progressInfo.stepTitle;
-                })()}
-              </Text>
+
+            {/* Divider */}
+            <View style={[styles.summaryDivider, { backgroundColor: colors.outlineVariant }]} />
+
+            {/* Main Cargo Info: Title & Tracking Number */}
+            <View style={styles.summaryBottomContent}>
+              {displayShipment.title ? (
+                <Text style={[styles.summaryTitle, { color: colors.onSurface }]} numberOfLines={2}>
+                  {displayShipment.title}
+                </Text>
+              ) : null}
+              <View style={styles.trackingNumberRow}>
+                <Text style={[styles.trackingNumberLabel, { color: colors.outline }]}>
+                  {t('trackingNumberLabel') || 'TAKİP NO'}:
+                </Text>
+                <Text style={[styles.trackingNumber, { color: colors.primary }]}>
+                  {displayShipment.tracking_number}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -196,7 +326,13 @@ export const PackageDetailScreen = () => {
                 <View style={styles.infoGroup}>
                   <Text style={[styles.infoLabel, { color: colors.onSurfaceVariant }]}>{t('receiver')}</Text>
                   <Text style={[styles.infoValueSmall, { color: colors.onBackground }]}>
-                    {displayShipment.receiver || 'Ahmet Yılmaz\nBeşiktaş, İstanbul'}
+                    {(() => {
+                      let raw = displayShipment.receiver || defaultReceiverAddr;
+                      if (currentUserName && (raw.includes('Ahmet Yılmaz') || raw.includes('Ahmet Yıldız'))) {
+                        raw = raw.replace(/Ahmet\s+Yılmaz/gi, currentUserName).replace(/Ahmet\s+Yıldız/gi, currentUserName);
+                      }
+                      return raw;
+                    })()}
                   </Text>
                 </View>
               </View>
@@ -211,9 +347,16 @@ export const PackageDetailScreen = () => {
               </View>
 
               <View style={styles.timelineContainer}>
-                {displayShipment.shipment_events && displayShipment.shipment_events.length > 0 ? (
-                  displayShipment.shipment_events.map((event: any, index: number) => {
-                    const translated = translateTimelineEvent(event, t);
+                {(() => {
+                  const eventsList = displayShipment.shipment_events || displayShipment.events || [];
+                  if (eventsList.length === 0) {
+                    return <Text style={[styles.timelineDescription, { color: colors.onSurfaceVariant }]}>{t('noEvents')}</Text>;
+                  }
+                  return eventsList.map((event: any, index: number) => {
+                    const translated = translateTimelineEvent({
+                      ...event,
+                      status: event.status || event.title || '',
+                    }, t);
                     return (
                       <View key={event.id || index} style={styles.timelineStep}>
                         <View style={[
@@ -239,10 +382,8 @@ export const PackageDetailScreen = () => {
                         </View>
                       </View>
                     );
-                  })
-                ) : (
-                  <Text style={[styles.timelineDescription, { color: colors.onSurfaceVariant }]}>{t('noEvents')}</Text>
-                )}
+                  });
+                })()}
               </View>
             </View>
             

@@ -7,16 +7,28 @@ const translations: Record<'tr' | 'en', TranslationKeys> = {
   en,
 };
 
-export const translate = (key: keyof TranslationKeys): string => {
+export const translate = (key: keyof TranslationKeys, params?: Record<string, string | number>): string => {
   const language = useLanguageStore.getState()?.language || 'tr';
-  return translations[language]?.[key] || translations['tr'][key] || String(key);
+  let str = translations[language]?.[key] || translations['tr'][key] || String(key);
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      str = str.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
+    });
+  }
+  return str;
 };
 
 export const useTranslation = () => {
   const { language, setLanguage } = useLanguageStore();
 
-  const t = (key: keyof TranslationKeys): string => {
-    return translations[language]?.[key] || translations['tr'][key] || String(key);
+  const t = (key: keyof TranslationKeys, params?: Record<string, string | number>): string => {
+    let str = translations[language]?.[key] || translations['tr'][key] || String(key);
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        str = str.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
+      });
+    }
+    return str;
   };
 
   return {
