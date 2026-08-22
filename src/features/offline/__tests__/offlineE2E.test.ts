@@ -172,4 +172,8 @@ describe('Offline-First Architecture E2E Verification', () => {
 
     expect(uploadResult.publicUrl).toBeDefined();
   });
+
+  afterAll(() => {
+    closeDatabase();
+  });
 });

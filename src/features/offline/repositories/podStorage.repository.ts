@@ -1,11 +1,13 @@
 import * as FileSystem from 'expo-file-system';
 
+const FS = FileSystem as any;
+
 export class PodStorageRepository {
   /**
    * POD fotoğraflarının saklandığı kök dizin yolunu döndürür.
    */
   private static getPodDirectory(): string {
-    const baseDir = FileSystem.documentDirectory || '';
+    const baseDir = FS.documentDirectory || '';
     return baseDir.endsWith('/') ? `${baseDir}pod_photos/` : `${baseDir}/pod_photos/`;
   }
 
@@ -15,9 +17,9 @@ export class PodStorageRepository {
   static async ensureDirectoryExists(): Promise<string> {
     const podDir = this.getPodDirectory();
     try {
-      const dirInfo = await FileSystem.getInfoAsync(podDir);
+      const dirInfo = await FS.getInfoAsync(podDir);
       if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(podDir, { intermediates: true });
+        await FS.makeDirectoryAsync(podDir, { intermediates: true });
       }
     } catch {
       // Directory creation error handler
@@ -35,7 +37,7 @@ export class PodStorageRepository {
     const targetUri = `${podDir}${filename}`;
 
     try {
-      await FileSystem.copyAsync({
+      await FS.copyAsync({
         from: sourceUri,
         to: targetUri,
       });
@@ -49,9 +51,9 @@ export class PodStorageRepository {
   /**
    * Yerel dosyanın varlığını ve bilgilerini kontrol eder.
    */
-  static async getLocalPodImageInfo(fileUri: string): Promise<FileSystem.FileInfo | null> {
+  static async getLocalPodImageInfo(fileUri: string): Promise<any> {
     try {
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      const fileInfo = await FS.getInfoAsync(fileUri);
       return fileInfo.exists ? fileInfo : null;
     } catch {
       return null;
@@ -63,9 +65,9 @@ export class PodStorageRepository {
    */
   static async deleteLocalPodImage(fileUri: string): Promise<boolean> {
     try {
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      const fileInfo = await FS.getInfoAsync(fileUri);
       if (fileInfo.exists) {
-        await FileSystem.deleteAsync(fileUri, { idempotent: true });
+        await FS.deleteAsync(fileUri, { idempotent: true });
       }
       return true;
     } catch {
@@ -78,7 +80,7 @@ export class PodStorageRepository {
    */
   static async getFreeDiskSpace(): Promise<number> {
     try {
-      return await FileSystem.getFreeDiskStorageAsync();
+      return await FS.getFreeDiskStorageAsync();
     } catch {
       return 0;
     }

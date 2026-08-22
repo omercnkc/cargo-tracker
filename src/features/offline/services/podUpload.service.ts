@@ -3,6 +3,8 @@ import { supabase } from '../../../services/supabase/supabase';
 import { UploadPodImagePayload } from '../types/offline.types';
 import { PodStorageRepository } from '../repositories/podStorage.repository';
 
+const FS = FileSystem as any;
+
 export interface PodUploadResult {
   publicUrl: string;
   storagePath: string;
@@ -65,8 +67,8 @@ export class PodUploadService {
     // 2. Read local file as base64
     let base64Data = '';
     try {
-      base64Data = await FileSystem.readAsStringAsync(payload.localFileUri, {
-        encoding: FileSystem.EncodingType.Base64,
+      base64Data = await FS.readAsStringAsync(payload.localFileUri, {
+        encoding: FS.EncodingType?.Base64 || 'base64',
       });
     } catch (err) {
       throw new Error(`Local POD image file could not be read: ${err instanceof Error ? err.message : String(err)}`);
@@ -102,12 +104,11 @@ export class PodUploadService {
         event_time: payload.capturedAt || new Date().toISOString(),
       } as any);
 
-      await supabase
-        .from('shipments')
+      await (supabase.from('shipments') as any)
         .update({
           current_status: 'delivered',
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq('id', payload.shipmentId);
     } catch {
       // Event logging error ignored as media upload succeeded

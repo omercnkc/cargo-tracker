@@ -183,12 +183,11 @@ export class ShipmentRepository {
 
     if (isOnline) {
       try {
-        const { data, error } = await supabase
-          .from('shipments')
+        const { data, error } = await (supabase.from('shipments') as any)
           .update({
             current_status: payload.status,
             updated_at: payload.updatedAt || new Date().toISOString(),
-          } as any)
+          })
           .eq('id', payload.shipmentId)
           .select()
           .single();
@@ -225,12 +224,11 @@ export class ShipmentRepository {
 
     if (isOnline) {
       try {
-        const { data, error } = await supabase
-          .from('shipments')
+        const { data, error } = await (supabase.from('shipments') as any)
           .update({
             ...(payload.title ? { title: payload.title } : {}),
             updated_at: payload.updatedAt || new Date().toISOString(),
-          } as any)
+          })
           .eq('id', payload.shipmentId)
           .select()
           .single();
@@ -266,12 +264,11 @@ export class ShipmentRepository {
 
     if (isOnline) {
       try {
-        const { data, error } = await supabase
-          .from('shipments')
+        const { data, error } = await (supabase.from('shipments') as any)
           .update({
             is_archived: payload.isArchived,
             updated_at: payload.updatedAt || new Date().toISOString(),
-          } as any)
+          })
           .eq('id', payload.shipmentId)
           .select()
           .single();

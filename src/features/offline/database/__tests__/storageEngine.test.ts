@@ -58,4 +58,8 @@ describe('SQLite Storage Engine & Migration Spike Tests', () => {
     const db = getDatabase();
     expect(() => createSchemaTables(db)).not.toThrow();
   });
+
+  afterAll(() => {
+    closeDatabase();
+  });
 });

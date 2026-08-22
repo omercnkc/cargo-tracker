@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
+import React, { useState, useMemo } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
   FlatList,
   ActivityIndicator
 } from 'react-native';
@@ -16,6 +16,7 @@ import { RootStackParamList, MainTabParamList } from '../navigation/types';
 import useResponsive from '../hooks/useResponsive';
 import { PackageCard } from '../components/home/PackageCard';
 import { StatCard } from '../components/home/StatCard';
+import { AllPackagesBottomSheet } from '../components/home/AllPackagesBottomSheet';
 
 import { useAuthStore } from '../store/auth.store';
 import { useDrawerStore } from '../store/drawer.store';
@@ -38,9 +39,11 @@ export const HomeScreen = () => {
   const { isLargeScreen } = useResponsive();
   const { profile, user } = useAuthStore();
   const openDrawer = useDrawerStore((state) => state.openDrawer);
-  
+
   const { theme: colors } = useTheme();
   const { t } = useTranslation();
+
+  const [allPackagesModalVisible, setAllPackagesModalVisible] = useState(false);
 
   const { data: dbShipments, isLoading: isShipmentsLoading } = useShipments(user?.id);
 
@@ -87,8 +90,8 @@ export const HomeScreen = () => {
 
       {/* Quick Actions */}
       <View style={styles.quickActionsRow}>
-        <TouchableOpacity 
-          style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]} 
+        <TouchableOpacity
+          style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]}
           activeOpacity={0.8}
           onPress={() => {
             hapticService.buttonPress();
@@ -98,9 +101,9 @@ export const HomeScreen = () => {
           <MaterialIcons name="add-box" size={24} color={colors.onPrimary} />
           <Text style={[styles.primaryActionText, { color: colors.onPrimary }]}>{t('addPackage')}</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.secondaryActionBtn, { backgroundColor: colors.surfaceContainer, borderColor: colors.primaryFixed }]} 
+
+        <TouchableOpacity
+          style={[styles.secondaryActionBtn, { backgroundColor: colors.surfaceContainer, borderColor: colors.primaryFixed }]}
           activeOpacity={0.8}
           onPress={() => {
             hapticService.buttonPress();
@@ -115,15 +118,29 @@ export const HomeScreen = () => {
       {/* Section Header */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: colors.onBackground }]}>{t('recentPackages')}</Text>
-        <TouchableOpacity onPress={() => {
-          hapticService.buttonPress();
-          navigation.navigate('Search');
-        }}>
-          <Text style={[styles.seeAllLink, { color: colors.primary }]}>{t('seeAll')}</Text>
+        <TouchableOpacity
+          style={[
+            styles.seeAllBtn,
+            {
+              backgroundColor: colors.surfaceContainer,
+              borderColor: colors.outlineVariant,
+            },
+          ]}
+          onPress={() => {
+            hapticService.buttonPress();
+            setAllPackagesModalVisible(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="inventory-2" size={16} color={colors.primary} />
+          <Text style={[styles.seeAllBtnText, { color: colors.primary }]}>
+            {`${t('seeAll')} (${displayPackages.length})`}
+          </Text>
+          <MaterialIcons name="chevron-right" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
     </View>
-  ), [isLargeScreen, navigation, profile, stats, colors, t]);
+  ), [isLargeScreen, navigation, profile, stats, colors, t, displayPackages.length]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
@@ -151,12 +168,12 @@ export const HomeScreen = () => {
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
-            styles.mainContent, 
+            styles.mainContent,
             { paddingBottom: isLargeScreen ? 24 : insets.bottom + 80 }
           ]}
           ListHeaderComponent={renderHeader}
           renderItem={({ item }) => (
-            <PackageCard 
+            <PackageCard
               id={item.id}
               name={item.name}
               code={item.code}
@@ -166,8 +183,8 @@ export const HomeScreen = () => {
               onPress={() => {
                 hapticService.buttonPress();
                 const trackingPart = item.code?.includes('•') ? item.code.split('•')[1].trim() : item.code;
-                navigation.navigate('PackageDetail', { 
-                  id: item.id, 
+                navigation.navigate('PackageDetail', {
+                  id: item.id,
                   shipmentId: item.id,
                   trackingNumber: trackingPart,
                   title: item.name,
@@ -177,6 +194,22 @@ export const HomeScreen = () => {
           )}
         />
       )}
+
+      {/* Interactive Bottom Sheet (Option 3) with Max 5 Lazy Pagination */}
+      <AllPackagesBottomSheet
+        visible={allPackagesModalVisible}
+        packages={displayPackages}
+        onClose={() => setAllPackagesModalVisible(false)}
+        onSelectPackage={(item) => {
+          const trackingPart = item.code?.includes('•') ? item.code.split('•')[1].trim() : item.code;
+          navigation.navigate('PackageDetail', {
+            id: item.id,
+            shipmentId: item.id,
+            trackingNumber: trackingPart,
+            title: item.name,
+          });
+        }}
+      />
     </View>
   );
 };

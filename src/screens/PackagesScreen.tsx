@@ -485,8 +485,8 @@ export const PackagesScreen = () => {
                   style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.cardDesktop]}
                   onPress={() => {
                     hapticService.buttonPress();
-                    navigation.navigate('PackageDetail', { 
-                      id: pkg.id, 
+                    navigation.navigate('PackageDetail', {
+                      id: pkg.id,
                       shipmentId: pkg.id,
                       trackingNumber: pkg.trackingNumber,
                       title: pkg.customTitle || undefined,
@@ -534,18 +534,18 @@ export const PackagesScreen = () => {
                       const badgeBg = isDelivered
                         ? (colors.status?.delivered?.background || '#DCFCE7')
                         : isActionReq
-                        ? (colors.status?.alert?.background || '#FEE2E2')
-                        : isPending
-                        ? (colors.status?.pending?.background || '#EFF4FF')
-                        : (colors.status?.inTransit?.background || '#FFEDD5');
+                          ? (colors.status?.alert?.background || '#FEE2E2')
+                          : isPending
+                            ? (colors.status?.pending?.background || '#EFF4FF')
+                            : (colors.status?.inTransit?.background || '#FFEDD5');
 
                       const badgeColor = isDelivered
                         ? (colors.status?.delivered?.text || '#166534')
                         : isActionReq
-                        ? (colors.status?.alert?.text || '#991B1B')
-                        : isPending
-                        ? (colors.status?.pending?.text || '#1E3A8A')
-                        : (colors.status?.inTransit?.text || '#9A3412');
+                          ? (colors.status?.alert?.text || '#991B1B')
+                          : isPending
+                            ? (colors.status?.pending?.text || '#1E3A8A')
+                            : (colors.status?.inTransit?.text || '#9A3412');
 
                       return (
                         <View style={[styles.badge, { backgroundColor: badgeBg }]}>

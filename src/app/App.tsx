@@ -3,8 +3,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Linking, Alert, Platform, StatusBar as RNStatusBar } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Linking, Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 import RootNavigator from '../navigation/RootNavigator';
@@ -108,12 +108,22 @@ const AppContent = () => {
     };
   }, []);
 
+  // Synchronize native Android/iOS system status bar immediately on theme toggle
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      RNStatusBar.setBackgroundColor(colors.surface, true);
+      RNStatusBar.setBarStyle(isDarkMode ? 'light-content' : 'dark-content', true);
+    }
+  }, [isDarkMode, colors.surface]);
+
   return (
     <>
       <StatusBar
+        key={`status-bar-${isDarkMode ? 'dark' : 'light'}`}
         style={isDarkMode ? 'light' : 'dark'}
-        backgroundColor={colors.background}
-        animated
+        backgroundColor={colors.surface}
+        translucent={Platform.OS === 'android'}
+        animated={true}
       />
       <NavigationContainer theme={navigationTheme}>
         <RootNavigator />
