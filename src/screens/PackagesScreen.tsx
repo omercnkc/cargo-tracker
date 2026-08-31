@@ -20,12 +20,13 @@ import useResponsive from '../hooks/useResponsive';
 import { useAuthStore } from '../store/auth.store';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { DEFAULT_CARRIERS, getCarrierByName, resolveShipmentCarrier } from '../constants/carriers';
+import { getShipmentProgress } from '../utils/shipmentUtils';
+import { formatDateDDMMYYYY, formatDateWithMonthName } from '../utils/dateUtils';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { useTranslation } from '../hooks/useTranslation';
-import { getShipmentProgress } from '../utils/shipmentUtils';
 import { CargoStatusTracker } from '../components/common/CargoStatusTracker';
 import { hapticService } from '../services/haptics.service';
-import styles from './PackagesScreen.styles';
+import { styles } from './PackagesScreen.styles';
 
 interface PackageItem {
   id: string;
@@ -261,6 +262,13 @@ export const PackagesScreen = () => {
         const progressInfo = getShipmentProgress(rawStatus);
         const carrierInfo = resolveShipmentCarrier(s);
         const isCustomTitle = s.title && s.title !== carrierInfo.name;
+        let deliveryDateVal = s.estimated_delivery || (language === 'en' ? 'Soon' : 'Yakında');
+        if (s.delivered_at) {
+          deliveryDateVal = formatDateDDMMYYYY(s.delivered_at);
+        } else if (s.estimated_delivery && s.estimated_delivery.includes('-') && !isNaN(Date.parse(s.estimated_delivery))) {
+          deliveryDateVal = formatDateDDMMYYYY(s.estimated_delivery);
+        }
+
         return {
           id: s.id,
           trackingNumber: s.tracking_number,
@@ -274,7 +282,7 @@ export const PackagesScreen = () => {
           destination: s.receiver ? s.receiver.substring(0, 3).toUpperCase() : 'TR',
           progress: progressInfo.progressPercent,
           deliveryDateLabel: rawStatus === 'delivered' ? t('deliveredDateLabel') : t('deliveryDateLabel'),
-          deliveryDateValue: s.estimated_delivery || (language === 'en' ? 'Soon' : 'Yakında'),
+          deliveryDateValue: deliveryDateVal,
           createdAt: s.created_at || new Date().toISOString(),
         };
       });
@@ -558,19 +566,14 @@ export const PackagesScreen = () => {
                   </View>
 
                   <View style={styles.progressSection}>
-                    <View style={styles.routeTextContainer}>
-                      {pkg.warningText ? (
+                    {pkg.warningText && (
+                      <View style={[styles.routeTextContainer, { marginBottom: 8 }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                           <MaterialIcons name="warning" size={16} color={colors.error} />
                           <Text style={[styles.routeText, { color: colors.error }]}>{pkg.warningText}</Text>
                         </View>
-                      ) : (
-                        <>
-                          <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('originLabel')}: {pkg.origin}</Text>
-                          <Text style={[styles.routeText, { color: colors.onSurfaceVariant }]}>{t('destinationLabel')}: {pkg.destination}</Text>
-                        </>
-                      )}
-                    </View>
+                      </View>
+                    )}
                     <CargoStatusTracker
                       status={pkg.status}
                       compact={!isLargeScreen}

@@ -130,17 +130,19 @@ export class AuthRepository {
     }
   }
 
+  // ─── Race condition koruması ───
+  // Aynı PKCE code'unun birden fazla kez tüketilmesini önler.
+  private _processedCodes = new Set<string>();
+  // Eşzamanlı gelen callback'lerin aynı Promise'i beklemesini sağlar.
+  private _inFlightExchange: Promise<{ session: Session | null; user: User | null; error: Error | null }> | null = null;
+
   /**
    * Supabase Google OAuth girişi — PKCE akışı
    *
    * Akış:
    *  1. Supabase'den OAuth başlatma URL'si al
-   *  2. WebBrowser.openAuthSessionAsync ile Chrome Custom Tab'da aç
-   *     - iOS: Otomatik redirect'i yakalayıp URL döner
-   *     - Android: Custom Tab, exp:// deep link'e yönlenince Android intent tetiklenir
-   *       → Expo Go ön plana gelir → App.tsx'teki maybeCompleteAuthSession() tamamlar
-   *  3. Sonuç URL'inden code çıkar → exchangeCodeForSession çağır
-   *  4. Fallback: App.tsx'teki Linking listener da aynı işi yapar
+   *  2. WebBrowser.openAuthSessionAsync ile tarayıcıda aç
+   *  3. Dönen URL'i handleCallbackUrl ile güvenle işle (race condition korumalı)
    */
   async signInWithGoogle(): Promise<{ session: Session | null; user: User | null; error: Error | null }> {
     try {
@@ -152,6 +154,10 @@ export class AuthRepository {
         options: {
           redirectTo: redirectUrl,
           skipBrowserRedirect: true,
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline',
+          },
         },
       });
 
@@ -166,31 +172,31 @@ export class AuthRepository {
 
       console.log('[Google OAuth] Opening browser:', data.url);
 
-      // Chrome Custom Tab aç.
-      // iOS → redirect URL'i yakaladığında otomatik kapatır.
-      // Android → exp:// redirect'i Android intent olarak tetikler,
-      //            Expo Go açılır, maybeCompleteAuthSession() session'ı tamamlar.
+      // Android'de önceki oturumdan kalan browser state'ini temizle
+      await WebBrowser.warmUpAsync();
+
       const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+
+      // Browser kaynağını serbest bırak (Android Custom Tab kalıntısını önler)
+      await WebBrowser.coolDownAsync();
 
       console.log('[Google OAuth] Browser result:', result.type);
 
       if (result.type === 'success' && result.url) {
-        // openAuthSessionAsync doğrudan URL'i yakaladı (genellikle iOS'ta)
-        console.log('[Google OAuth] Direct callback URL:', result.url);
-        return this.handleCallbackUrl(result.url);
+        console.log('[Google OAuth] Direct callback URL received:', result.url);
+        return await this.handleCallbackUrl(result.url);
       }
 
-      // Android'de tarayıcı kapatıldıysa (dismiss) veya bir şekilde kapandıysa,
-      // App.tsx Linking listener zaten session oluşturmuş olabilir.
-      // Kısa bekle ve session kontrol et.
-      await new Promise((r) => setTimeout(r, 800));
+      // Android'de deep link App.tsx Linking listener tarafından işlenmiş olabilir.
+      // Kısa bir bekleme ve aktif session kontrolü yap.
+      await new Promise((r) => setTimeout(r, 600));
       const { data: existing } = await supabase.auth.getSession();
       if (existing?.session) {
-        console.log('[Google OAuth] Session found after browser close');
+        console.log('[Google OAuth] Session resolved after browser close');
         return { session: existing.session, user: existing.session.user, error: null };
       }
 
-      // Kullanıcı iptal etti
+      // Kullanıcı iptal etti veya oturum oluşmadı
       return { session: null, user: null, error: null };
     } catch (err) {
       console.error('[Google OAuth] Error:', err);
@@ -202,22 +208,94 @@ export class AuthRepository {
     }
   }
 
+  /**
+   * Thread-safe & Idempotent OAuth Callback Handler
+   *
+   * WebBrowser ve App.tsx Linking listener aynı URL'i gönderse dahi
+   * PKCE code sadece bir kez tüketilir. Eşzamanlı çağrılar aynı
+   * Promise'i bekler.
+   */
   async handleCallbackUrl(url: string): Promise<{ session: Session | null; user: User | null; error: Error | null }> {
-    try {
-      const parsed = new URL(url);
-      const code = parsed.searchParams.get('code');
+    if (!url) return { session: null, user: null, error: null };
 
-      if (!code) {
-        return { session: null, user: null, error: new Error('Callback URL\'de code parametresi bulunamadı') };
+    // Eğer şu an çalışan bir exchange varsa, aynı Promise'i bekle
+    if (this._inFlightExchange) {
+      console.log('[OAuth Callback] Exchange already in-flight, awaiting existing promise...');
+      return this._inFlightExchange;
+    }
+
+    this._inFlightExchange = this._executeCallbackExchange(url);
+
+    try {
+      return await this._inFlightExchange;
+    } finally {
+      this._inFlightExchange = null;
+    }
+  }
+
+  private async _executeCallbackExchange(url: string): Promise<{ session: Session | null; user: User | null; error: Error | null }> {
+    try {
+      console.log('[OAuth Callback] Processing URL:', url);
+
+      // 1. PKCE code parametresini güvenli regex ile çek
+      const codeMatch = url.match(/[?&#]code=([^&]+)/);
+      const code = codeMatch ? decodeURIComponent(codeMatch[1]) : null;
+
+      if (code) {
+        // Aynı code daha önce işlendiyse, mevcut session'ı dön
+        if (this._processedCodes.has(code)) {
+          console.log('[OAuth Callback] Code already processed, returning existing session...');
+          const { data: existing } = await supabase.auth.getSession();
+          return { session: existing.session, user: existing.session?.user || null, error: null };
+        }
+
+        // Code'u işlenmiş olarak işaretle (5 dakika sonra temizle — bellek sızıntısı önleme)
+        this._processedCodes.add(code);
+        setTimeout(() => this._processedCodes.delete(code), 5 * 60 * 1000);
+
+        console.log('[OAuth Callback] Exchanging code for session...');
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error('[OAuth Callback] Code exchange error:', error.message);
+          return { session: null, user: null, error };
+        }
+
+        if (data?.user) {
+          await this.syncUserProfileFromAuth(data.user);
+        }
+        return { session: data.session, user: data.user, error: null };
       }
 
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) return { session: null, user: null, error };
+      // 2. Implicit akış fallback — hash fragment'taki access_token & refresh_token kontrolü
+      const accessTokenMatch = url.match(/[?&#]access_token=([^&]+)/);
+      const refreshTokenMatch = url.match(/[?&#]refresh_token=([^&]+)/);
 
-      await this.syncUserProfileFromAuth(data.user);
-      return { session: data.session, user: data.user, error: null };
+      if (accessTokenMatch && refreshTokenMatch) {
+        const access_token = decodeURIComponent(accessTokenMatch[1]);
+        const refresh_token = decodeURIComponent(refreshTokenMatch[1]);
+
+        console.log('[OAuth Callback] Setting session from token params...');
+        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (error) {
+          console.error('[OAuth Callback] setSession error:', error.message);
+          return { session: null, user: null, error };
+        }
+
+        if (data?.user) {
+          await this.syncUserProfileFromAuth(data.user);
+        }
+        return { session: data.session, user: data.user, error: null };
+      }
+
+      return { session: null, user: null, error: new Error('Callback URL geçerli bir oturum kodu veya token içermiyor') };
     } catch (err) {
-      return { session: null, user: null, error: err instanceof Error ? err : new Error('Session oluşturulamadı') };
+      console.error('[OAuth Callback] Exception:', err);
+      return {
+        session: null,
+        user: null,
+        error: err instanceof Error ? err : new Error('Oturum doğrulanamadı'),
+      };
     }
   }
 
@@ -256,3 +334,4 @@ export class AuthRepository {
 }
 
 export const authRepository = new AuthRepository();
+

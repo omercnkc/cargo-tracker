@@ -46,7 +46,14 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
 
   useEffect(() => {
     if (visible) {
-      translateY.setValue(0);
+      translateY.setValue(500);
+      Animated.spring(translateY, {
+        toValue: 0,
+        damping: 24,
+        mass: 0.8,
+        stiffness: 240,
+        useNativeDriver: true,
+      }).start();
       setFullName(profile?.full_name || user?.user_metadata?.full_name || '');
       setPhone(profile?.phone ? formatPhoneTR(profile.phone) : '');
       setErrors({});
@@ -55,12 +62,11 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
 
   const handleCloseWithAnimation = () => {
     Animated.timing(translateY, {
-      toValue: 600,
-      duration: 200,
+      toValue: 500,
+      duration: 180,
       useNativeDriver: true,
     }).start(() => {
       onClose();
-      translateY.setValue(0);
     });
   };
 
@@ -173,7 +179,7 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleCloseWithAnimation}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleCloseWithAnimation}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.overlay}

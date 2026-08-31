@@ -90,19 +90,19 @@ export const styles = StyleSheet.create({
   },
   kpiRow: {
     flexDirection: 'column',
-    gap: 16,
+    gap: 10,
   },
   kpiRowDesktop: {
     flexDirection: 'row',
   },
   statCard: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 10,
+    padding: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
     flex: 1,
   },
@@ -110,26 +110,26 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 6,
   },
   statCardLabel: {
     fontFamily: 'Inter',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.7,
+    letterSpacing: 0.6,
   },
   iconBox: {
-    padding: 8,
+    padding: 6,
     borderRadius: 999,
   },
   statValue: {
     fontFamily: 'Inter',
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   statValueUnit: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
   },
   trendRow: {
@@ -139,7 +139,7 @@ export const styles = StyleSheet.create({
   },
   trendTextNeutral: {
     fontFamily: 'Inter',
-    fontSize: 13,
+    fontSize: 12,
   },
   chartsRow: {
     flexDirection: 'column',

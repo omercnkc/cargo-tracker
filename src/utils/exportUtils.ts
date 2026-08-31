@@ -1,6 +1,7 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { ErrorHandler, AppErrorCode } from '../services/error/errorHandler.service';
+import { formatDateDDMMYYYY } from './dateUtils';
 
 export interface ExportShipmentData {
   tracking_number: string;
@@ -14,7 +15,7 @@ export interface ExportShipmentData {
 
 export class ExportUtils {
   /**
-   * Kargo detaylarını PDF etiketi/belgesi olarak yazdırır veya paylaşır
+   * Tek bir kargo için standart kargo etiketi PDF çıktısı oluşturur ve paylaşır
    */
   static async exportShipmentToPDF(shipment: ExportShipmentData): Promise<void> {
     try {
@@ -23,30 +24,29 @@ export class ExportUtils {
         <html>
           <head>
             <meta charset="utf-8">
-            <title>Kargo Etiketi - ${shipment.tracking_number}</title>
             <style>
-              body { font-family: Arial, sans-serif; padding: 24px; color: #1e293b; }
-              .header { border-bottom: 2px solid #00236f; padding-bottom: 12px; margin-bottom: 20px; }
-              .title { font-size: 24px; color: #00236f; font-weight: bold; }
-              .tracking { font-size: 28px; font-family: monospace; letter-spacing: 2px; color: #2563eb; margin: 16px 0; }
-              .badge { display: inline-block; padding: 6px 12px; background-color: #dbeafe; color: #1e40af; border-radius: 12px; font-weight: bold; }
-              .row { margin-bottom: 12px; font-size: 16px; }
-              .label { color: #64748b; font-weight: bold; width: 120px; display: inline-block; }
-              .footer { margin-top: 40px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+              body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 24px; color: #1e293b; }
+              .header { border-bottom: 2px solid #00236f; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+              .title { font-size: 20px; font-weight: bold; color: #00236f; }
+              .badge { background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+              .row { margin-bottom: 12px; font-size: 14px; }
+              .label { font-weight: bold; color: #64748b; width: 120px; display: inline-block; }
+              .barcode-box { margin-top: 30px; padding: 16px; border: 1px dashed #cbd5e1; text-align: center; border-radius: 8px; }
+              .barcode-text { font-family: monospace; font-size: 18px; letter-spacing: 4px; font-weight: bold; margin-top: 8px; }
+              .footer { margin-top: 40px; font-size: 10px; color: #94a3b8; text-align: center; }
             </style>
           </head>
           <body>
             <div class="header">
-              <div class="title">📦 KARGO TAKİP FİŞİ & ETİKETİ</div>
+              <div class="title">KARGO BİLGİ VE TAKİP FORMU</div>
+              <div class="badge">${shipment.courier_company || 'Kargo'}</div>
             </div>
-            
-            <div class="tracking">${shipment.tracking_number}</div>
-            
+
             <div class="row">
-              <span class="label">Kargo Başlığı:</span> ${shipment.title || 'Belirtilmemiş'}
+              <span class="label">Takip Numarası:</span> <strong>${shipment.tracking_number}</strong>
             </div>
             <div class="row">
-              <span class="label">Kargo Firması:</span> ${shipment.courier_company || 'Genel'}
+              <span class="label">Başlık:</span> ${shipment.title || '-'}
             </div>
             <div class="row">
               <span class="label">Gönderici:</span> ${shipment.sender || '-'}
@@ -59,7 +59,7 @@ export class ExportUtils {
             </div>
 
             <div class="footer">
-              Bu belge KargoTakip Mobil Uygulaması tarafından ${new Date().toLocaleDateString('tr-TR')} tarihinde oluşturulmuştur.
+              Bu belge KargoTakip Mobil Uygulaması tarafından ${formatDateDDMMYYYY(new Date())} tarihinde oluşturulmuştur.
             </div>
           </body>
         </html>
@@ -91,7 +91,7 @@ export class ExportUtils {
       `"${s.sender || ''}"`,
       `"${s.receiver || ''}"`,
       `"${s.current_status || ''}"`,
-      `"${s.created_at || ''}"`,
+      `"${formatDateDDMMYYYY(s.created_at)}"`,
     ]);
 
     const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');

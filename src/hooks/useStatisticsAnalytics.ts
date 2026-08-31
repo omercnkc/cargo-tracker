@@ -130,7 +130,7 @@ export const useStatisticsAnalytics = (shipmentsData: any[] | undefined, languag
     });
 
     if (validCount === 0) return '0';
-    return (totalDays / validCount).toFixed(1);
+    return Math.round(totalDays / validCount).toString();
   }, [deliveredShipments]);
 
   const successRate = useMemo(() => {

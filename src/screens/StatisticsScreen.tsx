@@ -1,10 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  LayoutAnimation,
+  Platform,
+  UIManager
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { G, Circle } from 'react-native-svg';
@@ -18,6 +21,10 @@ import { useStatisticsAnalytics } from '../hooks/useStatisticsAnalytics';
 import { hapticService } from '../services/haptics.service';
 import { styles } from './StatisticsScreen.styles';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
@@ -28,6 +35,7 @@ export const StatisticsScreen = () => {
   const { data: dbShipments, isLoading } = useShipments(user?.id);
 
   const barScrollRef = useRef<ScrollView>(null);
+  const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
 
   const {
     selectedMonthKey,
@@ -49,6 +57,45 @@ export const StatisticsScreen = () => {
       }, 150);
     }
   }, [isLargeScreen]);
+
+  const handleToggleCarrier = (carrierName: string) => {
+    hapticService.selection();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectedCarrier((prev) => (prev === carrierName ? null : carrierName));
+  };
+
+  const handleDonutTouch = (event: any) => {
+    const { locationX, locationY } = event.nativeEvent;
+    const cx = 85;
+    const cy = 85;
+    const dx = locationX - cx;
+    const dy = locationY - cy;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // If tapped near center while there's a selection -> toggle/reset
+    if (distance < 45) {
+      if (selectedCarrier) {
+        handleToggleCarrier(selectedCarrier);
+      }
+      return;
+    }
+
+    // If tapped on the circular ring area (45 <= distance <= 95)
+    if (distance >= 45 && distance <= 98 && courierStats.breakdown.length > 0) {
+      let deg = Math.atan2(dy, dx) * (180 / Math.PI);
+      let adjustedDeg = (deg + 90 + 360) % 360;
+      let touchFrac = adjustedDeg / 360;
+
+      let accumulated = 0;
+      for (const item of courierStats.breakdown) {
+        accumulated += item.fraction;
+        if (touchFrac <= accumulated + 0.005) {
+          handleToggleCarrier(item.label);
+          break;
+        }
+      }
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isLargeScreen && { paddingLeft: 240 }]}>
@@ -243,28 +290,36 @@ export const StatisticsScreen = () => {
                 </View>
               </View>
 
-              {/* Pie Chart (Simulated Donut) */}
+              {/* Pie Chart (Interactive Donut) */}
               <View style={[styles.statCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }, isLargeScreen && styles.pieChartCardDesktop]}>
-                <Text style={[styles.chartTitle, { color: colors.onSurface }]}>{t('courierBreakdown')}</Text>
-                {selectedMonthLabel && (
-                  <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>{selectedMonthLabel}</Text>
-                )}
+                <View style={styles.chartHeader}>
+                  <View>
+                    <Text style={[styles.chartTitle, { color: colors.onSurface }]}>{t('courierBreakdown')}</Text>
+                    {selectedMonthLabel && (
+                      <Text style={[styles.chartSubtitle, { color: colors.onSurfaceVariant }]}>{selectedMonthLabel}</Text>
+                    )}
+                  </View>
+                </View>
 
-                {/* Proportional SVG Donut Chart */}
+                {/* Proportional SVG Donut Chart with Touch Area */}
                 <View style={styles.donutChartContainer}>
-                  <View style={{ width: 160, height: 160, alignItems: 'center', justifyContent: 'center' }}>
-                    <Svg width={160} height={160} viewBox="0 0 160 160">
-                      <G rotation="-90" origin="80, 80">
+                  <View
+                    style={{ width: 170, height: 170, alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+                    onStartShouldSetResponder={() => true}
+                    onResponderRelease={handleDonutTouch}
+                  >
+                    <Svg width={170} height={170} viewBox="0 0 170 170" pointerEvents="none">
+                      <G rotation="-90" origin="85, 85">
                         {/* Background Track Ring */}
                         <Circle
-                          cx={80}
-                          cy={80}
+                          cx={85}
+                          cy={85}
                           r={68}
                           stroke={isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}
                           strokeWidth={20}
                           fill="transparent"
                         />
-                        {/* Mathematical Proportional Slices */}
+                        {/* Mathematical Proportional Slices with Interactive Opacity */}
                         {(() => {
                           let accumulatedFraction = 0;
                           const circumference = 2 * Math.PI * 68;
@@ -272,18 +327,23 @@ export const StatisticsScreen = () => {
                             const sliceLength = item.fraction * circumference;
                             const strokeDashoffset = -accumulatedFraction * circumference;
                             accumulatedFraction += item.fraction;
-                            const gap = courierStats.breakdown.length > 1 ? 2.5 : 0;
+                            const gap = courierStats.breakdown.length > 1 ? 3 : 0;
+                            const isSelected = selectedCarrier === item.label;
+                            const hasSelection = Boolean(selectedCarrier);
+                            const sliceOpacity = isSelected ? 1 : hasSelection ? 0.25 : 1;
+                            const strokeWidth = isSelected ? 24 : (hasSelection ? 16 : 20);
 
                             return (
                               <Circle
                                 key={index}
-                                cx={80}
-                                cy={80}
+                                cx={85}
+                                cy={85}
                                 r={68}
                                 stroke={item.color}
-                                strokeWidth={20}
+                                strokeWidth={strokeWidth}
                                 strokeDasharray={`${Math.max(0, sliceLength - gap)} ${circumference}`}
                                 strokeDashoffset={strokeDashoffset}
+                                strokeOpacity={sliceOpacity}
                                 fill="transparent"
                               />
                             );
@@ -292,10 +352,35 @@ export const StatisticsScreen = () => {
                       </G>
                     </Svg>
 
-                    {/* Center Text (Total Companies) */}
+                    {/* Center Text (Total Companies or Selected Carrier with Clean Reset) */}
                     <View style={styles.donutCenterContent} pointerEvents="none">
-                      <Text style={[styles.donutCenterText, { color: colors.onSurface }]}>{courierStats.totalCompanies}</Text>
-                      <Text style={[styles.donutCenterSubtext, { color: colors.onSurfaceVariant }]}>{t('companyUnit')}</Text>
+                      {(() => {
+                        if (selectedCarrier) {
+                          const matched = courierStats.breakdown.find(b => b.label === selectedCarrier);
+                          return (
+                            <View style={{ alignItems: 'center', paddingHorizontal: 8 }}>
+                              <Text style={[styles.donutCenterText, { color: matched?.color || colors.primary, fontSize: 24 }]}>
+                                {matched ? matched.count : 0}
+                              </Text>
+                              <Text style={[styles.donutCenterSubtext, { color: colors.onSurface, fontWeight: '600' }]} numberOfLines={1}>
+                                {matched?.label || t('companyUnit')}
+                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 4 }}>
+                                <Text style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: '600', color: colors.primary }}>
+                                  {t('showAll')}
+                                </Text>
+                                <MaterialIcons name="close" size={12} color={colors.primary} />
+                              </View>
+                            </View>
+                          );
+                        }
+                        return (
+                          <View style={{ alignItems: 'center' }}>
+                            <Text style={[styles.donutCenterText, { color: colors.onSurface }]}>{courierStats.totalCompanies}</Text>
+                            <Text style={[styles.donutCenterSubtext, { color: colors.onSurfaceVariant }]}>{t('companyUnit')}</Text>
+                          </View>
+                        );
+                      })()}
                     </View>
                   </View>
                 </View>
@@ -306,15 +391,50 @@ export const StatisticsScreen = () => {
                   </Text>
                 ) : (
                   <View style={styles.legendContainer}>
-                    {courierStats.breakdown.map((item, i) => (
-                      <View key={i} style={styles.legendRow}>
-                        <View style={styles.legendLeft}>
-                          <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                          <Text style={[styles.legendLabel, { color: colors.onSurface }]}>{item.label}</Text>
+                    {courierStats.breakdown.map((item, i) => {
+                      const isSelected = selectedCarrier === item.label;
+                      const hasSelection = Boolean(selectedCarrier);
+                      const rowOpacity = isSelected ? 1 : hasSelection ? 0.35 : 1;
+
+                      return (
+                        <View
+                          key={i}
+                          style={[
+                            styles.legendRow,
+                            {
+                              opacity: rowOpacity,
+                              paddingVertical: 5,
+                              paddingHorizontal: 8,
+                              borderRadius: 8,
+                              backgroundColor: isSelected ? (isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)') : 'transparent',
+                            }
+                          ]}
+                        >
+                          <View style={styles.legendLeft}>
+                            <View style={[styles.legendDot, { backgroundColor: item.color, width: isSelected ? 12 : 10, height: isSelected ? 12 : 10, borderRadius: 6 }]} />
+                            <Text style={[
+                              styles.legendLabel,
+                              { color: colors.onSurface },
+                              isSelected && { fontWeight: '700', color: item.color }
+                            ]}>
+                              {item.label}
+                            </Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={[
+                              styles.legendValue,
+                              { color: colors.onSurface },
+                              isSelected && { fontWeight: '700', color: item.color }
+                            ]}>
+                              {item.count} kargo ({item.pct})
+                            </Text>
+                            {isSelected && (
+                              <MaterialIcons name="check" size={16} color={item.color} />
+                            )}
+                          </View>
                         </View>
-                        <Text style={[styles.legendValue, { color: colors.onSurface }]}>{item.pct}</Text>
-                      </View>
-                    ))}
+                      );
+                    })}
                   </View>
                 )}
               </View>

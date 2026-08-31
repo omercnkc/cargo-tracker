@@ -5,7 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert
+  Alert,
+  Image
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -105,7 +106,7 @@ export const RegisterScreen = ({ navigation }: any) => {
         style={styles.keyboardView}
         contentContainerStyle={[
           styles.scrollViewContent,
-          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
+          { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 8 }
         ]}
       >
         {/* Registration Container */}
@@ -113,8 +114,8 @@ export const RegisterScreen = ({ navigation }: any) => {
 
           {/* Header */}
           <View style={styles.header}>
-            <View style={[styles.logoBadge, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : colors.primaryContainer }]}>
-              <MaterialIcons name="local-shipping" size={32} color={colors.primary} />
+            <View style={styles.logoBadge}>
+              <Image source={require('../assets/kargo-takip-icon.png')} style={styles.logoImage} />
             </View>
             <Text style={[styles.title, { color: colors.primary }]}>{t('appName')}</Text>
             <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>{t('registerSubtitle')}</Text>

@@ -33,7 +33,8 @@
         {
           "faceIDPermission": "KargoTakip kilit ekranını açmak için Face ID doğrulaması kullanılır."
         }
-      ]
+      ],
+      "expo-sqlite"
     ]
   }
 }

@@ -5,6 +5,7 @@ import {
   TextInput, 
   TouchableOpacity, 
   ImageBackground, 
+  Image,
   useWindowDimensions,
   ActivityIndicator
 } from 'react-native';
@@ -114,10 +115,10 @@ export const LoginScreen = ({ navigation }: any) => {
 
       {/* Right Pane: Login Form */}
       <KeyboardAwareContainer 
-        style={[styles.rightPane, { width: isLargeScreen ? '50%' : '100%', backgroundColor: colors.surfaceContainerLowest }]}
+        style={[styles.rightPane, { width: isLargeScreen ? '50%' : '100%', backgroundColor: colors.background }]}
         contentContainerStyle={[
           styles.scrollViewContent,
-          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }
+          { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 8 }
         ]}
       >
         <View style={styles.formContainer}>
@@ -125,8 +126,8 @@ export const LoginScreen = ({ navigation }: any) => {
           {/* Mobile Header */}
           {!isLargeScreen && (
             <View style={styles.mobileHeader}>
-              <View style={[styles.logoBadge, { backgroundColor: isDarkMode ? colors.surfaceContainerHigh : colors.primaryContainer }]}>
-                <MaterialIcons name="local-shipping" size={32} color={colors.primary} />
+              <View style={styles.logoBadge}>
+                <Image source={require('../assets/kargo-takip-icon.png')} style={styles.logoImage} />
               </View>
               <Text style={[styles.mobileLogoText, { color: colors.primary }]}>{t('appName')}</Text>
             </View>

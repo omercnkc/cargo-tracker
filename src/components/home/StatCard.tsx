@@ -23,10 +23,10 @@ export const StatCard = ({ label, value, icon, variant, isLargeScreen }: StatCar
         isLargeScreen && styles.statCardLargeDesktop
       ]}>
         <View style={styles.statCardBgIcon}>
-          <MaterialIcons name={icon} size={80} color={colors.onPrimaryContainer} />
+          <MaterialIcons name={icon} size={52} color={colors.onPrimaryContainer} />
         </View>
         <View style={styles.statIconWrapper}>
-          <MaterialIcons name={icon} size={24} color={colors.onPrimaryContainer} />
+          <MaterialIcons name={icon} size={20} color={colors.onPrimaryContainer} />
         </View>
         <View>
           <Text style={[styles.statLabelLight, { color: colors.onPrimaryContainer }]}>{label}</Text>
@@ -43,7 +43,7 @@ export const StatCard = ({ label, value, icon, variant, isLargeScreen }: StatCar
       { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant, shadowColor: colors.primaryContainer }
     ]}>
       <View style={styles.statIconWrapper}>
-        <MaterialIcons name={icon} size={24} color={colors.tertiaryFixedDim} />
+        <MaterialIcons name={icon} size={20} color={colors.tertiaryFixedDim} />
       </View>
       <View>
         <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>{label}</Text>
@@ -55,13 +55,13 @@ export const StatCard = ({ label, value, icon, variant, isLargeScreen }: StatCar
 
 const styles = StyleSheet.create({
   statCard: {
-    borderRadius: 12,
-    padding: 24,
+    borderRadius: 10,
+    padding: 12,
     justifyContent: 'space-between',
     borderWidth: 1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
   },
   statCardSmall: {
@@ -72,45 +72,45 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'relative',
     overflow: 'hidden',
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
   },
   statCardLargeDesktop: {
     flex: 1,
   },
   statIconWrapper: {
-    marginBottom: 16,
+    marginBottom: 6,
   },
   statCardBgIcon: {
     position: 'absolute',
-    right: -16,
-    top: -16,
+    right: -10,
+    top: -10,
     opacity: 0.2,
   },
   statLabel: {
     fontFamily: 'Inter',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   statLabelLight: {
     fontFamily: 'Inter',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   statValue: {
     fontFamily: 'Inter',
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
-    marginTop: 4,
+    marginTop: 2,
   },
   statValueLight: {
     fontFamily: 'Inter',
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
-    marginTop: 4,
+    marginTop: 2,
   },
 });
 

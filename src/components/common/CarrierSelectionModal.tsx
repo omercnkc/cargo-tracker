@@ -46,18 +46,24 @@ export const CarrierSelectionModal = ({
 
   useEffect(() => {
     if (visible) {
-      translateY.setValue(0);
+      translateY.setValue(500);
+      Animated.spring(translateY, {
+        toValue: 0,
+        damping: 24,
+        mass: 0.8,
+        stiffness: 240,
+        useNativeDriver: true,
+      }).start();
     }
   }, [visible]);
 
   const handleCloseWithAnimation = () => {
     Animated.timing(translateY, {
-      toValue: 600,
-      duration: 200,
+      toValue: 500,
+      duration: 180,
       useNativeDriver: true,
     }).start(() => {
       onClose();
-      translateY.setValue(0);
     });
   };
 
@@ -103,7 +109,7 @@ export const CarrierSelectionModal = ({
     <Modal
       visible={visible}
       transparent={true}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={handleCloseWithAnimation}
     >
       <KeyboardAvoidingView

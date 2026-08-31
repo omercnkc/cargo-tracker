@@ -14,7 +14,7 @@ import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal
 import { GoogleLogo } from '../common/GoogleLogo';
 import { useTranslation } from '../../hooks/useTranslation';
 
-WebBrowser.maybeCompleteAuthSession();
+// maybeCompleteAuthSession() yalnızca index.ts'te çağrılıyor (tek nokta).
 
 // Gmail API erişimi için Google OAuth Client ID'leri
 // NOT: Bu akış kullanıcı girişiyle değil, Gmail okuma izniyle ilgilidir.

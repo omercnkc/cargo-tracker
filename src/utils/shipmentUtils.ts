@@ -1,3 +1,5 @@
+import { formatDateTimeDDMMYYYY } from './dateUtils';
+
 /**
  * Utility functions for Shipment status and progress calculation.
  */
@@ -183,9 +185,11 @@ export function translateTimelineEvent(
 
   const translatedDesc = descMap[descStr] || descStr;
 
-  // 3. Time translation (e.g. "Bugün, 09:15" -> "Today, 09:15" / "Dün, 22:45" -> "Yesterday, 22:45")
+  // 3. Time translation (e.g. "Bugün, 09:15" -> "Today, 09:15" / "Dün, 22:45" -> "Yesterday, 22:45" / ISO -> "18.08.2026, 09:30")
   let translatedTime = timeStr;
-  if (timeStr.includes('Bugün')) {
+  if (timeStr.includes('T') && !isNaN(Date.parse(timeStr))) {
+    translatedTime = formatDateTimeDDMMYYYY(timeStr);
+  } else if (timeStr.includes('Bugün')) {
     translatedTime = timeStr.replace('Bugün', t('today'));
   } else if (timeStr.includes('Dün')) {
     translatedTime = timeStr.replace('Dün', t('yesterday'));

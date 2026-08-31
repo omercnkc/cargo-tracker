@@ -9,6 +9,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useNavigation } from '@react-navigation/native';
 import useResponsive from '../hooks/useResponsive';
 import { useAuthStore } from '../store/auth.store';
 import { useDrawerStore } from '../store/drawer.store';
@@ -21,6 +22,7 @@ import { hapticService } from '../services/haptics.service';
 import { styles } from './SettingsScreen.styles';
 
 export const SettingsScreen = () => {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { isLargeScreen } = useResponsive();
   const openDrawer = useDrawerStore((state) => state.openDrawer);
@@ -51,12 +53,21 @@ export const SettingsScreen = () => {
       {/* TopAppBar */}
       <View style={[styles.appBar, { paddingTop: insets.top, backgroundColor: colors.surface, borderBottomColor: colors.surfaceContainer }]}>
         <View style={styles.appBarContent}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => {
-            hapticService.buttonPress();
-            openDrawer();
-          }}>
-            <MaterialIcons name="menu" size={24} color={colors.primary} />
-          </TouchableOpacity>
+          {navigation.canGoBack() ? (
+            <TouchableOpacity style={styles.iconButton} onPress={() => {
+              hapticService.buttonPress();
+              navigation.goBack();
+            }}>
+              <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.iconButton} onPress={() => {
+              hapticService.buttonPress();
+              openDrawer();
+            }}>
+              <MaterialIcons name="menu" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          )}
           <Text style={[styles.appBarTitle, { color: colors.primary }]}>{t('settings')}</Text>
           <View style={{ width: 40 }} />
         </View>

@@ -65,13 +65,13 @@ export const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 32,
+    gap: 12,
+    marginBottom: 20,
   },
   quickActionsRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
+    gap: 12,
+    marginBottom: 20,
   },
   primaryActionBtn: {
     flex: 1,

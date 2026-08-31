@@ -29,7 +29,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-  const isLoading = useAuthStore(state => state.isLoading);
+  const _isInitialized = useAuthStore(state => state._isInitialized);
   const { isLocked, unlockApp, biometricTypes } = useBiometrics();
 
   const {
@@ -46,14 +46,16 @@ export const RootNavigator = () => {
     closePersonalInfoModal,
   } = useModalStore();
 
-  if (isLoading) {
+  // SplashScreen yalnızca uygulama ilk açılışındaki oturum kontrolü bitene kadar görünür.
+  // Login/logout işlemleri sırasında ekran artık kilitlenmez.
+  if (!_isInitialized) {
     return <SplashScreen />;
   }
 
   return (
     <>
-      <Stack.Navigator 
-        screenOptions={{ 
+      <Stack.Navigator
+        screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
           animationDuration: 220,
