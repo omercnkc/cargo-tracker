@@ -19,6 +19,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useModalStore } from '../../store/modal.store';
+import { UserAvatar } from './UserAvatar';
 import { hapticService } from '../../services/haptics.service';
 import { styles } from './DrawerMenuModal.styles';
 
@@ -35,9 +36,9 @@ export const DrawerMenuModal = () => {
 
   const { openAddressModal, openChangePasswordModal, openSupportModal, openCarrierModal, openPersonalInfoModal } = useModalStore();
 
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
-  const displayEmail = user?.email || 'E-posta bulunamadı';
-  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://i.pravatar.cc/300?img=11';
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || t('account');
+  const displayEmail = user?.email || '';
+  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
 
   const handleNavigate = (screenName: string) => {
     hapticService.buttonPress();
@@ -129,9 +130,15 @@ export const DrawerMenuModal = () => {
 
           {/* Profile Avatar & Info Centered */}
           <View style={styles.userProfileSection}>
-            <View style={[styles.avatarWrapper, { borderColor: colors.surfaceContainerLowest }]}>
-              <Image source={{ uri: displayAvatar }} style={styles.avatar} />
-            </View>
+            <UserAvatar
+              avatarUrl={displayAvatar}
+              name={displayName}
+              email={displayEmail}
+              size={64}
+              borderWidth={2}
+              borderColor={colors.surfaceContainer}
+              style={{ marginBottom: 6 }}
+            />
             <Text style={[styles.userName, { color: colors.onSurface }]}>{displayName}</Text>
             <Text style={[styles.userEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
           </View>

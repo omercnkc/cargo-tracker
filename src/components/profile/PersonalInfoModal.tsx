@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAuthStore } from '../../store/auth.store';
+import { UserAvatar } from '../common/UserAvatar';
 import { EditProfileModal } from './EditProfileModal';
 import { styles } from './PersonalInfoModal.styles';
 
@@ -36,7 +37,7 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || t('account');
   const displayEmail = user?.email || t('notAddedYet');
   const displayPhone = profile?.phone || t('notAddedYet');
-  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://i.pravatar.cc/300?img=11';
+  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
 
   return (
     <Modal visible={visible} transparent={false} animationType="slide" onRequestClose={onClose}>
@@ -64,9 +65,15 @@ export function PersonalInfoModal({ visible, onClose }: PersonalInfoModalProps) 
         >
           {/* Profile Card */}
           <View style={[styles.profileCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
-            <View style={[styles.avatarBorderContainer, { borderColor: colors.surfaceContainerLowest }]}>
-              <Image source={{ uri: displayAvatar }} style={styles.avatarImage} />
-            </View>
+            <UserAvatar
+              avatarUrl={displayAvatar}
+              name={displayName}
+              email={displayEmail}
+              size={96}
+              borderWidth={3}
+              borderColor={colors.surfaceContainerLowest}
+              style={{ marginBottom: 16 }}
+            />
             <Text style={[styles.profileName, { color: colors.onSurface }]}>{displayName}</Text>
             <Text style={[styles.profileEmail, { color: colors.onSurfaceVariant }]}>{displayEmail}</Text>
 

@@ -17,6 +17,7 @@ import { useTheme } from '../theme/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useShipments } from '../features/shipment/hooks/useShipments';
 import { useNotificationStore } from '../store/notification.store';
+import { UserAvatar } from '../components/common/UserAvatar';
 import { ProfileThemeLangSwitchCard } from '../components/profile/ProfileThemeLangSwitchCard';
 import { EditProfileModal } from '../components/profile/EditProfileModal';
 import { hapticService } from '../services/haptics.service';
@@ -38,9 +39,9 @@ export const ProfileScreen = () => {
 
   const [editModalVisible, setEditModalVisible] = useState(false);
 
-  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Ömer Çanakçı';
-  const displayEmail = user?.email || 'omercnkc123@gmail.com';
-  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://i.pravatar.cc/300?img=11';
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || t('account');
+  const displayEmail = user?.email || '';
+  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
 
   // Dynamic stats calculation
   const totalCount = dbShipments ? dbShipments.length : 5;
@@ -84,13 +85,15 @@ export const ProfileScreen = () => {
         <View style={[styles.profileCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.outlineVariant }]}>
 
           {/* User Avatar */}
-          <View style={[styles.avatarBorderContainer, { borderColor: colors.surface }]}>
-            <Image
-              source={{ uri: displayAvatar }}
-              style={styles.avatarImage}
-              resizeMode="cover"
-            />
-          </View>
+          <UserAvatar
+            avatarUrl={displayAvatar}
+            name={displayName}
+            email={displayEmail}
+            size={96}
+            borderWidth={3}
+            borderColor={colors.surface}
+            style={{ marginBottom: 16 }}
+          />
 
           {/* User Details */}
           <Text style={[styles.profileName, { color: colors.onSurface }]}>{displayName}</Text>
