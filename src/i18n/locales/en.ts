@@ -304,6 +304,8 @@ export const en: TranslationKeys = {
   lastSecureRecord: 'Last Secure Record',
   deliveryAddressTitle: 'Your Delivery Address',
   destinationAddressDesc: 'Destination delivery address',
+  openInMaps: 'Open in Maps',
+  directions: 'Directions',
   today: 'Today',
   yesterday: 'Yesterday',
   stepActionRequired: 'Action Required',

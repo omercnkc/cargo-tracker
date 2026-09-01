@@ -50,8 +50,6 @@ const AppContent = () => {
    */
   useEffect(() => {
     const handleUrl = async (url: string) => {
-      console.log('[OAuth DeepLink] Received URL:', url);
-
       // Callback veya code/access_token içermiyorsa yoksay
       if (!url.includes('auth/callback') && !url.includes('code=') && !url.includes('access_token=')) {
         return;
@@ -63,14 +61,11 @@ const AppContent = () => {
         const code = codeMatch ? decodeURIComponent(codeMatch[1]) : null;
 
         if (code) {
-          console.log('[OAuth DeepLink] Exchanging code for session...');
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          
+
           if (error) {
-            console.error('[OAuth DeepLink] Exchange Error:', error.message);
             Alert.alert('Google Giriş Hatası', error.message);
           } else if (data.user) {
-            console.log('[OAuth DeepLink] Session created for:', data.user.email);
             await authRepository.syncUserProfileFromAuth(data.user);
             useAuthStore.getState().fetchProfile(data.user.id);
           }
@@ -78,11 +73,11 @@ const AppContent = () => {
           // Token doğrudan URL hash'inde gelebilir
           const accessTokenMatch = url.match(/[?&#]access_token=([^&]+)/);
           const refreshTokenMatch = url.match(/[?&#]refresh_token=([^&]+)/);
-          
+
           if (accessTokenMatch && refreshTokenMatch) {
             const access_token = decodeURIComponent(accessTokenMatch[1]);
             const refresh_token = decodeURIComponent(refreshTokenMatch[1]);
-            
+
             const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
             if (error) {
               Alert.alert('Oturum Hatası', error.message);

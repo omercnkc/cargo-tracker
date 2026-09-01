@@ -39,7 +39,6 @@ export class NotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.warn('Bildirim izni alınamadı.');
         return false;
       }
 
@@ -53,8 +52,7 @@ export class NotificationService {
       }
 
       return true;
-    } catch (error) {
-      console.warn('Bildirim izinleri alınırken uyarı:', error);
+    } catch {
       return false;
     }
   }
@@ -78,8 +76,7 @@ export class NotificationService {
       });
 
       return notificationId;
-    } catch (error) {
-      console.warn('Yerel bildirim gönderilemedi:', error);
+    } catch {
       return null;
     }
   }

@@ -5,8 +5,13 @@
     "scheme": "cargotracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/kargo-takip-icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#00236f"
+    },
     "ios": {
       "bundleIdentifier": "com.omer.cargotracker",
       "supportsTablet": true
@@ -15,8 +20,13 @@
       "package": "com.omer.cargotracker",
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
-        "foregroundImage": "./src/assets/kargo-takip-icon.png"
+        "backgroundColor": "#00236f",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "splash": {
+        "image": "./assets/splash-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#00236f"
       },
       "predictiveBackGestureEnabled": false
     },

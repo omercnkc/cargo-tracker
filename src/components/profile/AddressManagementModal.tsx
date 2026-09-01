@@ -18,24 +18,8 @@ import { AddAddressModal, UserAddress } from './AddAddressModal';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
 import { hapticService } from '../../services/haptics.service';
 import { useAuthStore } from '../../store/auth.store';
-import { USER_ADDRESSES_STORAGE_KEY, DEFAULT_ACTIVE_ADDRESS } from '../../hooks/useUserAddresses';
+import { USER_ADDRESSES_STORAGE_KEY } from '../../hooks/useUserAddresses';
 import { styles } from './AddressManagementModal.styles';
-
-const DEFAULT_ADDRESSES: UserAddress[] = [
-  DEFAULT_ACTIVE_ADDRESS,
-  {
-    id: 'addr_default_2',
-    title: 'İş Yeri (Ofis)',
-    fullName: 'Kullanıcı',
-    phone: '0555 987 65 43',
-    city: 'İstanbul',
-    district: 'Levent',
-    fullAddress: 'Büyükdere Cad. No:199 K:12, Levent / İstanbul',
-    latitude: 41.0778,
-    longitude: 29.0112,
-    isDefault: false,
-  },
-];
 
 interface AddressManagementModalProps {
   visible: boolean;
@@ -50,14 +34,7 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
   const user = useAuthStore((state) => state.user);
   const currentUserName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
 
-  const initialAddresses = React.useMemo(() => {
-    return DEFAULT_ADDRESSES.map(addr => ({
-      ...addr,
-      fullName: currentUserName || addr.fullName,
-    }));
-  }, [currentUserName]);
-
-  const [addresses, setAddresses] = useState<UserAddress[]>(initialAddresses);
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [addModalVisible, setAddModalVisible] = useState(false);
 
   const [feedback, setFeedback] = useState<{
@@ -93,10 +70,10 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
           return;
         }
       }
-      setAddresses(initialAddresses);
+      setAddresses([]);
     } catch (err) {
       console.error('Adresler yüklenemedi:', err);
-      setAddresses(initialAddresses);
+      setAddresses([]);
     }
   };
 
@@ -143,7 +120,9 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
   ).current;
 
   const handleSaveNewAddress = async (newAddress: UserAddress) => {
-    const updated = [newAddress, ...addresses];
+    const isFirst = addresses.length === 0;
+    const addressToSave = { ...newAddress, isDefault: isFirst || newAddress.isDefault };
+    const updated = [addressToSave, ...addresses];
     setAddresses(updated);
     await AsyncStorage.setItem(USER_ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
     hapticService.success();
@@ -168,6 +147,10 @@ export function AddressManagementModal({ visible, onClose }: AddressManagementMo
       secondaryBtnText: t('cancel'),
       onPrimaryAction: async () => {
         const updated = addresses.filter((a) => a.id !== item.id);
+        // If deleted address was default and other addresses remain, make the first one default
+        if (item.isDefault && updated.length > 0) {
+          updated[0].isDefault = true;
+        }
         setAddresses(updated);
         await AsyncStorage.setItem(USER_ADDRESSES_STORAGE_KEY, JSON.stringify(updated));
         hapticService.success();

@@ -301,6 +301,8 @@ export const tr = {
   lastSecureRecord: 'Son Güvenli Kayıt',
   deliveryAddressTitle: 'Teslimat Adresiniz',
   destinationAddressDesc: 'Kargonun varış adresi',
+  openInMaps: 'Haritalarda Aç',
+  directions: 'Yol Tarifi',
   today: 'Bugün',
   yesterday: 'Dün',
   stepActionRequired: 'İşlem Gerekli',

@@ -22,12 +22,10 @@ export class SyncEngineService {
 
     // 1. Single-Flight Lock ve Online Kontrolü
     if (!store.isOnline) {
-      console.log('[SyncEngine] Bağlantı yok, senkronizasyon ertelendi.');
       return;
     }
 
     if (this.isSyncing) {
-      console.log('[SyncEngine] Senkronizasyon halihazırda devam ediyor (Single-Flight Lock aktif).');
       return;
     }
 
@@ -40,7 +38,6 @@ export class SyncEngineService {
       const userId = authData?.user?.id;
 
       if (!userId) {
-        console.log('[SyncEngine] Oturum açmış kullanıcı bulunamadı.');
         this.isSyncing = false;
         store.setSyncStatus('idle');
         return;
@@ -54,8 +51,6 @@ export class SyncEngineService {
         store.setSyncStatus('idle');
         return;
       }
-
-      console.log(`[SyncEngine] ${pendingMutations.length} adet bekleyen mutasyon işleniyor...`);
 
       // 4. Mutasyonları Sırayla İşle (FIFO / Dependency Order)
       for (const item of pendingMutations) {
@@ -77,8 +72,7 @@ export class SyncEngineService {
         store.setSyncStatus('success');
         setTimeout(() => store.setSyncStatus('idle'), 2000);
       }
-    } catch (error) {
-      console.warn('[SyncEngine Hatası]:', error);
+    } catch {
       store.setSyncStatus('error');
     } finally {
       this.isSyncing = false;
@@ -107,11 +101,9 @@ export class SyncEngineService {
       const result = await this.executeWithTimeout(this.sendToSupabase(item, userId), timeoutMs);
 
       if (result.success) {
-        console.log(`[SyncEngine] Mutasyon ${item.id} başarıyla senkronize edildi.`);
         OfflineQueueRepository.removeMutation(item.id);
         return true;
       } else if (result.conflict) {
-        console.warn(`[SyncEngine] Mutasyon ${item.id} versiyon çakışmasına düştü!`);
         OfflineQueueRepository.saveConflictMutation({
           ...item,
           status: 'conflict',
@@ -121,12 +113,10 @@ export class SyncEngineService {
         useOfflineSyncStore.getState().setConflictState(item.id, result.serverData);
         return false;
       } else {
-        console.warn(`[SyncEngine] Mutasyon ${item.id} senkronizasyon uyarısı:`, result.error);
         OfflineQueueRepository.updateMutationStatus(item.id, 'failed', result.error);
         return false;
       }
     } catch (err: any) {
-      console.warn(`[SyncEngine Uyarı] Mutasyon ${item.id}:`, err?.message || err);
       OfflineQueueRepository.updateMutationStatus(item.id, 'failed', err.message || 'Bilinmeyen hata');
       return false;
     }

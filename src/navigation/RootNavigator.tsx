@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -30,6 +30,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const _isInitialized = useAuthStore(state => state._isInitialized);
+  const [isSplashFinished, setIsSplashFinished] = useState(false);
   const { isLocked, unlockApp, biometricTypes } = useBiometrics();
 
   const {
@@ -46,10 +47,9 @@ export const RootNavigator = () => {
     closePersonalInfoModal,
   } = useModalStore();
 
-  // SplashScreen yalnızca uygulama ilk açılışındaki oturum kontrolü bitene kadar görünür.
-  // Login/logout işlemleri sırasında ekran artık kilitlenmez.
-  if (!_isInitialized) {
-    return <SplashScreen />;
+  // SplashScreen uygulama ilk açılışındaki animasyon ve oturum kontrolü bitene kadar görünür.
+  if (!_isInitialized || !isSplashFinished) {
+    return <SplashScreen onFinish={() => setIsSplashFinished(true)} />;
   }
 
   return (

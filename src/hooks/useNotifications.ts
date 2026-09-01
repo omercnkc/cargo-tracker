@@ -12,20 +12,19 @@ export function useNotifications(onNotificationClick?: (data: any) => void) {
       NotificationService.requestPermissions();
 
       // Ön planda bildirim geldiğinde çalışır
-      notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
-        console.log('Bildirim alındı:', notification);
+      notificationListener.current = Notifications.addNotificationReceivedListener((_notification) => {
+        // Notification received
       });
 
       // Kullanıcı bildirime tıkladığında (Deep Link / Navigate) çalışır
       responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
         const data = response.notification.request.content.data;
-        console.log('Bildirime tıklandı:', data);
         if (onNotificationClick && data) {
           onNotificationClick(data);
         }
       });
-    } catch (err) {
-      console.warn('Notification listener kurulurken uyarı:', err);
+    } catch {
+      // Notification listener fallback
     }
 
     return () => {

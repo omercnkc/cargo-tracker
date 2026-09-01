@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import { makeRedirectUri } from 'expo-auth-session';
 
 import { EmailSyncService, EmailScanResult } from '../../services/import/emailSyncService';
 import { GoogleAuthService, GoogleUserProfile } from '../../services/import/googleAuthService';
@@ -11,19 +8,7 @@ import { useTheme } from '../../theme/useTheme';
 import { useAuthStore } from '../../store/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
 import { ModernFeedbackModal, FeedbackType } from '../common/ModernFeedbackModal';
-import { GoogleLogo } from '../common/GoogleLogo';
 import { useTranslation } from '../../hooks/useTranslation';
-
-// maybeCompleteAuthSession() yalnızca index.ts'te çağrılıyor (tek nokta).
-
-// Gmail API erişimi için Google OAuth Client ID'leri
-// NOT: Bu akış kullanıcı girişiyle değil, Gmail okuma izniyle ilgilidir.
-const GMAIL_OAUTH = {
-  androidClientId: '624428912304-756s6lfo6tumina9rfa3kcq2h5dotk28.apps.googleusercontent.com',
-  iosClientId: '624428912304-1jfiuhjc0iv93snrt09legt4lb2ip4rn.apps.googleusercontent.com',
-  webClientId: '624428912304-4lqg8t28d6k7ht3scraghea6khmjat1n.apps.googleusercontent.com',
-  scopes: ['openid', 'profile', 'email'],
-};
 
 interface EmailConnectModalProps {
   visible: boolean;
@@ -32,7 +17,7 @@ interface EmailConnectModalProps {
 }
 
 export function EmailConnectModal({ visible, onClose, onShipmentsImported }: EmailConnectModalProps) {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDarkMode } = useTheme();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -40,15 +25,9 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
   const [emailInput, setEmailInput] = useState('');
   const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
   const [googleProfile, setGoogleProfile] = useState<GoogleUserProfile | null>(null);
+  const [isEditingCustomEmail, setIsEditingCustomEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GMAIL_OAUTH.androidClientId,
-    iosClientId: GMAIL_OAUTH.iosClientId,
-    webClientId: GMAIL_OAUTH.webClientId,
-    scopes: GMAIL_OAUTH.scopes,
-  });
 
   const [feedback, setFeedback] = useState<{
     visible: boolean;
@@ -76,86 +55,48 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setConnectedEmail(profile.email);
     } else {
       const mail = await EmailSyncService.getConnectedEmail();
-      setConnectedEmail(mail);
-      if (mail) setEmailInput(mail);
+      const finalMail = mail || user?.email || null;
+      setConnectedEmail(finalMail);
+      if (finalMail) setEmailInput(finalMail);
     }
   };
 
-  useEffect(() => {
-    if (response?.type === 'success' && response.authentication?.accessToken) {
-      handleGoogleAuthSuccess(response.authentication.accessToken);
-    }
-  }, [response]);
-
-  const handleGoogleAuthSuccess = async (token: string) => {
-    setLoading(true);
-    await GoogleAuthService.saveAccessToken(token);
-    const profile = await GoogleAuthService.fetchUserProfileFromGoogle(token);
-
-    if (profile) {
-      await GoogleAuthService.saveUserProfile(profile);
-      await EmailSyncService.connectEmail(profile.email);
-      setGoogleProfile(profile);
-      setConnectedEmail(profile.email);
-
-      setFeedback({
-        visible: true,
-        type: 'success',
-        title: t('googleConnectedTitle'),
-        message: t('googleConnectedMsg').replace('{{email}}', profile.email),
-      });
-    } else {
-      setFeedback({
-        visible: true,
-        type: 'error',
-        title: t('googleAuthErrorTitle'),
-        message: t('googleAuthErrorMsg'),
-      });
-    }
-    setLoading(false);
-  };
-
-  const handleGoogleLoginPrompt = () => {
-    if (request) {
-      promptAsync();
-    } else {
-      setFeedback({
-        visible: true,
-        type: 'warning',
-        title: t('googleServicePreparingTitle'),
-        message: t('googleServicePreparingMsg'),
-      });
-    }
-  };
-
-  const handleManualConnect = async () => {
+  const handleSaveCustomEmail = async () => {
     if (!emailInput || !emailInput.includes('@')) {
       setFeedback({
         visible: true,
         type: 'warning',
-        title: t('invalidEmailTitle'),
-        message: t('invalidEmailMsg'),
+        title: t('invalidEmailTitle') || 'Geçersiz E-posta',
+        message: t('invalidEmailMsg') || 'Lütfen geçerli bir e-posta adresi girin.',
       });
       return;
     }
 
     setLoading(true);
-    const success = await EmailSyncService.connectEmail(emailInput);
+    await EmailSyncService.connectEmail(emailInput);
+    setConnectedEmail(emailInput);
+    setIsEditingCustomEmail(false);
     setLoading(false);
 
-    if (success) {
-      setConnectedEmail(emailInput);
-      setFeedback({
-        visible: true,
-        type: 'success',
-        title: t('emailSavedTitle'),
-        message: t('emailSavedMsg').replace('{{email}}', emailInput),
-      });
-    }
+    setFeedback({
+      visible: true,
+      type: 'success',
+      title: t('emailSavedTitle') || 'E-posta Kaydedildi',
+      message: (t('emailSavedMsg') || '{{email}} adresi başarıyla bağlandı.').replace('{{email}}', emailInput),
+    });
   };
 
   const handleSyncNow = async () => {
-    if (!connectedEmail) return;
+    const activeMail = connectedEmail || user?.email;
+    if (!activeMail) {
+      setFeedback({
+        visible: true,
+        type: 'warning',
+        title: 'E-posta Gerekli',
+        message: 'Lütfen kargo taraması için bir e-posta adresi bağlayın.',
+      });
+      return;
+    }
 
     setSyncing(true);
     const results = await EmailSyncService.syncConnectedEmail(user?.id);
@@ -168,8 +109,10 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'success',
-        title: t('newShipmentsFoundTitle'),
-        message: t('newShipmentsFoundMsg').replace('{{count}}', String(results.length)).replace('{{summary}}', shipmentSummary),
+        title: t('newShipmentsFoundTitle') || '🎉 Yeni Kargo Tespit Edildi!',
+        message: (t('newShipmentsFoundMsg') || 'Son 3 gün içindeki e-postalarınızdan {{count}} adet kargo bulundu:\n\n{{summary}}')
+          .replace('{{count}}', String(results.length))
+          .replace('{{summary}}', shipmentSummary),
         onConfirm: () => {
           setFeedback((prev) => ({ ...prev, visible: false }));
           if (onShipmentsImported) {
@@ -182,8 +125,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
       setFeedback({
         visible: true,
         type: 'info',
-        title: t('noNewShipmentsFoundTitle'),
-        message: t('noNewShipmentsFoundMsg'),
+        title: t('noNewShipmentsFoundTitle') || 'Kargolarınız Güncel',
+        message: t('noNewShipmentsFoundMsg') || 'Son 3 gün içinde taranmamış yeni kargo bildirimi bulunamadı. Önceki kargolarınız zaten listenizde.',
       });
     }
   };
@@ -193,11 +136,12 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
     setConnectedEmail(null);
     setGoogleProfile(null);
     setEmailInput('');
+    setIsEditingCustomEmail(true);
     setFeedback({
       visible: true,
       type: 'info',
-      title: t('removeEmailLink'),
-      message: t('success'),
+      title: t('removeEmailLink') || 'Bağlantı Kesildi',
+      message: t('success') || 'İşlem başarılı.',
     });
   };
 
@@ -208,8 +152,8 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <MaterialIcons name="email" size={24} color={colors.primary} />
-              <Text style={[styles.title, { color: colors.primary }]}>{t('emailScanModalTitle')}</Text>
+              <MaterialIcons name="mark-email-read" size={24} color={colors.primary} />
+              <Text style={[styles.title, { color: colors.primary }]}>{t('emailScanModalTitle') || 'E-posta ile Kargo İçe Aktar'}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
@@ -217,30 +161,39 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
           </View>
 
           <Text style={[styles.description, { color: colors.onSurfaceVariant }]}>
-            {t('autoImportSubtitle')}
+            {t('autoImportSubtitle') || 'Son 3 gün içinde gelen kargo ve sipariş bildirimleriniz (Trendyol, Amazon, Hepsiburada, Aras, Yurtiçi vb.) taranıp listenize otomatik eklenir.'}
           </Text>
 
-          {connectedEmail ? (
+          {/* Son 3 Gün Filtre Rozeti */}
+          <View style={[styles.filterBadge, { backgroundColor: isDarkMode ? '#1e293b' : '#eff6ff', borderColor: isDarkMode ? '#334155' : '#bfdbfe' }]}>
+            <MaterialIcons name="access-time" size={16} color={colors.primary} />
+            <Text style={[styles.filterBadgeText, { color: colors.primary }]}>
+              Son 3 Gün (72 Saat) Aktif Taraması
+            </Text>
+          </View>
+
+          {connectedEmail && !isEditingCustomEmail ? (
             <View style={styles.connectedCard}>
-              <View style={styles.emailBadgeRow}>
+              <View style={[styles.emailBadgeRow, { backgroundColor: isDarkMode ? '#064e3b' : '#f0fdf4', borderColor: isDarkMode ? '#059669' : '#bbf7d0' }]}>
                 {googleProfile?.picture ? (
                   <Image source={{ uri: googleProfile.picture }} style={styles.profileAvatar} />
                 ) : (
-                  <MaterialIcons name="check-circle" size={20} color="#10b981" />
+                  <MaterialIcons name="verified-user" size={22} color="#10b981" />
                 )}
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.connectedEmailText, { color: colors.onBackground }]}>
-                    {googleProfile?.name || connectedEmail}
+                  <Text style={[styles.connectedEmailText, { color: isDarkMode ? '#f9fafb' : colors.onBackground }]} numberOfLines={1}>
+                    {googleProfile?.name || user?.user_metadata?.full_name || 'Aktif Hesabınız'}
                   </Text>
-                  <Text style={[styles.subEmailText, { color: colors.onSurfaceVariant }]}>{connectedEmail}</Text>
+                  <Text style={[styles.subEmailText, { color: isDarkMode ? '#a7f3d0' : colors.onSurfaceVariant }]} numberOfLines={1}>
+                    {connectedEmail}
+                  </Text>
                 </View>
-                {googleProfile && (
-                  <View style={styles.verifiedBadge}>
-                    <Text style={styles.verifiedText}>{t('googleVerified')}</Text>
-                  </View>
-                )}
+                <View style={styles.verifiedBadge}>
+                  <Text style={styles.verifiedText}>Bağlı</Text>
+                </View>
               </View>
 
+              {/* Tarama Butonu */}
               <TouchableOpacity
                 style={[styles.syncButton, { backgroundColor: colors.primary }]}
                 onPress={handleSyncNow}
@@ -252,41 +205,71 @@ export function EmailConnectModal({ visible, onClose, onShipmentsImported }: Ema
                 ) : (
                   <>
                     <MaterialIcons name="sync" size={20} color="#ffffff" />
-                    <Text style={styles.syncButtonText}>{t('scanGmailNow')}</Text>
+                    <Text style={styles.syncButtonText}>Son 3 Günün Kargolarını Tara</Text>
                   </>
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.disconnectBtn} onPress={handleDisconnect}>
-                <Text style={styles.disconnectText}>{t('removeEmailLink')}</Text>
-              </TouchableOpacity>
+              {/* Farklı E-posta Butonu */}
+              <View style={styles.actionLinksRow}>
+                <TouchableOpacity onPress={() => setIsEditingCustomEmail(true)}>
+                  <Text style={[styles.changeEmailText, { color: colors.primary }]}>Farklı E-posta Gir</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDisconnect}>
+                  <Text style={styles.disconnectText}>{t('removeEmailLink') || 'Bağlantıyı Kes'}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <View style={styles.inputForm}>
-              {/* Google ile Bağlan Butonu */}
+              <Text style={[styles.inputLabel, { color: colors.onSurface }]}>Kargo Bildirim E-postanız:</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.outlineVariant,
+                    color: colors.onSurface,
+                  },
+                ]}
+                placeholder="ornek@gmail.com"
+                placeholderTextColor={colors.onSurfaceVariant}
+                value={emailInput}
+                onChangeText={setEmailInput}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
               <TouchableOpacity
-                style={styles.googleButton}
-                onPress={handleGoogleLoginPrompt}
-                disabled={loading || !request}
-                activeOpacity={0.85}
+                style={[styles.syncButton, { backgroundColor: colors.primary }]}
+                onPress={handleSaveCustomEmail}
+                disabled={loading}
+                activeOpacity={0.8}
               >
                 {loading ? (
-                  <ActivityIndicator color="#374151" size="small" />
+                  <ActivityIndicator color="#ffffff" size="small" />
                 ) : (
                   <>
-                    <GoogleLogo size={22} />
-                    <Text style={styles.googleButtonText}>{t('connectGoogleLive')}</Text>
+                    <MaterialIcons name="save" size={20} color="#ffffff" />
+                    <Text style={styles.syncButtonText}>E-postayı Kaydet & Tara</Text>
                   </>
                 )}
               </TouchableOpacity>
+
+              {connectedEmail && (
+                <TouchableOpacity onPress={() => setIsEditingCustomEmail(false)} style={{ alignSelf: 'center', marginTop: 4 }}>
+                  <Text style={[styles.changeEmailText, { color: colors.primary }]}>Mevcut Hesaba Geri Dön</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
           {/* Privacy Guarantee Badge */}
-          <View style={styles.privacyBadge}>
+          <View style={[styles.privacyBadge, { backgroundColor: isDarkMode ? '#064e3b20' : '#ecfdf5' }]}>
             <MaterialIcons name="security" size={16} color="#047857" />
             <Text style={styles.privacyText}>
-              {t('privacyGuaranteeDesc')}
+              {t('privacyGuaranteeDesc') || 'Gizlilik Garantisi: Yalnızca kargo takip kodları güvenli biçimde taranır. Şifreleriniz veya kişisel mesajlarınız asla okunmaz veya saklanmaz.'}
             </Text>
           </View>
         </View>
@@ -333,7 +316,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   titleRow: {
     flexDirection: 'row',
@@ -341,7 +324,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
   closeButton: {
@@ -350,21 +333,33 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 13,
     lineHeight: 18,
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  filterBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  filterBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   connectedCard: {
     gap: 12,
-    marginVertical: 8,
+    marginVertical: 4,
   },
   emailBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#f0fdf4',
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#bbf7d0',
   },
   profileAvatar: {
     width: 32,
@@ -393,7 +388,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    paddingVertical: 13,
     borderRadius: 10,
     gap: 8,
   },
@@ -402,84 +397,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  disconnectBtn: {
+  actionLinksRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  changeEmailText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   disconnectText: {
     color: '#ef4444',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
   inputForm: {
-    gap: 12,
-    marginVertical: 8,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 13,
-    borderRadius: 10,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  googleButtonText: {
-    color: '#1f2937',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 10,
     marginVertical: 4,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    fontSize: 11,
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 11,
     fontSize: 14,
-  },
-  connectButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 8,
-  },
-  connectButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
   },
   privacyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#ecfdf5',
     padding: 10,
     borderRadius: 8,
-    marginTop: 16,
+    marginTop: 14,
   },
   privacyText: {
     fontSize: 11,
     color: '#065f46',
     flex: 1,
+    lineHeight: 15,
   },
 });

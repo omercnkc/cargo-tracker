@@ -210,12 +210,15 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 14,
-    height: 46,
+    paddingVertical: 8,
+    minHeight: 48,
   },
   carrierSelectorContent: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    marginRight: 8,
   },
   carrierSelectorText: {
     fontFamily: 'Inter',

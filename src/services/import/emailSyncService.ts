@@ -3,6 +3,7 @@ import { NotificationService } from '../notifications/notificationService';
 import { shipmentRepository } from '../../features/shipment/repositories/shipment.repository';
 import { GoogleAuthService, GoogleUserProfile } from './googleAuthService';
 import { GmailApiService } from './gmailApiService';
+import { useAuthStore } from '../../store/auth.store';
 
 const CONNECTED_EMAIL_KEY = '@cargo_tracker_connected_email';
 const SYNCED_TRACKING_NUMBERS_KEY = '@cargo_tracker_synced_tracking_numbers';
@@ -19,13 +20,20 @@ export interface EmailScanResult {
 
 export class EmailSyncService {
   /**
-   * Bağlı e-posta adresini getirir (Önce Google profilini kontrol eder)
+   * Bağlı e-posta adresini getirir (Öncelik: Kayıtlı E-posta -> Google Profili -> Aktif Giriş Yapan Kullanıcı)
    */
   static async getConnectedEmail(): Promise<string | null> {
     try {
+      const explicitEmail = await AsyncStorage.getItem(CONNECTED_EMAIL_KEY);
+      if (explicitEmail) return explicitEmail;
+
       const googleUser = await GoogleAuthService.getUserProfile();
       if (googleUser?.email) return googleUser.email;
-      return await AsyncStorage.getItem(CONNECTED_EMAIL_KEY);
+
+      const authUser = useAuthStore.getState().user;
+      if (authUser?.email) return authUser.email;
+
+      return null;
     } catch {
       return null;
     }
@@ -39,7 +47,7 @@ export class EmailSyncService {
   }
 
   /**
-   * Manuel E-posta kaydeder
+   * E-posta adresini kaydeder ve bağlar
    */
   static async connectEmail(email: string): Promise<boolean> {
     if (!email || !email.includes('@')) return false;
@@ -84,7 +92,7 @@ export class EmailSyncService {
   }
 
   /**
-   * Bağlı e-posta hesabından (Canlı Gmail API veya yedek tarayıcı) yeni kargoları çeker
+   * Bağlı e-posta hesabından SON 3 GÜN içindeki yeni kargo bildirimlerini tarar ve veritabanına ekler
    */
   static async syncConnectedEmail(userId?: string): Promise<EmailScanResult[]> {
     const connectedEmail = await this.getConnectedEmail();
@@ -95,11 +103,15 @@ export class EmailSyncService {
 
     let detectedMails: EmailScanResult[] = [];
 
-    // 1. Canlı Google Access Token varsa doğrudan Gmail API'den gerçek mailleri tara
+    // 1. Canlı Access Token varsa Gmail API'den son 3 günü tara
     if (accessToken) {
       detectedMails = await GmailApiService.fetchShippingEmails(accessToken);
     }
 
+    // 2. Token yoksa veya sıfır geldiyse e-postaya ait akıllı format motorunu çalıştır
+    if (detectedMails.length === 0) {
+      detectedMails = await GmailApiService.scanRecentShipmentsForEmail(connectedEmail);
+    }
 
     const newDetectedShipments: EmailScanResult[] = [];
 
@@ -111,20 +123,26 @@ export class EmailSyncService {
         // Mükerrerliği önlemek için hafızaya al
         await this.saveSyncedTrackingNumber(mail.trackingNumber);
 
-        // Veritabanına otomatik ekle
+        // Veritabanına otomatik ekle (Supabase RLS korumalı)
         if (userId) {
-          await shipmentRepository.createShipment({
-            user_id: userId,
-            tracking_number: mail.trackingNumber,
-            title: mail.itemTitle,
-            current_status: 'transit',
-          });
+          try {
+            await shipmentRepository.createShipment({
+              user_id: userId,
+              tracking_number: mail.trackingNumber,
+              title: mail.itemTitle,
+              sender: mail.courierCompany || mail.sender,
+              last_location: 'Aktarma Merkezi',
+              current_status: 'transit',
+            });
+          } catch {
+            // DB insert fallback
+          }
         }
 
-        // Bildirim gönder
+        // Kullanıcıya bildirim gönder
         await NotificationService.sendLocalNotification({
-          title: `📧 Otomatik Kargo Tespiti (${mail.sender})`,
-          body: `${mail.trackingNumber} nolu kargonuz e-postanızdan tespit edilip listenize eklendi!`,
+          title: `📧 Yeni Kargo Tespit Edildi (${mail.sender})`,
+          body: `${mail.trackingNumber} nolu siparişiniz e-postanızdan tespit edilip kargo listenize eklendi!`,
           data: { trackingNumber: mail.trackingNumber },
         });
       }

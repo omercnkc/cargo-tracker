@@ -77,10 +77,8 @@ export class MigrationService {
 
       // Remove legacy AsyncStorage key after successful migration
       await AsyncStorage.removeItem(OLD_OFFLINE_QUEUE_KEY);
-      console.log(`[MigrationService] ${count} adet legacy AsyncStorage mutasyonu SQLite veritabanına aktarıldı.`);
       return { migratedCount: count };
-    } catch (err) {
-      console.error('[MigrationService Hatası]:', err);
+    } catch {
       return { migratedCount: 0 };
     }
   }

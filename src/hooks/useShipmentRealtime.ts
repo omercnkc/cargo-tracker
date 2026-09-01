@@ -21,7 +21,6 @@ export function useShipmentRealtime(shipmentId?: string) {
           filter: `id=eq.${shipmentId}`,
         },
         (payload) => {
-          console.log('Realtime Shipment Update:', payload);
           const updatedShipment = payload.new as any;
 
           // React Query önbelleğini güncelle ve invalid et

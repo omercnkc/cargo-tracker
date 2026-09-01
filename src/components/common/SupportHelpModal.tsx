@@ -40,14 +40,14 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           title: t('supportHelpTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.qText}>{t('supportHelpQ1')}</Text>
-              <Text style={styles.aText}>{t('supportHelpA1')}</Text>
+              <Text style={[styles.qText, { color: colors.onSurface }]}>{t('supportHelpQ1')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportHelpA1')}</Text>
               
-              <Text style={styles.qText}>{t('supportHelpQ2')}</Text>
-              <Text style={styles.aText}>{t('supportHelpA2')}</Text>
+              <Text style={[styles.qText, { color: colors.onSurface }]}>{t('supportHelpQ2')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportHelpA2')}</Text>
               
-              <Text style={styles.qText}>{t('supportHelpQ3')}</Text>
-              <Text style={styles.aText}>{t('supportHelpA3')}</Text>
+              <Text style={[styles.qText, { color: colors.onSurface }]}>{t('supportHelpQ3')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportHelpA3')}</Text>
             </View>
           ),
         };
@@ -57,11 +57,11 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           title: t('supportPrivacyTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>{t('supportPrivacyDesc')}</Text>
-              <Text style={styles.qText}>{t('supportPrivacyQ1')}</Text>
-              <Text style={styles.aText}>{t('supportPrivacyA1')}</Text>
-              <Text style={styles.qText}>{t('supportPrivacyQ2')}</Text>
-              <Text style={styles.aText}>{t('supportPrivacyA2')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportPrivacyDesc')}</Text>
+              <Text style={[styles.qText, { color: colors.onSurface }]}>{t('supportPrivacyQ1')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportPrivacyA1')}</Text>
+              <Text style={[styles.qText, { color: colors.onSurface }]}>{t('supportPrivacyQ2')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportPrivacyA2')}</Text>
             </View>
           ),
         };
@@ -71,11 +71,11 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           title: t('supportTermsTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>{t('supportTermsDesc')}</Text>
-              <Text style={styles.qText}>{t('supportTermsQ1')}</Text>
-              <Text style={styles.aText}>{t('supportTermsA1')}</Text>
-              <Text style={styles.qText}>{t('supportTermsQ2')}</Text>
-              <Text style={styles.aText}>{t('supportTermsA2')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportTermsDesc')}</Text>
+              <Text style={[styles.qText, { color: colors.onSurface }]}>{t('supportTermsQ1')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportTermsA1')}</Text>
+              <Text style={[styles.qText, { color: colors.onSurface }]}>{t('supportTermsQ2')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportTermsA2')}</Text>
             </View>
           ),
         };
@@ -85,9 +85,9 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           title: t('supportFeedbackTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>{t('supportFeedbackDesc')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportFeedbackDesc')}</Text>
               <TouchableOpacity
-                style={styles.actionPillBtn}
+                style={[styles.actionPillBtn, { backgroundColor: colors.primary }]}
                 onPress={() => {
                   hapticService.success();
                   setFeedback({
@@ -114,9 +114,9 @@ export function SupportHelpModal({ visible, type, onClose }: SupportHelpModalPro
           title: t('supportRateTitle'),
           content: (
             <View style={styles.contentGroup}>
-              <Text style={styles.aText}>{t('supportRateDesc')}</Text>
+              <Text style={[styles.aText, { color: colors.onSurfaceVariant }]}>{t('supportRateDesc')}</Text>
               <TouchableOpacity
-                style={styles.actionPillBtn}
+                style={[styles.actionPillBtn, { backgroundColor: colors.primary }]}
                 onPress={() => {
                   hapticService.success();
                   setFeedback({

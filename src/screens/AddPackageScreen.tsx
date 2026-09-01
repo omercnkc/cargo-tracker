@@ -181,10 +181,10 @@ export const AddPackageScreen = () => {
       const userFullName = profile?.full_name || user?.user_metadata?.full_name || chosenAddress?.fullName || 'Kullanıcı';
       const receiverText = chosenAddress
         ? `${userFullName}\n[${chosenAddress.title}] ${chosenAddress.fullAddress}`
-        : `${userFullName}\nCihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul`;
+        : `${userFullName}\nTeslimat Adresi`;
       const lastLocText = chosenAddress
         ? `${chosenAddress.district} Dağıtım Bölgesi, ${chosenAddress.city}`
-        : 'Beşiktaş Dağıtım Bölgesi, İstanbul';
+        : 'Aktarma Merkezi';
 
       await addShipmentMutation.mutateAsync({
         user_id: user.id,
@@ -355,10 +355,16 @@ export const AddPackageScreen = () => {
                 {activeCarrier ? (
                   <View style={styles.carrierSelectorContent}>
                     <CarrierLogo logo={activeCarrier.logo} size={24} />
-                    <Text style={[styles.carrierSelectorText, { color: colors.onSurface }]}>{activeCarrier.name}</Text>
+                    <Text style={[styles.carrierSelectorText, { color: colors.onSurface, flex: 1 }]} numberOfLines={1}>
+                      {activeCarrier.name}
+                    </Text>
                   </View>
                 ) : (
-                  <Text style={[styles.carrierSelectorPlaceholder, { color: colors.onSurfaceVariant }]}>{t('selectCarrier')}</Text>
+                  <View style={styles.carrierSelectorContent}>
+                    <Text style={[styles.carrierSelectorPlaceholder, { color: colors.onSurfaceVariant, flex: 1 }]} numberOfLines={1}>
+                      {t('selectCarrier')}
+                    </Text>
+                  </View>
                 )}
                 <MaterialIcons name="chevron-right" size={24} color={colors.outline} />
               </TouchableOpacity>
@@ -379,13 +385,15 @@ export const AddPackageScreen = () => {
               >
                 <View style={styles.carrierSelectorContent}>
                   <MaterialIcons name="location-on" size={24} color={colors.primary} />
-                  <View style={{ flex: 1 }}>
+                  <View style={{ flex: 1, justifyContent: 'center' }}>
                     <Text style={[styles.carrierSelectorText, { color: colors.onSurface }]} numberOfLines={1}>
                       {activeAddress?.title || 'Teslimat Adresi'}
                     </Text>
-                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }} numberOfLines={1}>
-                      {activeAddress?.district ? `${activeAddress.district}, ${activeAddress.city}` : (activeAddress?.fullAddress || '')}
-                    </Text>
+                    {activeAddress?.district ? (
+                      <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 1 }} numberOfLines={1}>
+                        {`${activeAddress.district}, ${activeAddress.city}`}
+                      </Text>
+                    ) : null}
                   </View>
                 </View>
                 <MaterialIcons name="chevron-right" size={24} color={colors.outline} />

@@ -9,7 +9,7 @@ Bu skill, "Kargo Takip" React Native (Expo + Supabase BaaS) uygulaması için tu
 
 ## Projenin Özü
 
-Kullanıcı farklı kargo firmalarındaki gönderilerini tek uygulamadan takip eder: hesap oluşturma, kargo numarası ekleme, anlık durum takibi, bildirimler, geçmiş gönderiler, light/dark tema. Özellikler: Supabase Auth, Supabase PostgreSQL, Supabase Realtime WebSocket canlı takip, Supabase Storage (teslimat kanıtı POD), harita canlı rota takibi (`react-native-maps`), OCR kargo etiketi tarama.
+Kullanıcı farklı kargo firmalarındaki gönderilerini tek uygulamadan takip eder: hesap oluşturma, kargo numarası ekleme, anlık durum takibi, bildirimler, geçmiş gönderiler, light/dark tema. Özellikler: Supabase Auth, Supabase PostgreSQL, Supabase Realtime WebSocket canlı takip, Supabase Storage (teslimat kanıtı POD), harita canlı rota takibi (`OpenStreetMap Leaflet`), OCR kargo etiketi tarama.
 
 ## Her Zaman Uygulanacak Temel Kurallar
 

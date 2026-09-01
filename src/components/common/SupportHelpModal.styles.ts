@@ -24,9 +24,9 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 16,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomColor: 'rgba(197, 197, 211, 0.25)',
   },
   titleRow: {
     flexDirection: 'row',
@@ -34,6 +34,7 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   title: {
+    fontFamily: 'Inter',
     fontSize: 18,
     fontWeight: '700',
   },
@@ -41,24 +42,23 @@ export const styles = StyleSheet.create({
     padding: 4,
   },
   scrollBody: {
-    marginVertical: 16,
+    marginVertical: 14,
   },
   contentGroup: {
     gap: 12,
   },
   qText: {
+    fontFamily: 'Inter',
     fontSize: 15,
     fontWeight: '700',
-    color: '#1f2937',
     marginTop: 8,
   },
   aText: {
+    fontFamily: 'Inter',
     fontSize: 14,
-    color: '#4b5563',
     lineHeight: 20,
   },
   actionPillBtn: {
-    backgroundColor: '#2563eb',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -69,6 +69,7 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
   actionPillText: {
+    fontFamily: 'Inter',
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '700',
@@ -81,6 +82,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
   },
   footerCloseBtnText: {
+    fontFamily: 'Inter',
     fontSize: 15,
     fontWeight: '700',
   },

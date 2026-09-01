@@ -147,7 +147,6 @@ export class AuthRepository {
   async signInWithGoogle(): Promise<{ session: Session | null; user: User | null; error: Error | null }> {
     try {
       const redirectUrl = makeRedirectUri({ path: 'auth/callback' });
-      console.log('[Google OAuth] Redirect URL:', redirectUrl);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -162,15 +161,12 @@ export class AuthRepository {
       });
 
       if (error) {
-        console.error('[Google OAuth] signInWithOAuth error:', error.message);
         return { session: null, user: null, error };
       }
 
       if (!data?.url) {
         return { session: null, user: null, error: new Error('Google OAuth URL alınamadı') };
       }
-
-      console.log('[Google OAuth] Opening browser:', data.url);
 
       // Android'de önceki oturumdan kalan browser state'ini temizle
       await WebBrowser.warmUpAsync();
@@ -180,10 +176,7 @@ export class AuthRepository {
       // Browser kaynağını serbest bırak (Android Custom Tab kalıntısını önler)
       await WebBrowser.coolDownAsync();
 
-      console.log('[Google OAuth] Browser result:', result.type);
-
       if (result.type === 'success' && result.url) {
-        console.log('[Google OAuth] Direct callback URL received:', result.url);
         return await this.handleCallbackUrl(result.url);
       }
 
@@ -192,14 +185,12 @@ export class AuthRepository {
       await new Promise((r) => setTimeout(r, 600));
       const { data: existing } = await supabase.auth.getSession();
       if (existing?.session) {
-        console.log('[Google OAuth] Session resolved after browser close');
         return { session: existing.session, user: existing.session.user, error: null };
       }
 
       // Kullanıcı iptal etti veya oturum oluşmadı
       return { session: null, user: null, error: null };
     } catch (err) {
-      console.error('[Google OAuth] Error:', err);
       return {
         session: null,
         user: null,
@@ -220,7 +211,6 @@ export class AuthRepository {
 
     // Eğer şu an çalışan bir exchange varsa, aynı Promise'i bekle
     if (this._inFlightExchange) {
-      console.log('[OAuth Callback] Exchange already in-flight, awaiting existing promise...');
       return this._inFlightExchange;
     }
 
@@ -235,8 +225,6 @@ export class AuthRepository {
 
   private async _executeCallbackExchange(url: string): Promise<{ session: Session | null; user: User | null; error: Error | null }> {
     try {
-      console.log('[OAuth Callback] Processing URL:', url);
-
       // 1. PKCE code parametresini güvenli regex ile çek
       const codeMatch = url.match(/[?&#]code=([^&]+)/);
       const code = codeMatch ? decodeURIComponent(codeMatch[1]) : null;
@@ -244,7 +232,6 @@ export class AuthRepository {
       if (code) {
         // Aynı code daha önce işlendiyse, mevcut session'ı dön
         if (this._processedCodes.has(code)) {
-          console.log('[OAuth Callback] Code already processed, returning existing session...');
           const { data: existing } = await supabase.auth.getSession();
           return { session: existing.session, user: existing.session?.user || null, error: null };
         }
@@ -253,11 +240,9 @@ export class AuthRepository {
         this._processedCodes.add(code);
         setTimeout(() => this._processedCodes.delete(code), 5 * 60 * 1000);
 
-        console.log('[OAuth Callback] Exchanging code for session...');
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (error) {
-          console.error('[OAuth Callback] Code exchange error:', error.message);
           return { session: null, user: null, error };
         }
 
@@ -275,10 +260,8 @@ export class AuthRepository {
         const access_token = decodeURIComponent(accessTokenMatch[1]);
         const refresh_token = decodeURIComponent(refreshTokenMatch[1]);
 
-        console.log('[OAuth Callback] Setting session from token params...');
         const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
         if (error) {
-          console.error('[OAuth Callback] setSession error:', error.message);
           return { session: null, user: null, error };
         }
 
@@ -290,7 +273,6 @@ export class AuthRepository {
 
       return { session: null, user: null, error: new Error('Callback URL geçerli bir oturum kodu veya token içermiyor') };
     } catch (err) {
-      console.error('[OAuth Callback] Exception:', err);
       return {
         session: null,
         user: null,
@@ -306,8 +288,6 @@ export class AuthRepository {
       const fullName = meta.full_name || meta.name || user.email?.split('@')[0] || 'Kullanıcı';
       const avatarUrl = meta.avatar_url || meta.picture || null;
 
-      console.log('[AuthRepository] Syncing profile for user:', user.email, 'Avatar:', avatarUrl);
-
       const profileData: Partial<UserProfile> = {
         id: user.id,
         full_name: fullName,
@@ -318,16 +298,13 @@ export class AuthRepository {
       let { error } = await supabase.from('users').upsert(profileData as any);
 
       if (error && error.message?.includes('JWT issued at future')) {
-        console.warn('[AuthRepository] Clock skew detected (JWT issued at future). Retrying profile sync in 1s...');
         await new Promise((resolve) => setTimeout(resolve, 1000));
         const retryResult = await supabase.from('users').upsert(profileData as any);
         error = retryResult.error;
       }
 
-      if (error) console.error('[AuthRepository] Error syncing user profile:', error.message);
       return { error: error || null };
     } catch (err) {
-      console.error('[AuthRepository] Exception syncing profile:', err);
       return { error: err instanceof Error ? err : new Error('Profile sync failed') };
     }
   }

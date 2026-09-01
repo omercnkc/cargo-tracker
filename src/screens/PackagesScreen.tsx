@@ -92,7 +92,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     destination: 'İZM',
     progress: 60,
     deliveryDateLabel: t('deliveryDateLabel'),
-    deliveryDateValue: 'Bugün Dağıtım Bekliyor',
+    deliveryDateValue: 'Bugün, 16:30\'a kadar',
     createdAt: '2026-08-15',
   },
   {
@@ -108,7 +108,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     destination: 'ANK',
     progress: 100,
     deliveryDateLabel: t('deliveredDateLabel'),
-    deliveryDateValue: 'Dün, 16:30',
+    deliveryDateValue: '14 Ağustos, 16:30',
     createdAt: '2026-08-14',
   },
   {
@@ -124,7 +124,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     destination: 'İZM',
     progress: 0,
     deliveryDateLabel: t('deliveryDateLabel'),
-    deliveryDateValue: 'Sipariş Hazırlanıyor',
+    deliveryDateValue: '22 Ağustos Cuma, 18:00',
     createdAt: '2026-08-18',
   },
   {
@@ -140,7 +140,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     destination: 'ANT',
     progress: 20,
     deliveryDateLabel: t('deliveryDateLabel'),
-    deliveryDateValue: '2 Gün İçinde',
+    deliveryDateValue: '20 Ağustos Çarşamba, 13:00',
     createdAt: '2026-08-17',
   },
   {
@@ -156,7 +156,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     destination: 'İST',
     progress: 50,
     deliveryDateLabel: t('deliveryDateLabel'),
-    deliveryDateValue: '3 Gün İçinde (Gümrük Geçildi)',
+    deliveryDateValue: '21 Ağustos Perşembe, 17:00',
     createdAt: '2026-08-16',
   },
   {
@@ -172,7 +172,7 @@ const getInitialPackages = (t: any): PackageItem[] => [
     destination: 'İST',
     progress: 100,
     deliveryDateLabel: t('deliveredDateLabel'),
-    deliveryDateValue: '3 Gün Önce Teslim Edildi',
+    deliveryDateValue: '13 Ağustos Çarşamba, 14:10',
     createdAt: '2026-08-13',
   },
 ];
@@ -262,8 +262,12 @@ export const PackagesScreen = () => {
         const progressInfo = getShipmentProgress(rawStatus);
         const carrierInfo = resolveShipmentCarrier(s);
         const isCustomTitle = s.title && s.title !== carrierInfo.name;
-        let deliveryDateVal = s.estimated_delivery || (language === 'en' ? 'Soon' : 'Yakında');
-        if (s.delivered_at) {
+        let deliveryDateVal = s.estimated_delivery;
+        if (!deliveryDateVal) {
+          const baseDate = s.created_at ? new Date(s.created_at) : new Date();
+          const estDate = new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+          deliveryDateVal = `${formatDateDDMMYYYY(estDate.toISOString())}, 18:00'e kadar`;
+        } else if (s.delivered_at) {
           deliveryDateVal = formatDateDDMMYYYY(s.delivered_at);
         } else if (s.estimated_delivery && s.estimated_delivery.includes('-') && !isNaN(Date.parse(s.estimated_delivery))) {
           deliveryDateVal = formatDateDDMMYYYY(s.estimated_delivery);

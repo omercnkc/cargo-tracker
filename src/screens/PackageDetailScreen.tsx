@@ -22,6 +22,7 @@ import { LocationPoint } from '../types/location';
 import { resolveShipmentCarrier, getCarrierByName } from '../constants/carriers';
 import { CarrierLogo } from '../components/common/CarrierLogo';
 import { getShipmentProgress, translateTimelineEvent } from '../utils/shipmentUtils';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { hapticService } from '../services/haptics.service';
 import { getMockShipmentDetailsMap } from '../mock/fallbackPackages';
 import { styles } from './PackageDetailScreen.styles';
@@ -58,7 +59,7 @@ export const PackageDetailScreen = () => {
     if (activeDefaultAddress?.fullAddress) {
       return `${name}\n${activeDefaultAddress.fullAddress}`;
     }
-    return `${name}\n${activeDefaultAddress?.district || 'Beşiktaş'}, ${activeDefaultAddress?.city || 'İstanbul'}`;
+    return `${name}\nTeslimat Adresi`;
   }, [currentUserName, activeDefaultAddress]);
 
   const userDbShipment = useMemo(() => {
@@ -83,8 +84,8 @@ export const PackageDetailScreen = () => {
         current_status: p.status || p.current_status || 'transit',
         sender: p.origin || 'Gönderici',
         receiver: defaultReceiverAddr,
-        last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
-        estimated_delivery: p.deliveryDateValue || 'Yakında',
+        last_location: activeDefaultAddress ? `${activeDefaultAddress.district} Dağıtım Bölgesi, ${activeDefaultAddress.city}` : 'Aktarma Merkezi',
+        estimated_delivery: p.deliveryDateValue || '2 İş Günü İçinde (18:00\'e kadar)',
         courier_companies: { name: p.companyName || 'Kargo' },
       };
     }
@@ -99,8 +100,8 @@ export const PackageDetailScreen = () => {
         current_status: 'transit',
         sender: 'Satıcı / Gönderici Firma',
         receiver: defaultReceiverAddr,
-        last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
-        estimated_delivery: '1-2 Gün İçinde',
+        last_location: activeDefaultAddress ? `${activeDefaultAddress.district} Dağıtım Bölgesi, ${activeDefaultAddress.city}` : 'Aktarma Merkezi',
+        estimated_delivery: '2 İş Günü İçinde (18:00\'e kadar)',
         courier_companies: { name: carrierMatch?.name || route.params?.companyName || 'Kargo Firması' },
         shipment_events: [
           { id: 'e1', status: 'Transfer Merkezinde', description: 'Transfer merkezinde işlem görüyor.', location: activeDefaultAddress?.city || 'İstanbul', event_time: 'Bugün, 10:30' },
@@ -116,13 +117,13 @@ export const PackageDetailScreen = () => {
       current_status: 'out_for_delivery',
       sender: 'Trendyol Satıcısı',
       receiver: defaultReceiverAddr,
-      last_location: `${activeDefaultAddress?.district || 'Beşiktaş'} Dağıtım Bölgesi, ${activeDefaultAddress?.city || 'İstanbul'}`,
+      last_location: activeDefaultAddress ? `${activeDefaultAddress.district} Dağıtım Bölgesi, ${activeDefaultAddress.city}` : 'Dağıtım Şubesi',
       estimated_delivery: 'Bugün, 14:00 - 18:00',
       courier_companies: { name: 'Trendyol Express' },
       shipment_events: [
-        { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: `${activeDefaultAddress?.district || 'Beşiktaş'} Şubesi`, event_time: 'Bugün, 09:15' },
-        { id: 'e2', status: 'Transfer Merkezinde', description: 'Avrupa Yakası Aktarma Merkezi', location: activeDefaultAddress?.city || 'İstanbul', event_time: 'Dün, 22:45' },
-        { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'İzmir', event_time: 'Dün, 14:10' },
+        { id: 'e1', status: 'Dağıtıma Çıkarıldı', description: 'Kurye teslimat adresinize doğru yola çıktı.', location: 'Dağıtım Şubesi', event_time: 'Bugün, 09:15' },
+        { id: 'e2', status: 'Transfer Merkezinde', description: 'Aktarma Merkezi', location: 'Transfer Merkezi', event_time: 'Dün, 22:45' },
+        { id: 'e3', status: 'Sipariş Alındı', description: 'Gönderici kargoyu şubeye teslim etti.', location: 'Çıkış Şubesi', event_time: 'Dün, 14:10' },
       ]
     };
   }, [shipment, userDbShipment, shipmentId, mockShipmentDetailsMap, defaultReceiverAddr, activeDefaultAddress, route.params]);
@@ -146,46 +147,16 @@ export const PackageDetailScreen = () => {
       if (matched) return matched;
     }
 
-    if (receiverText.includes('levent')) {
-      return {
-        id: 'addr_levent',
-        title: 'İş Yeri (Ofis)',
-        fullName: currentUserName || 'Kullanıcı',
-        phone: '',
-        city: 'İstanbul',
-        district: 'Levent',
-        fullAddress: 'Büyükdere Cad. No:199 K:12, Levent / İstanbul',
-        latitude: 41.0778,
-        longitude: 29.0112,
-        isDefault: false,
-      };
-    }
-
-    if (receiverText.includes('beşiktaş') || receiverText.includes('besiktas')) {
-      return {
-        id: 'addr_besiktas',
-        title: 'Ev Adresim',
-        fullName: currentUserName || 'Kullanıcı',
-        phone: '',
-        city: 'İstanbul',
-        district: 'Beşiktaş',
-        fullAddress: 'Cihannüma Mah. Barbaros Bulvarı No:42 D:5, Beşiktaş / İstanbul',
-        latitude: 41.0425,
-        longitude: 29.0068,
-        isDefault: false,
-      };
-    }
-
-    return activeDefaultAddress;
-  }, [displayShipment.receiver, savedAddresses, currentUserName, activeDefaultAddress]);
+    return activeDefaultAddress || null;
+  }, [displayShipment.receiver, savedAddresses, activeDefaultAddress]);
 
   const nowMs = Date.now();
 
   // Alıcı (User) Teslimat Adresi Konumu (Kargonun Kayıtlı Alıcı Adresi)
   const mapDestination: LocationPoint = useMemo(() => {
-    const lat = shipmentReceiverAddress?.latitude || 41.0425;
-    const lng = shipmentReceiverAddress?.longitude || 29.0068;
-    const receiverFullName = currentUserName || (shipmentReceiverAddress?.fullName !== 'Ahmet Yılmaz' ? shipmentReceiverAddress?.fullName : null) || 'Kullanıcı';
+    const lat = shipmentReceiverAddress?.latitude || 41.0082; // İstanbul merkez
+    const lng = shipmentReceiverAddress?.longitude || 28.9784;
+    const receiverFullName = currentUserName || shipmentReceiverAddress?.fullName || 'Kullanıcı';
     const destTitle = shipmentReceiverAddress?.title
       ? `${shipmentReceiverAddress.title} - ${receiverFullName}`
       : (receiverFullName || 'Teslimat Adresi');
@@ -194,7 +165,7 @@ export const PackageDetailScreen = () => {
       latitude: lat,
       longitude: lng,
       title: destTitle,
-      description: shipmentReceiverAddress?.fullAddress || displayShipment.receiver || 'Beşiktaş, İstanbul',
+      description: shipmentReceiverAddress?.fullAddress || displayShipment.receiver || 'Teslimat Adresi',
       recordedAt: new Date(nowMs).toISOString(),
     };
   }, [shipmentReceiverAddress, displayShipment.receiver, currentUserName, nowMs]);
@@ -311,7 +282,9 @@ export const PackageDetailScreen = () => {
                 
                 <View style={styles.infoGroup}>
                   <Text style={[styles.infoLabel, { color: colors.onSurfaceVariant }]}>{t('estimatedDelivery')}</Text>
-                  <Text style={[styles.infoValuePrimary, { color: colors.onBackground }]}>{displayShipment.estimated_delivery || 'Bugün, 14:00 - 18:00'}</Text>
+                  <Text style={[styles.infoValuePrimary, { color: colors.onBackground }]}>
+                    {displayShipment.estimated_delivery ? formatDateDDMMYYYY(displayShipment.estimated_delivery) : formatDateDDMMYYYY(new Date())}
+                  </Text>
                 </View>
                 
                 <View style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
