@@ -33,19 +33,19 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
     Animated.parallel([
       Animated.timing(logoOpacity, {
         toValue: 1,
-        duration: 700,
+        duration: 450,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
       Animated.timing(logoScale, {
         toValue: 1,
-        duration: 700,
-        easing: Easing.out(Easing.back(1.4)),
+        duration: 450,
+        easing: Easing.out(Easing.back(1.3)),
         useNativeDriver: true,
       }),
       Animated.timing(logoTranslateY, {
         toValue: 0,
-        duration: 700,
+        duration: 450,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
@@ -53,17 +53,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
     // 2. Kamyon ve yükleniyor bölümü fade-in (gecikmeli)
     Animated.sequence([
-      Animated.delay(250),
+      Animated.delay(120),
       Animated.parallel([
         Animated.timing(loaderOpacity, {
           toValue: 1,
-          duration: 600,
+          duration: 400,
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(loaderTranslateY, {
           toValue: 0,
-          duration: 600,
+          duration: 400,
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
@@ -74,17 +74,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
     const roadLoop = Animated.loop(
       Animated.timing(roadTranslateX, {
         toValue: -16,
-        duration: 450,
+        duration: 400,
         easing: Easing.linear,
         useNativeDriver: true,
       })
     );
     roadLoop.start();
 
-    // 4. ~1.8 saniye sonra yumuşak geçişle (fade-out) ana ekrana devret
+    // 4. ~1.1 saniye sonra yumuşak geçişle (fade-out) ana ekrana devret
     const timer = setTimeout(() => {
       handleExit();
-    }, 1800);
+    }, 1100);
 
     return () => {
       clearTimeout(timer);
@@ -96,7 +96,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
     if (!onFinish) return;
     Animated.timing(screenOpacity, {
       toValue: 0,
-      duration: 350,
+      duration: 250,
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
     }).start(() => {

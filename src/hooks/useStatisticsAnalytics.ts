@@ -163,7 +163,7 @@ export const useStatisticsAnalytics = (shipmentsData: any[] | undefined, languag
       return {
         label,
         count,
-        pct: `%${pct}`,
+        pct: language === 'en' ? `${pct}%` : `%${pct}`,
         fraction,
         color: COURIER_CHART_COLORS[index % COURIER_CHART_COLORS.length],
       };

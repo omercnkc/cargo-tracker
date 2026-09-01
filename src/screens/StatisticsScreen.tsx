@@ -387,7 +387,9 @@ export const StatisticsScreen = () => {
 
                 {courierStats.breakdown.length === 0 ? (
                   <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
-                    {selectedMonthLabel ? `${selectedMonthLabel} için kargo kaydı yok.` : 'Henüz kayıtlı kargo bulunmuyor.'}
+                    {selectedMonthLabel
+                      ? (language === 'en' ? `No shipments found for ${selectedMonthLabel}.` : `${selectedMonthLabel} ${t('noShipmentsForMonth')}`)
+                      : (t('noShipmentsYet') || (language === 'en' ? 'No shipments recorded yet.' : 'Henüz kayıtlı kargo bulunmuyor.'))}
                   </Text>
                 ) : (
                   <View style={styles.legendContainer}>
@@ -395,6 +397,9 @@ export const StatisticsScreen = () => {
                       const isSelected = selectedCarrier === item.label;
                       const hasSelection = Boolean(selectedCarrier);
                       const rowOpacity = isSelected ? 1 : hasSelection ? 0.35 : 1;
+                      const unitLabel = language === 'en'
+                        ? (item.count === 1 ? 'package' : 'packages')
+                        : (t('cargoUnit') || 'kargo');
 
                       return (
                         <View
@@ -426,7 +431,7 @@ export const StatisticsScreen = () => {
                               { color: colors.onSurface },
                               isSelected && { fontWeight: '700', color: item.color }
                             ]}>
-                              {item.count} kargo ({item.pct})
+                              {item.count} {unitLabel} ({item.pct})
                             </Text>
                             {isSelected && (
                               <MaterialIcons name="check" size={16} color={item.color} />
